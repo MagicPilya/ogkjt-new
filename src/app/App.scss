@@ -1,0 +1,12 @@
+@import url('../components/header/header.scss');
+@import url('../components/content/content.scss');
+@import url('../components/footer/footer.scss');
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  font-size: 50px;
+}
+
