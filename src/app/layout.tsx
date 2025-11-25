@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
-import { Footer } from "@/components/layout/Footer";
+import { FooterWrapper } from "@/components/layout/FooterWrapper";
 import { QuickAccessPanel } from "@/components/blocks/QuickAccessPanel";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 export const metadata: Metadata = {
-  title: "Минский государственный железнодорожный колледж",
-  description: "Официальный сайт МГЖК. Подготовка специалистов для железнодорожного транспорта.",
+  title: "Оршанский колледж - филиал БелГУТ",
+  description: "Официальный сайт Оршанского колледжа - филиала учреждения образования «Белорусский государственный университет транспорта».",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
           {children}
         </main>
         <QuickAccessPanel />
-        <Footer />
+        <FooterWrapper />
       </body>
     </html>
   );

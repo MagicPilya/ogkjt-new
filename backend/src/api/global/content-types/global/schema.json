@@ -16,6 +16,31 @@
       "type": "component",
       "repeatable": true,
       "component": "elements.menu-section"
+    },
+    "address": {
+      "type": "string",
+      "default": "г. Орша, ул. Ленина, 1"
+    },
+    "phoneReception": {
+      "type": "string",
+      "default": "+375 (216) 51-23-45"
+    },
+    "phoneDirector": {
+      "type": "string",
+      "default": "+375 (216) 51-23-46"
+    },
+    "email": {
+      "type": "email",
+      "default": "info@ogkjt.by"
+    },
+    "instagramLink": {
+      "type": "string"
+    },
+    "telegramLink": {
+      "type": "string"
+    },
+    "tiktokLink": {
+      "type": "string"
     }
   }
 }

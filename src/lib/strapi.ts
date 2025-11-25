@@ -53,6 +53,13 @@ export interface GlobalSettings {
   id: number;
   documentId: string;
   mainMenu: MenuSection[];
+  address: string;
+  phoneReception: string;
+  phoneDirector: string;
+  email: string;
+  instagramLink: string | null;
+  telegramLink: string | null;
+  tiktokLink: string | null;
 }
 
 // ...

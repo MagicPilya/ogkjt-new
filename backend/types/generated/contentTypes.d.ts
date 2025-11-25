@@ -506,9 +506,13 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    address: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'\u0433. \u041E\u0440\u0448\u0430, \u0443\u043B. \u041B\u0435\u043D\u0438\u043D\u0430, 1'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    email: Schema.Attribute.Email & Schema.Attribute.DefaultTo<'info@ogkjt.by'>;
+    instagramLink: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -516,7 +520,13 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
     > &
       Schema.Attribute.Private;
     mainMenu: Schema.Attribute.Component<'elements.menu-section', true>;
+    phoneDirector: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'+375 (216) 51-23-46'>;
+    phoneReception: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'+375 (216) 51-23-45'>;
     publishedAt: Schema.Attribute.DateTime;
+    telegramLink: Schema.Attribute.String;
+    tiktokLink: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
