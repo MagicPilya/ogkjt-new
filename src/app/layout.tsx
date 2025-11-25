@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
+import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
 import { Footer } from "@/components/layout/Footer";
+import { QuickAccessPanel } from "@/components/blocks/QuickAccessPanel";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -19,10 +20,11 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${inter.className} min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950`} suppressHydrationWarning>
-        <Header />
+        <HeaderWrapper />
         <main className="flex-1">
           {children}
         </main>
+        <QuickAccessPanel />
         <Footer />
       </body>
     </html>
