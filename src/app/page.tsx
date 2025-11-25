@@ -8,8 +8,22 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Hero />
       <Features />
+      
+      <section className="py-16 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
+            {/* Левая колонка: Новости (занимает больше места) */}
+            <div className="lg:col-span-8 xl:col-span-9">
       <NewsGrid />
+            </div>
+            
+            {/* Правая колонка: Календарь и События */}
+            <div className="lg:col-span-4 xl:col-span-3">
       <Events />
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

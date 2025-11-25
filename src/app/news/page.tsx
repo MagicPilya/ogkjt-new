@@ -16,12 +16,12 @@ export default async function NewsPage() {
     const { data: articles } = await getArticles(1, 50); // Fetch more articles for the main list
 
     return (
-        <div className="container py-12">
-            <div className="mb-10">
+        <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
+            <div className="mb-10 text-center">
                 <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
                     Новости колледжа
                 </h1>
-                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
+                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
                     Будьте в курсе последних событий, достижений наших студентов и важных объявлений.
                 </p>
             </div>
@@ -31,7 +31,7 @@ export default async function NewsPage() {
                     const imageUrl = getStrapiMedia(item.cover?.url || null);
 
                     return (
-                        <Card key={item.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                        <Card key={item.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow text-center">
                             <div className="relative h-48 w-full overflow-hidden bg-slate-100">
                                 {imageUrl ? (
                                     <Image
@@ -48,7 +48,7 @@ export default async function NewsPage() {
                                 )}
                             </div>
                             <CardHeader>
-                                <div className="flex items-center text-sm text-slate-500 mb-2">
+                                <div className="flex items-center justify-center text-sm text-slate-500 mb-2">
                                     <Calendar className="mr-2 h-4 w-4" />
                                     {item.date ? formatDate(item.date) : "Без даты"}
                                 </div>
@@ -63,7 +63,7 @@ export default async function NewsPage() {
                                     {item.announcement}
                                 </p>
                             </CardContent>
-                            <CardFooter>
+                            <CardFooter className="justify-center">
                                 <Button variant="link" className="p-0 h-auto font-semibold text-blue-600" asChild>
                                     <Link href={`/news/${item.slug}`}>
                                         Читать далее

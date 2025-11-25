@@ -26,7 +26,7 @@ const features = [
 export function Features() {
     return (
         <section className="py-24 bg-white dark:bg-slate-950">
-            <div className="container">
+            <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl mb-4">
                         Почему выбирают нас?

@@ -8,6 +8,7 @@ import {
     Sheet,
     SheetContent,
     SheetTrigger,
+    SheetTitle,
 } from "@/components/ui/sheet";
 import {
     NavigationMenu,
@@ -100,43 +101,43 @@ export function Header({ initialMenu }: HeaderProps) {
         <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-slate-950 shadow-sm">
             {/* Уровень 1: Служебный функционал */}
             <div className="bg-slate-50 dark:bg-slate-900 border-b py-2">
-                <div className="container flex items-center justify-between text-sm">
+                <div className="w-full px-4 md:px-8 flex items-center justify-between text-xs sm:text-sm">
                     <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
-                         {/* Скрываем полное название на мобильном, оставляем лого в главном баре */}
-                        <span className="hidden md:inline-block font-medium">Минский государственный железнодорожный колледж</span>
+                        <span className="hidden md:inline-block">Оршанский колледж - филиал учреждения образования «Белорусский государственный университет транспорта»</span>
+                        <span className="md:hidden">Оршанский колледж - филиал БелГУТа</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="sm" className="h-8 text-slate-600 dark:text-slate-300">
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">Версия для слабовидящих</span>
-                        </Button>
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <Button variant="ghost" size="sm" className="h-8 text-slate-600 dark:text-slate-300">
                             <Search className="mr-2 h-4 w-4" />
                             <span className="hidden sm:inline">Поиск</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 text-slate-600 dark:text-slate-300">
+                            <Eye className="mr-2 h-4 w-4" />
+                            <span className="hidden sm:inline">Версия для слабовидящих</span>
                         </Button>
                     </div>
                 </div>
             </div>
 
             {/* Уровень 2: Лого и Главное меню */}
-            <div className="container flex h-20 items-center justify-between">
-                <div className="flex items-center gap-8">
-                    <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-full px-4 md:px-8 relative flex h-24 items-center">
+                <div className="flex items-center gap-8 shrink-0 z-10">
+                    <Link href="/" className="flex items-center gap-4 group">
                         {/* Логотип */}
-                        <div className="h-12 w-12 relative bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:bg-blue-700 transition-colors">
+                        <div className="h-14 w-14 relative bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl group-hover:bg-blue-700 transition-colors shrink-0">
                             ЖК
                         </div>
                         <div className="flex flex-col">
-                            <span className="font-bold text-lg leading-tight text-slate-900 dark:text-white group-hover:text-blue-700 transition-colors">
-                                МГЖК
+                            <span className="font-bold text-xl leading-tight text-slate-900 dark:text-white group-hover:text-blue-700 transition-colors">
+                                Оршанский колледж
                             </span>
-                            <span className="text-xs text-slate-500 font-medium">филиал БелГУТ</span>
+                            <span className="text-sm text-slate-500 font-medium">филиал БелГУТа</span>
                         </div>
                     </Link>
                 </div>
 
-                {/* Desktop Navigation */}
-                <div className="hidden xl:flex">
+                {/* Desktop Navigation - Centered */}
+                <div className="hidden xl:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <NavigationMenu>
                         <NavigationMenuList>
                             {menuItems.map((item) => (
@@ -180,15 +181,17 @@ export function Header({ initialMenu }: HeaderProps) {
                 </div>
 
                 {/* Mobile Menu Button */}
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon" className="xl:hidden" suppressHydrationWarning>
-                            <Menu className="h-6 w-6" />
-                            <span className="sr-only">Меню</span>
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto">
-                        <div className="flex flex-col gap-6 mt-8">
+                <div className="xl:hidden shrink-0 ml-auto">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" suppressHydrationWarning>
+                                <Menu className="h-6 w-6" />
+                                <span className="sr-only">Меню</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto">
+                            <SheetTitle className="sr-only">Меню навигации</SheetTitle>
+                            <div className="flex flex-col gap-6 mt-8">
                              {menuItems.map((item) => (
                                 <div key={item.id} className="flex flex-col gap-2">
                                     {item.links && item.links.length > 0 ? (
@@ -221,6 +224,7 @@ export function Header({ initialMenu }: HeaderProps) {
                         </div>
                     </SheetContent>
                 </Sheet>
+                </div>
             </div>
         </header>
     );

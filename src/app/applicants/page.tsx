@@ -118,9 +118,9 @@ export default async function ApplicantsPage() {
                 </Card>
             </div>
 
-            <div className="mb-12">
+            <div className="mb-12 text-center">
                 <h2 className="text-2xl font-bold mb-6">Наши специальности</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                     {[
                         "Техническая эксплуатация подвижного состава",
                         "Организация перевозок и управление на железнодорожном транспорте",

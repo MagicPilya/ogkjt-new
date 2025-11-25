@@ -9,10 +9,10 @@ export function Logo() {
             </div>
             <div className="flex flex-col leading-none">
                 <span className="font-bold text-lg text-slate-900 dark:text-slate-100">
-                    ЖД Колледж
+                    Оршанский колледж
                 </span>
                 <span className="text-xs text-slate-500 font-medium">
-                    Минский государственный
+                    Филиал БелГУТа
                 </span>
             </div>
         </Link>

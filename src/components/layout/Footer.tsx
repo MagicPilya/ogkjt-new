@@ -15,16 +15,18 @@ export function Footer({ settings }: FooterProps) {
 
     return (
         <footer className="bg-slate-50 border-t dark:bg-slate-950">
-            <div className="container py-10">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div className="col-span-1 md:col-span-1">
-                        <Logo />
-                        <p className="mt-4 text-sm text-slate-500">
-                            Подготовка квалифицированных специалистов для железнодорожного транспорта.
-                        </p>
+            <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+                    <div className="col-span-1 md:col-span-1 flex flex-col items-center">
+                        <Logo className="h-16 w-16 text-3xl" />
+                        <div className="mt-4 font-bold text-slate-900 dark:text-white">
+                            Оршанский колледж - <br />
+                            филиал учреждения образования <br />
+                            "Белорусский государственный университет транспорта"
+                        </div>
                         
                         {/* Social Links */}
-                        <div className="flex gap-4 mt-6">
+                        <div className="flex gap-4 mt-6 justify-center">
                             {settings?.instagramLink && (
                                 <a href={settings.instagramLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors">
                                     <Instagram className="h-5 w-5" />
@@ -46,18 +48,20 @@ export function Footer({ settings }: FooterProps) {
                         </div>
                     </div>
 
-                    <div>
-                        <h3 className="font-semibold mb-4">Навигация</h3>
+                    <div className="flex flex-col items-center">
+                        <h3 className="font-semibold mb-4 text-lg">Навигация</h3>
                         <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                            <li><Link href="/about" className="hover:text-blue-600">О колледже</Link></li>
                             <li><Link href="/news" className="hover:text-blue-600">Новости</Link></li>
+                            <li><Link href="/about" className="hover:text-blue-600">О колледже</Link></li>
                             <li><Link href="/applicants" className="hover:text-blue-600">Абитуриентам</Link></li>
+                            <li><Link href="/students" className="hover:text-blue-600">Обучающимся</Link></li>
+                            <li><Link href="/ideology" className="hover:text-blue-600">Воспитательная работа</Link></li>
                             <li><Link href="/one-window" className="hover:text-blue-600">Одно окно</Link></li>
                         </ul>
                     </div>
 
-                    <div>
-                        <h3 className="font-semibold mb-4">Ресурсы</h3>
+                    <div className="flex flex-col items-center">
+                        <h3 className="font-semibold mb-4 text-lg">Ресурсы</h3>
                         <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
                             <li><a href="https://president.gov.by" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">Сайт Президента РБ</a></li>
                             <li><a href="https://edu.gov.by" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">Министерство образования</a></li>
@@ -66,8 +70,8 @@ export function Footer({ settings }: FooterProps) {
                         </ul>
                     </div>
 
-                    <div>
-                        <h3 className="font-semibold mb-4">Контакты</h3>
+                    <div className="flex flex-col items-center">
+                        <h3 className="font-semibold mb-4 text-lg">Контакты</h3>
                         <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
                             <li>{address}</li>
                             <li>
@@ -88,7 +92,7 @@ export function Footer({ settings }: FooterProps) {
                 </div>
 
                 <div className="mt-10 pt-6 border-t text-center text-sm text-slate-500">
-                    © {new Date().getFullYear()} Оршанский колледж - филиал БелГУТ. Все права защищены.
+                    © {new Date().getFullYear()} Оршанский колледж - филиал учреждения образования «Белорусский государственный университет транспорта». Все права защищены.
                 </div>
             </div>
         </footer>

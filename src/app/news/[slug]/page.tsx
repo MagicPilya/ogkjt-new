@@ -48,16 +48,18 @@ export default async function NewsDetailPage({ params }: Props) {
 
     return (
         <div className="container py-12 max-w-4xl">
-            <Button variant="ghost" className="mb-8 pl-0 hover:bg-transparent hover:text-blue-600" asChild>
-                <Link href="/news">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Вернуться к новостям
-                </Link>
-            </Button>
+            <div className="flex justify-center mb-8">
+                <Button variant="ghost" className="pl-0 hover:bg-transparent hover:text-blue-600" asChild>
+                    <Link href="/news">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Вернуться к новостям
+                    </Link>
+                </Button>
+            </div>
 
             <article>
-                <div className="mb-8">
-                    <div className="flex items-center text-sm text-slate-500 mb-4">
+                <div className="mb-8 text-center">
+                    <div className="flex items-center justify-center text-sm text-slate-500 mb-4">
                         <Calendar className="mr-2 h-4 w-4" />
                         {item.date ? formatDate(item.date) : "Без даты"}
                     </div>
