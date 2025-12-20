@@ -8,8 +8,8 @@ import { QuickAccessPanel } from "@/components/blocks/QuickAccessPanel";
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 export const metadata: Metadata = {
-  title: "Оршанский колледж - филиал БелГУТ",
-  description: "Официальный сайт Оршанского колледжа - филиала учреждения образования «Белорусский государственный университет транспорта».",
+  title: "Оршанский колледж - филиал БелГУТа",
+  description: "Официальный сайт Оршанского колледжа – филиала учреждения образования «Белорусский государственный университет транспорта».",
 };
 
 export default function RootLayout({

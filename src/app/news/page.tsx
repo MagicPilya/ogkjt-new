@@ -8,7 +8,7 @@ import { formatDate, getStrapiMedia } from "@/lib/utils";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-    title: "Новости | Минский государственный железнодорожный колледж",
+    title: "Новости | Оршанский колледж – филиал БелГУТа",
     description: "Последние новости и события МГЖК.",
 };
 
