@@ -12,6 +12,11 @@ interface StrapiResponse<T> {
   };
 }
 
+interface StrapiSingleResponse<T> {
+  data: T;
+  meta: Record<string, unknown>;
+}
+
 export interface StrapiImage {
   id: number;
   documentId: string;
@@ -20,6 +25,19 @@ export interface StrapiImage {
   caption: string | null;
   width: number;
   height: number;
+}
+
+export interface Event {
+  id: number;
+  documentId: string;
+  title: string;
+  date: string;
+  location?: string | null;
+  description?: any;
+  file?: StrapiImage | null;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 
 export interface Article {
@@ -156,5 +174,26 @@ export async function getEvents(limit = 3) {
     next: { revalidate: 60 }
   });
   return data;
+}
+
+/**
+ * Get single event by id
+ *
+ * Используем список с фильтром по id, чтобы не зависеть
+ * от маршрута /events/:id (который у тебя даёт 404).
+ */
+export async function getEventById(id: number | string) {
+  const data = await fetchAPI<StrapiResponse<Event[]>>(
+    "/events",
+    {
+      "filters[id][$eq]": String(id),
+      populate: "*",
+    },
+    {
+      next: { revalidate: 60 },
+    }
+  );
+
+  return data.data?.[0] || null;
 }
 
