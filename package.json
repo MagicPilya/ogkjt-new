@@ -3,7 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "install:all": "npm install && npm --prefix backend install",
+    "dev:web": "next dev",
+    "dev:cms": "npm --prefix backend run develop",
+    "dev": "concurrently -n web,cms -c blue,magenta \"npm run dev:web\" \"npm run dev:cms\"",
+    "build:cms": "npm --prefix backend run build",
+    "build:all": "npm run build && npm run build:cms",
+    "start:cms": "npm --prefix backend run start",
+    "start:all": "concurrently -n web,cms -c blue,magenta \"npm run start\" \"npm run start:cms\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -30,6 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.22",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "postcss": "^8.5.6",

@@ -2,23 +2,33 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, install all dependencies (frontend + Strapi backend) from the project root:
+
+```bash
+npm run install:all
+```
+
+Then run the development servers:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This will start:
+- Next.js frontend at [http://localhost:3000](http://localhost:3000)
+- Strapi admin panel at [http://localhost:1337/admin](http://localhost:1337/admin)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can also run them separately:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# только фронтенд (Next.js)
+npm run dev:web
+
+# только CMS (Strapi)
+npm run dev:cms
+```
+
+You can start editing the main page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 ## Learn More
 
