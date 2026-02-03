@@ -8,7 +8,7 @@ export function Hero() {
             <div
                 className="absolute inset-0 z-0"
                 style={{
-                    backgroundImage: 'url("/images/Building.jpg")',
+                    backgroundImage: 'url("/images/Building.JPG")',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                 }}
