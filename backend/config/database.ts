@@ -1,9 +1,17 @@
 import path from 'path';
 
-export default ({ env }: { env: any }) => {
-  const client = env('DATABASE_CLIENT', 'sqlite');
+type DatabaseClient = 'mysql' | 'postgres' | 'sqlite';
 
-  const connections = {
+type ConnectionConfig = {
+  connection: Record<string, unknown>;
+  pool?: { min: number; max: number };
+  useNullAsDefault?: boolean;
+};
+
+type ConnectionsMap = Record<DatabaseClient, ConnectionConfig>;
+
+export default ({ env }: { env: any }) => {
+  const connections: ConnectionsMap = {
     mysql: {
       connection: {
         host: env('DATABASE_HOST', 'localhost'),
@@ -49,6 +57,8 @@ export default ({ env }: { env: any }) => {
       useNullAsDefault: true,
     },
   };
+
+  const client = env('DATABASE_CLIENT', 'sqlite') as DatabaseClient;
 
   return {
     connection: {
