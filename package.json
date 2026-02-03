@@ -12,7 +12,7 @@
     "build:all": "npm run build && npm run build:cms",
     "start:cms": "npm --prefix backend run start",
     "start:all": "concurrently -n web,cms -c blue,magenta \"npm run start\" \"npm run start:cms\"",
-    "production": "cross-env NODE_OPTIONS=--max-old-space-size=2048 npm run build:all && npm run start:all",
+    "production": "cross-env NODE_OPTIONS=--max-old-space-size=1792 npm run build:all && npm run start:all",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
