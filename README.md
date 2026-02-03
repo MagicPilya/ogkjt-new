@@ -14,6 +14,8 @@ Then run the development servers:
 npm run dev
 ```
 
+Note: `npm run dev` will run `npm run build:all` first (build Next.js + build Strapi), then start both dev servers. If you want a faster start without a pre-build, use `dev:web` and/or `dev:cms` separately.
+
 This will start:
 - Next.js frontend at [http://localhost:3000](http://localhost:3000)
 - Strapi admin panel at [http://localhost:1337/admin](http://localhost:1337/admin)
