@@ -25,6 +25,7 @@ export interface StrapiImage {
   caption: string | null;
   width: number;
   height: number;
+  name?: string | null;
 }
 
 export interface Event {
@@ -52,6 +53,17 @@ export interface Article {
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
+}
+
+export interface Page {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  content: any[]; // Strapi blocks
+  createdAt?: string;
+  updatedAt?: string;
+  publishedAt?: string | null;
 }
 
 export interface MenuLink {
@@ -86,23 +98,41 @@ export interface GlobalSettings {
  * Get global settings (menu, etc)
  */
 export async function getGlobalSettings() {
-  const data = await fetchAPI<StrapiResponse<GlobalSettings>>("/global", {
-    "populate[mainMenu][populate]": "*",
-  }, {
-    next: { revalidate: 60 }
-  });
-  
-  return data.data || null;
+  const data = await fetchAPI<StrapiResponse<GlobalSettings>>(
+    "/global",
+    {
+      "populate[mainMenu][populate]": "*",
+    },
+    {
+      next: { revalidate: 60 },
+    }
+  );
+
+  if (!data || !data.data) {
+    return null;
+  }
+
+  return data.data;
 }
+
 export async function getPageBySlug(slug: string) {
-  const data = await fetchAPI<StrapiResponse<Page[]>>("/pages", {
-    "filters[slug][$eq]": slug,
-  }, {
-    next: { revalidate: 60 }
-  });
-  
+  const data = await fetchAPI<StrapiResponse<Page[]>>(
+    "/pages",
+    {
+      "filters[slug][$eq]": slug,
+    },
+    {
+      next: { revalidate: 60 },
+    }
+  );
+
+  if (!data || !Array.isArray(data.data)) {
+    return null;
+  }
+
   return data.data[0] || null;
 }
+
 async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
   try {
     // Merge default and user options
@@ -124,7 +154,8 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
     return data as T;
   } catch (error) {
     console.error(error);
-    throw new Error(`Please check if your server is running and you set all the required tokens.`);
+    // Возвращаем пустой объект, чтобы не ронять билд/рендер при недоступном Strapi
+    return {} as T;
   }
 }
 
@@ -142,6 +173,21 @@ export async function getArticles(page = 1, pageSize = 10) {
      // Revalidate every 60 seconds
      next: { revalidate: 60 }
   });
+
+  if (!data || !Array.isArray(data.data)) {
+    return {
+      data: [],
+      meta: {
+        pagination: {
+          page: 1,
+          pageSize,
+          pageCount: 0,
+          total: 0,
+        },
+      },
+    };
+  }
+
   return data;
 }
 
@@ -156,6 +202,10 @@ export async function getArticleBySlug(slug: string) {
     next: { revalidate: 60 }
   });
   
+  if (!data || !Array.isArray(data.data)) {
+    return null;
+  }
+
   return data.data[0] || null;
 }
 
@@ -173,6 +223,21 @@ export async function getEvents(limit = 3) {
   }, {
     next: { revalidate: 60 }
   });
+
+  if (!data || !Array.isArray(data.data)) {
+    return {
+      data: [],
+      meta: {
+        pagination: {
+          page: 1,
+          pageSize: limit,
+          pageCount: 0,
+          total: 0,
+        },
+      },
+    };
+  }
+
   return data;
 }
 
@@ -194,6 +259,10 @@ export async function getEventById(id: number | string) {
     }
   );
 
-  return data.data?.[0] || null;
+  if (!data || !Array.isArray(data.data)) {
+    return null;
+  }
+
+  return data.data[0] || null;
 }
 
