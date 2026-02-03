@@ -32,6 +32,31 @@ npm run dev:cms
 
 You can start editing the main page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Production (remote server)
+
+1. **Скопировать проект и переменные окружения**
+   - Склонировать репозиторий на сервер.
+   - Скопировать `backend/.env.example` в `backend/.env` и заполнить все секреты/БД-переменные.
+
+2. **Установить зависимости (в корне проекта):**
+
+   ```bash
+   npm run install:all
+   ```
+
+3. **Запустить production-сборку одним скриптом:**
+
+   ```bash
+   npm run production
+   ```
+
+   Скрипт выполнит `npm run build:all` (Next.js + Strapi) и затем `npm run start:all`.
+
+   - Next.js: `http://<host>:3000`
+   - Strapi admin: `http://<host>:1337/admin`
+
+Рекомендуется повесить `npm run production` на `systemd`/PM2 и завернуть в reverse-proxy (Nginx) с SSL.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
