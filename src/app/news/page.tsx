@@ -5,13 +5,15 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { getArticles } from "@/lib/strapi";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
-import Image from "next/image";
 import { Events } from "@/components/blocks/Events";
 
 export const metadata: Metadata = {
     title: "Новости | Оршанский колледж – филиал БелГУТа",
     description: "Последние новости и события МГЖК.",
 };
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function NewsPage() {
     const { data: articles } = await getArticles(1, 50); // Fetch more articles for the main list
@@ -37,12 +39,11 @@ export default async function NewsPage() {
                                 <Card key={item.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow text-center">
                                     <div className="relative h-48 w-full overflow-hidden bg-slate-100">
                                         {imageUrl ? (
-                                            <Image
+                                            <img
                                                 src={imageUrl}
                                                 alt={item.cover?.alternativeText || item.title}
-                                                fill
-                                                unoptimized
-                                                className="object-cover hover:scale-105 transition-transform duration-300"
+                                                loading="lazy"
+                                                className="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-slate-400">

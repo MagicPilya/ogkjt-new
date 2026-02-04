@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar } from "lucide-react";
 import { getArticles } from "@/lib/strapi";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
-import Image from "next/image";
 
 export async function NewsGrid() {
     const { data: articles } = await getArticles(1, 3);
@@ -34,12 +33,11 @@ export async function NewsGrid() {
                         <Card key={item.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow h-full">
                             <div className="relative h-48 w-full overflow-hidden bg-slate-100">
                                 {imageUrl ? (
-                                    <Image
+                                    <img
                                         src={imageUrl}
                                         alt={item.cover?.alternativeText || item.title}
-                                        fill
-                                        unoptimized // Отключаем оптимизацию для локальных файлов Strapi
-                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                        loading="lazy"
+                                        className="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-400">

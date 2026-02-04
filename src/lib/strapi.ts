@@ -170,8 +170,8 @@ export async function getArticles(page = 1, pageSize = 10) {
     "pagination[page]": String(page),
     "pagination[pageSize]": String(pageSize),
   }, {
-     // Revalidate every 60 seconds
-     next: { revalidate: 60 }
+     // Новости должны обновляться сразу после публикации
+     cache: "no-store",
   });
 
   if (!data || !Array.isArray(data.data)) {
@@ -199,7 +199,8 @@ export async function getArticleBySlug(slug: string) {
     "filters[slug][$eq]": slug,
     "populate": "*",
   }, {
-    next: { revalidate: 60 }
+    // Детальная страница новости тоже без кеша
+    cache: "no-store",
   });
   
   if (!data || !Array.isArray(data.data)) {

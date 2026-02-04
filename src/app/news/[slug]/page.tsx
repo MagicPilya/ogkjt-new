@@ -3,15 +3,17 @@ import { Calendar, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getArticleBySlug, getArticles } from "@/lib/strapi";
+import { getArticleBySlug } from "@/lib/strapi";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
-import Image from "next/image";
 
 interface Props {
     params: Promise<{
         slug: string;
     }>;
 }
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
@@ -27,13 +29,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: `${item.title} | МГЖК`,
         description: item.announcement,
     };
-}
-
-export async function generateStaticParams() {
-    const { data: articles } = await getArticles(1, 100);
-    return articles.map((item) => ({
-        slug: item.slug,
-    }));
 }
 
 export default async function NewsDetailPage({ params }: Props) {
@@ -70,13 +65,11 @@ export default async function NewsDetailPage({ params }: Props) {
 
                 <div className="relative h-[400px] w-full overflow-hidden rounded-xl mb-10 bg-slate-100">
                     {imageUrl && (
-                        <Image
+                        <img
                             src={imageUrl}
                             alt={item.cover?.alternativeText || item.title}
-                            fill
-                            unoptimized
-                            className="object-cover"
-                            priority
+                            loading="eager"
+                            className="h-full w-full object-cover"
                         />
                     )}
                 </div>

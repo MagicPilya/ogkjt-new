@@ -4,7 +4,7 @@ import { Calendar, ArrowLeft, MapPin, FileText } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getEventById, getEvents } from "@/lib/strapi";
+import { getEventById } from "@/lib/strapi";
 import { formatDate } from "@/lib/utils";
 import { FileViewer } from "@/components/ui/file-viewer";
 
@@ -28,13 +28,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${event.title} | МГЖК`,
     description: event.location || undefined,
   };
-}
-
-export async function generateStaticParams() {
-  const { data: events } = await getEvents(50);
-  return events.map((event) => ({
-    id: String(event.id),
-  }));
 }
 
 export default async function EventDetailPage({ params }: Props) {
