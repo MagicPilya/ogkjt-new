@@ -10,18 +10,30 @@ export function getStrapiURL() {
   return STRAPI_URL;
 }
 
+/**
+ * Базовый URL Strapi для медиа в браузере — всегда HTTPS,
+ * чтобы избежать блокировки mixed content на HTTPS-страницах.
+ */
+function getStrapiMediaBase(): string {
+  const base = getStrapiURL();
+  return base.replace(/^http:\/\//i, "https://");
+}
+
 export function getStrapiMedia(url: string | null) {
   if (url == null) {
     return null;
   }
 
-  // Return the full URL if the media is hosted on an external provider
-  if (url.startsWith("http") || url.startsWith("//")) {
-    return url;
+  // Полный URL от Strapi — принудительно HTTPS для отображения в браузере
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url.startsWith("http://") ? url.replace(/^http:\/\//i, "https://") : url;
+  }
+  if (url.startsWith("//")) {
+    return `https:${url}`;
   }
 
-  // Otherwise prepend the Strapi URL
-  return `${getStrapiURL()}${url}`;
+  // Относительный путь — подставляем базовый URL по HTTPS
+  return `${getStrapiMediaBase()}${url}`;
 }
 
 export function formatDate(dateString: string) {
