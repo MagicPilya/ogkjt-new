@@ -19,6 +19,18 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.devsu.site',
+      },
+      {
+        protocol: 'https',
+        hostname: 'devsu.site',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.devsu.site',
       }
     ],
   },
