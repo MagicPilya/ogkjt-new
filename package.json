@@ -7,7 +7,7 @@
     "setup": "npm run install:all",
     "dev:web": "next dev",
     "dev:cms": "npm --prefix backend run develop",
-    "dev": "npm run build:all && concurrently -n web,cms -c blue,magenta \"npm run dev:web\" \"npm run dev:cms\"",
+    "dev": "concurrently -n web,cms -c blue,magenta \"npm run dev:web\" \"npm run dev:cms\"",
     "build:cms": "npm --prefix backend run build",
     "build:all": "npm run build && npm run build:cms",
     "start:cms": "npm --prefix backend run start",

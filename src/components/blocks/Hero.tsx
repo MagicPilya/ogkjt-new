@@ -17,11 +17,11 @@ export function Hero() {
             </div>
 
             {/* Content */}
-            <div className="container relative z-10 text-center text-white animate-in fade-in zoom-in duration-1000">
-                <span className="inline-block py-1 px-3 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-200 text-sm font-medium mb-6 backdrop-blur-sm">
+            <div className="container relative z-10 text-center text-white animate-in fade-in zoom-in duration-1000 px-4 sm:px-6">
+                <span className="hidden md:inline-block py-1 px-4 md:px-5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-200 text-sm font-medium mb-6 backdrop-blur-sm">
                     Филиал БелГУТ
                 </span>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight max-w-4xl mx-auto leading-tight">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight max-w-4xl mx-auto leading-tight mt-4 md:mt-0">
                     Оршанский колледж — филиал учреждения образования <br className="hidden md:block" />
                     <span className="text-blue-400">«Белорусский государственный университет транспорта»</span>
                 </h1>

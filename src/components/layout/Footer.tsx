@@ -17,13 +17,9 @@ export function Footer({ settings }: FooterProps) {
         <footer className="bg-slate-50 border-t dark:bg-slate-950">
             <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-                    <div className="col-span-1 md:col-span-1 flex flex-col items-center">
-                        <Logo className="h-16 w-16 text-3xl" />
-                        <div className="mt-4 font-bold text-slate-900 dark:text-white">
-                            Оршанский колледж - <br />
-                            филиал учреждения образования <br />
-                            "Белорусский государственный университет транспорта"
-                        </div>
+                    <div className="col-span-1 md:col-span-1 flex flex-col items-center justify-center w-full">
+                        <Logo variant="footer" />
+        
                         
                         {/* Social Links */}
                         <div className="flex gap-4 mt-6 justify-center">

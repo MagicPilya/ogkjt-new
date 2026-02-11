@@ -10,6 +10,7 @@ import {
     SheetTrigger,
     SheetTitle,
 } from "@/components/ui/sheet";
+import { TrainFront } from "lucide-react";
 import {
     NavigationMenu,
     NavigationMenuItem,
@@ -125,11 +126,11 @@ export function Header({ initialMenu }: HeaderProps) {
                     <Link href="/" className="flex items-center gap-4 group">
                         {/* Логотип */}
                         <div className="h-14 w-14 relative bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl group-hover:bg-blue-700 transition-colors shrink-0">
-                            ЖК
+                        <TrainFront size={36} />
                         </div>
                         <div className="flex flex-col">
                             <span className="font-bold text-xl leading-tight text-slate-900 dark:text-white group-hover:text-blue-700 transition-colors">
-                                Оршанский колледж
+                                Оршанский колледж –
                             </span>
                             <span className="text-sm text-slate-500 font-medium">филиал БелГУТа</span>
                         </div>
@@ -138,7 +139,7 @@ export function Header({ initialMenu }: HeaderProps) {
 
                 {/* Desktop Navigation - Centered */}
                 <div className="hidden xl:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <NavigationMenu>
+                    <NavigationMenu viewport={false} delayDuration={0} skipDelayDuration={0}>
                         <NavigationMenuList>
                             {menuItems.map((item) => (
                                 <NavigationMenuItem key={item.id}>
@@ -189,7 +190,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                 <span className="sr-only">Меню</span>
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto">
+                        <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto px-6">
                             <SheetTitle className="sr-only">Меню навигации</SheetTitle>
                             <div className="flex flex-col gap-6 mt-8">
                              {menuItems.map((item) => (
