@@ -4,6 +4,8 @@ import { CheckCircle, FileText, Calendar } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
 import { getPageBySlug } from "@/lib/strapi";
+import { getSubLinks } from "@/lib/menu-sections";
+import { SubSectionLinks } from "@/components/blocks/SubSectionLinks";
 
 export const metadata: Metadata = {
     title: "Абитуриентам | Минский государственный железнодорожный колледж",
@@ -37,6 +39,12 @@ export default async function ApplicantsPage() {
                     </p>
                 )}
             </div>
+
+            <SubSectionLinks
+                links={getSubLinks("/applicants")}
+                title="Разделы для поступающих"
+                variant="cards"
+            />
 
             {/* Хардкодные красивые карточки остаются */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">

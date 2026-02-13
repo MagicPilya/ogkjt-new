@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, Search, Eye, Phone } from "lucide-react";
+import { Menu, Search, Eye, Phone, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -24,72 +24,7 @@ import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
 
 import { MenuSection } from "@/lib/strapi";
-
-// Структура меню (фолбек)
-const defaultMenu: MenuSection[] = [
-    {
-        id: 1,
-        title: "Новости",
-        url: "/news",
-        links: []
-    },
-    {
-        id: 2,
-        title: "О колледже",
-        url: "/about",
-        links: [
-            { id: 1, title: "Администрация", url: "/about/administration" },
-            { id: 2, title: "Контакты и схема проезда", url: "/about/contacts" },
-            { id: 3, title: "Символика", url: "/about/symbols" },
-            { id: 4, title: "Профилактика коррупции", url: "/about/corruption" },
-            { id: 5, title: "Платные услуги", url: "/about/services" },
-            { id: 6, title: "История колледжа", url: "/about/history" },
-        ]
-    },
-    {
-        id: 3,
-        title: "Абитуриентам",
-        url: "/applicants",
-        links: [
-            { id: 7, title: "Специальности", url: "/applicants/specialties" },
-            { id: 8, title: "План приема", url: "/applicants/plan" },
-            { id: 9, title: "Документы", url: "/applicants/documents" },
-            { id: 10, title: "Информация о местах", url: "/applicants/transfer" },
-        ]
-    },
-    {
-        id: 4,
-        title: "Обучающимся",
-        url: "/students",
-        links: [
-            { id: 11, title: "Дневное отделение", url: "/students/day" },
-            { id: 12, title: "Заочное отделение", url: "/students/correspondence" },
-            { id: 13, title: "Общежитие", url: "/students/dormitory" },
-        ]
-    },
-    {
-        id: 5,
-        title: "Воспитательная работа",
-        url: "/ideology",
-        links: [
-            { id: 14, title: "СППС", url: "/ideology/spps" },
-            { id: 15, title: "Молодежная политика", url: "/ideology/youth-policy" },
-            { id: 16, title: "В помощь куратору", url: "/ideology/curator" },
-        ]
-    },
-    {
-        id: 6,
-        title: "Одно окно",
-        url: "/one-window",
-        links: []
-    },
-    {
-        id: 7,
-        title: "Обращения",
-        url: "/appeals",
-        links: []
-    }
-];
+import { defaultMenu } from "@/lib/menu-sections";
 
 interface HeaderProps {
     initialMenu?: MenuSection[] | null;
@@ -145,11 +80,30 @@ export function Header({ initialMenu }: HeaderProps) {
                                 <NavigationMenuItem key={item.id}>
                                     {item.links && item.links.length > 0 ? (
                                         <>
-                                            <NavigationMenuTrigger className="text-base font-medium bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800">
-                                                {item.title}
+                                            <NavigationMenuTrigger asChild>
+                                                <Link
+                                                    href={item.url || "#"}
+                                                    className={cn(
+                                                        navigationMenuTriggerStyle(),
+                                                        "text-base font-medium bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2"
+                                                    )}
+                                                >
+                                                    {item.title}
+                                                    <ChevronDown className="relative top-[1px] ml-1 size-3 transition duration-150 group-data-[state=open]:rotate-180" aria-hidden />
+                                                </Link>
                                             </NavigationMenuTrigger>
                                             <NavigationMenuContent>
                                                 <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                                                    <li className="md:col-span-2">
+                                                        <NavigationMenuLink asChild>
+                                                            <Link
+                                                                href={item.url || "#"}
+                                                                className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground font-medium text-blue-600 dark:text-blue-400 border-b border-slate-100 dark:border-slate-800"
+                                                            >
+                                                                Обзор раздела
+                                                            </Link>
+                                                        </NavigationMenuLink>
+                                                    </li>
                                                     {item.links.map((subItem) => (
                                                         <li key={subItem.id}>
                                                             <NavigationMenuLink asChild>
@@ -197,9 +151,12 @@ export function Header({ initialMenu }: HeaderProps) {
                                 <div key={item.id} className="flex flex-col gap-2">
                                     {item.links && item.links.length > 0 ? (
                                         <>
-                                            <div className="font-bold text-lg text-slate-900 dark:text-white mb-1">
+                                            <Link
+                                                href={item.url || "#"}
+                                                className="font-bold text-lg text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 mb-1"
+                                            >
                                                 {item.title}
-                                            </div>
+                                            </Link>
                                             <div className="pl-4 flex flex-col gap-3 border-l-2 border-slate-100 dark:border-slate-800">
                                                 {item.links.map((subItem) => (
                                                     <Link 

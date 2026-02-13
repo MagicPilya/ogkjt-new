@@ -1,14 +1,11 @@
 /**
- * Единое место для адреса подключения к Strapi API.
- * Меняйте только здесь или через переменную NEXT_PUBLIC_STRAPI_URL в .env.
+ * Адрес Strapi API. По умолчанию — ваш инстанс Strapi (меню, контакты и всё,
+ * что создано вручную в админке, подтягиваются оттуда).
+ * Переопределяется через NEXT_PUBLIC_STRAPI_URL в .env.
  *
- * Переопределяется через NEXT_PUBLIC_STRAPI_URL.
- * Для сайта по HTTPS укажите URL Strapi тоже по HTTPS, иначе картинки будут блокироваться (mixed content).
- * Примеры:
+ * Примеры .env:
  *   NEXT_PUBLIC_STRAPI_URL=http://127.0.0.1:1337
- *   NEXT_PUBLIC_STRAPI_URL=https://178.172.137.227:1337
- *
- * Если указать только хост (без протокола), автоматически добавится http://
+ *   NEXT_PUBLIC_STRAPI_URL=https://cms.example.com
  */
 function normalizeStrapiUrl(url: string): string {
   const trimmed = url.replace(/\/+$/, "");

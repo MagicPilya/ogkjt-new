@@ -1,5 +1,6 @@
 import { Logo } from "./Logo";
 import { GlobalSettings } from "@/lib/strapi";
+import { siteDefaults } from "@/lib/site-defaults";
 import Link from "next/link";
 
 /* Брендовые иконки соцсетей (SVG) */
@@ -24,10 +25,10 @@ interface FooterProps {
 }
 
 export function Footer({ settings }: FooterProps) {
-    const address = settings?.address || "г. Орша, ул. Ленина, 1";
-    const phoneReception = settings?.phoneReception || "+375 (216) 51-23-45";
-    const phoneDirector = settings?.phoneDirector;
-    const email = settings?.email || "info@ogkjt.by";
+    const address = settings?.address || siteDefaults.address;
+    const phoneReception = settings?.phoneReception || siteDefaults.phoneReception;
+    const phoneDirector = settings?.phoneDirector || siteDefaults.phoneDirector;
+    const email = settings?.email || siteDefaults.email;
 
     return (
         <footer className="bg-slate-50 border-t dark:bg-slate-950">
@@ -103,7 +104,7 @@ export function Footer({ settings }: FooterProps) {
                 </div>
 
                 <div className="mt-10 pt-6 border-t text-center text-sm text-slate-500">
-                    © {new Date().getFullYear()} Оршанский колледж - филиал учреждения образования «Белорусский государственный университет транспорта». Все права защищены.
+                    © {new Date().getFullYear()} {siteDefaults.copyright}. Все права защищены.
                 </div>
             </div>
         </footer>

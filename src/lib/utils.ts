@@ -38,6 +38,9 @@ export function getStrapiMedia(url: string | null) {
   if (url == null) {
     return null;
   }
+  if (!getStrapiURL() && !url.startsWith("http://") && !url.startsWith("https://")) {
+    return null;
+  }
 
   if (url.startsWith("http://") || url.startsWith("https://")) {
     const isLocal = isLocalStrapiHost(url);

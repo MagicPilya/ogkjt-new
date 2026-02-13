@@ -455,6 +455,10 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
       'api::article.article'
     > &
       Schema.Attribute.Private;
+    Media: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'title'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
@@ -507,12 +511,13 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
   attributes: {
     address: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'\u0433. \u041E\u0440\u0448\u0430, \u0443\u043B. \u041B\u0435\u043D\u0438\u043D\u0430, 1'>;
+      Schema.Attribute.DefaultTo<'211386, \u0420\u0435\u0441\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u0411\u0435\u043B\u0430\u0440\u0443\u0441\u044C, \u0433. \u041E\u0440\u0448\u0430, \u0412\u0438\u0442\u0435\u0431\u0441\u043A\u0430\u044F \u043E\u0431\u043B., \u0443\u043B. \u041A\u043B\u0438\u043C\u0435\u043D\u0442\u0430 \u0422\u0438\u043C\u0438\u0440\u044F\u0437\u0435\u0432\u0430, 26.'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    email: Schema.Attribute.Email & Schema.Attribute.DefaultTo<'info@ogkjt.by'>;
-    instagramLink: Schema.Attribute.String;
+    email: Schema.Attribute.Email & Schema.Attribute.DefaultTo<'ogkjt@bsut.by'>;
+    instagramLink: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'https://www.instagram.com/orsha_jd?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=='>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -521,12 +526,14 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
       Schema.Attribute.Private;
     mainMenu: Schema.Attribute.Component<'elements.menu-section', true>;
     phoneDirector: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'+375 (216) 51-23-46'>;
+      Schema.Attribute.DefaultTo<'(0216) 29-21-25'>;
     phoneReception: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'+375 (216) 51-23-45'>;
+      Schema.Attribute.DefaultTo<'(0216) 29-31-10'>;
     publishedAt: Schema.Attribute.DateTime;
-    telegramLink: Schema.Attribute.String;
-    tiktokLink: Schema.Attribute.String;
+    telegramLink: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'https://t.me/orsha_jd'>;
+    tiktokLink: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'https://www.tiktok.com/@bsut.orsha?_r=1&_t=ZS-93UxtlAecmO'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

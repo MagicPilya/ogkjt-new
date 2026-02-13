@@ -134,8 +134,10 @@ export async function getPageBySlug(slug: string) {
 }
 
 async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
+  if (!getStrapiURL()) {
+    return {} as T;
+  }
   try {
-    // Merge default and user options
     const mergedOptions = {
       headers: {
         "Content-Type": "application/json",
@@ -143,18 +145,15 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
       ...options,
     };
 
-    // Build request URL
     const queryString = new URLSearchParams(urlParamsObject).toString();
     const requestUrl = `${getStrapiURL()}/api${path}${queryString ? `?${queryString}` : ""}`;
 
-    // Trigger API call
     const response = await fetch(requestUrl, mergedOptions);
     const data = await response.json();
 
     return data as T;
   } catch (error) {
     console.error(error);
-    // Возвращаем пустой объект, чтобы не ронять билд/рендер при недоступном Strapi
     return {} as T;
   }
 }
