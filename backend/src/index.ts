@@ -101,13 +101,13 @@ async function seedGlobalIfEmpty(strapi: Core.Strapi) {
   await strapi.documents('api::global.global').create({
     data: {
       mainMenu: DEFAULT_MAIN_MENU,
-      address: 'г. Орша, ул. Ленина, 1',
-      phoneReception: '+375 (216) 51-23-45',
-      phoneDirector: '+375 (216) 51-23-46',
-      email: 'info@ogkjt.by',
-      instagramLink: '',
-      telegramLink: '',
-      tiktokLink: '',
+      address: '211386, Республика Беларусь, г. Орша, Витебская обл., ул. Климента Тимирязева, 26.',
+      phoneReception: '(0216) 29-31-10',
+      phoneDirector: '(0216) 29-21-25',
+      email: 'ogkjt@bsut.by',
+      instagramLink: 'https://www.instagram.com/orsha_jd?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',
+      telegramLink: 'https://t.me/orsha_jd',
+      tiktokLink: 'https://www.tiktok.com/@bsut.orsha?_r=1&_t=ZS-93UxtlAecmO',
     },
     status: 'published',
   });
