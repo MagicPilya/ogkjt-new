@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 export function QuickLinks() {
     return (
         <section className="py-16 bg-slate-100 dark:bg-slate-900">
-            <div className="container">
+            <div className="container mx-auto px-4">
                 <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-10 text-center">
                     Полезная информация
                 </h2>

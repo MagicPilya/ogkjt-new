@@ -17,7 +17,7 @@ export function Hero() {
             </div>
 
             {/* Content */}
-            <div className="container relative z-10 text-center text-white animate-in fade-in zoom-in duration-1000 px-4 sm:px-6">
+            <div className="container mx-auto relative z-10 text-center text-white animate-in fade-in zoom-in duration-1000 px-4 sm:px-6">
                 <span className="hidden md:inline-block py-1 px-4 md:px-5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-200 text-sm font-medium mb-6 backdrop-blur-sm">
                     Филиал БелГУТ
                 </span>

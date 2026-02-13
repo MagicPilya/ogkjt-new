@@ -41,7 +41,7 @@ export default async function EventDetailPage({ params }: Props) {
   const eventDate = new Date(event.date);
 
   return (
-    <div className="container py-12 max-w-4xl">
+    <div className="container mx-auto px-4 py-12 max-w-4xl">
       <div className="flex justify-center mb-8">
         <Button
           variant="ghost"

@@ -9,7 +9,7 @@ import { Send } from "lucide-react";
 export function FeedbackForm() {
     return (
         <section className="py-16 bg-slate-50 dark:bg-slate-900">
-            <div className="container max-w-4xl">
+            <div className="container mx-auto px-4 max-w-4xl">
                 <Card>
                     <CardHeader className="text-center">
                         <CardTitle className="text-2xl">Есть вопросы?</CardTitle>

@@ -42,7 +42,7 @@ export default async function NewsDetailPage({ params }: Props) {
     const imageUrl = getStrapiMedia(item.cover?.url || null);
 
     return (
-        <div className="container py-12 max-w-4xl">
+        <div className="container mx-auto px-4 py-12 max-w-4xl">
             <div className="flex justify-center mb-8">
                 <Button variant="ghost" className="pl-0 hover:bg-transparent hover:text-blue-600" asChild>
                     <Link href="/news">

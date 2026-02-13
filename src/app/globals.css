@@ -119,4 +119,8 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Контент по центру окна */
+  .container {
+    margin-inline: auto;
+  }
 }

@@ -14,7 +14,7 @@ export default async function ApplicantsPage() {
     const pageData = await getPageBySlug('applicants');
 
     return (
-        <div className="container py-12">
+        <div className="container mx-auto px-4 py-12">
             <div className="mb-12 text-center">
                 <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
                     {pageData ? pageData.title : "Поступающим"}
