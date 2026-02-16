@@ -15,6 +15,9 @@ import type { SearchResultItem } from "@/app/api/search/route";
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
+const PLACEHOLDER_MOBILE = "Поиск (2+ символа)";
+const PLACEHOLDER_DESKTOP = "Введите запрос (минимум 2 символа)...";
+const PLACEHOLDER_BREAKPOINT_PX = 768;
 
 /** Экранирует спецсимволы для RegExp. */
 function escapeRegex(s: string): string {
@@ -43,6 +46,15 @@ export function SearchDialog() {
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
   const [results, setResults] = React.useState<SearchResultItem[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const [placeholder, setPlaceholder] = React.useState(PLACEHOLDER_MOBILE);
+
+  React.useEffect(() => {
+    const mql = window.matchMedia(`(min-width: ${PLACEHOLDER_BREAKPOINT_PX}px)`);
+    const update = () => setPlaceholder(mql.matches ? PLACEHOLDER_DESKTOP : PLACEHOLDER_MOBILE);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
 
   React.useEffect(() => {
     if (!query.trim()) {
@@ -104,7 +116,7 @@ export function SearchDialog() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Введите запрос (минимум 2 символа)..."
+              placeholder={placeholder}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9"
