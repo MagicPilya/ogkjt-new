@@ -1,6 +1,6 @@
 import type { Core } from '@strapi/strapi';
 
-/** Действия API, которые разрешаем для роли Public (find и findOne для контента, find для Global) */
+/** Действия API, которые разрешаем для роли Public (find и findOne для контента, find для Global и Menu) */
 const PUBLIC_PERMISSION_ACTIONS = [
   'api::article.article.find',
   'api::article.article.findOne',
@@ -9,12 +9,25 @@ const PUBLIC_PERMISSION_ACTIONS = [
   'api::page.page.find',
   'api::page.page.findOne',
   'api::global.global.find',
+  'api::menu.menu.find',
 ] as const;
 
 /**
- * Дефолтное меню для глобальных настроек в Strapi (Global Settings → mainMenu).
+ * Дефолтное меню для одиночного типа Menu (Меню → mainMenu).
  * Структура: элементы menu-section с title, url и links (массив menu-link: title, url).
  */
+/** Миграция: старые значения sectionUrl (URL) → новые (подписи для админки). */
+const SECTION_URL_TO_STRAPI: Record<string, string> = {
+  '/news': 'НОВОСТИ КОЛЛЕДЖА',
+  '/students/dormitory': 'НОВОСТИ ОБЩЕЖИТИЯ',
+  '/about': 'О колледже',
+  '/applicants': 'Абитуриентам',
+  '/students': 'Обучающимся',
+  '/ideology': 'Воспитательная работа',
+  '/one-window': 'Одно окно',
+  '/appeals': 'Электронные обращения',
+};
+
 const DEFAULT_MAIN_MENU = [
   { title: 'Новости', url: '/news', links: [] },
   {
@@ -45,7 +58,8 @@ const DEFAULT_MAIN_MENU = [
     links: [
       { title: 'Дневное отделение', url: '/students/day' },
       { title: 'Заочное отделение', url: '/students/correspondence' },
-      { title: 'Общежитие', url: '/students/dormitory' },
+      { title: 'Общежитие — Общая информация', url: '/students/dormitory' },
+      { title: 'Общежитие — Новости', url: '/students/dormitory/news' },
     ],
   },
   {
@@ -61,13 +75,50 @@ const DEFAULT_MAIN_MENU = [
   { title: 'Электронные обращения', url: '/appeals', links: [] },
 ];
 
+function getTitleForUrl(mainMenu: Array<{ title: string; url?: string | null; links?: Array<{ title: string; url: string }> }>, pageUrl: string): string | null {
+  const url = (pageUrl || '').trim();
+  const withSlash = url.startsWith('/') ? url : `/${url}`;
+  for (const section of mainMenu) {
+    const sectionUrl = (section.url ?? '').trim();
+    if (sectionUrl && (sectionUrl === withSlash || sectionUrl === url)) return section.title ?? null;
+    for (const link of section.links ?? []) {
+      const linkUrl = (link.url ?? '').trim();
+      if (linkUrl && (linkUrl === withSlash || linkUrl === url)) return link.title ?? null;
+    }
+  }
+  return null;
+}
+
 export default {
-  register(/* { strapi }: { strapi: Core.Strapi } */) {},
+  register({ strapi }: { strapi: Core.Strapi }) {
+    strapi.customFields.register({
+      name: 'menu-link-select',
+      type: 'string',
+      inputSize: { default: 6, isResizable: true },
+    });
+
+    strapi.documents.use(async (context, next) => {
+      if (context.uid !== 'api::page.page' || (context.action !== 'create' && context.action !== 'update')) {
+        return next();
+      }
+      const data = context.params?.data as { pageUrl?: string | null; title?: string | null } | undefined;
+      if (!data?.pageUrl) return next();
+
+      const menuDoc = await strapi.documents('api::menu.menu').findFirst({ status: 'published' });
+      const mainMenu = (menuDoc as { mainMenu?: typeof DEFAULT_MAIN_MENU })?.mainMenu ?? DEFAULT_MAIN_MENU;
+      const title = getTitleForUrl(mainMenu, data.pageUrl);
+      if (title) (data as { title: string }).title = title;
+      return next();
+    });
+  },
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     try {
       await setPublicPermissions(strapi);
       await seedGlobalIfEmpty(strapi);
+      await seedMenuIfEmpty(strapi);
+      await syncPagesFromMainMenu(strapi);
+      await migrateArticleSectionUrls(strapi);
     } catch (e) {
       strapi.log.warn('Bootstrap default settings failed (при первом запуске можно перезапустить Strapi).', e);
     }
@@ -93,14 +144,11 @@ async function setPublicPermissions(strapi: Core.Strapi) {
 }
 
 async function seedGlobalIfEmpty(strapi: Core.Strapi) {
-  // Для single type проверяем наличие любой записи (draft или published)
   const existing = await strapi.documents('api::global.global').findFirst();
   if (existing) return;
 
-  // Создаём сразу опубликованным (status: 'published'), иначе API не отдаёт данные на фронт
   await strapi.documents('api::global.global').create({
     data: {
-      mainMenu: DEFAULT_MAIN_MENU,
       address: '211386, Республика Беларусь, г. Орша, Витебская обл., ул. Климента Тимирязева, 26.',
       phoneReception: '(0216) 29-31-10',
       phoneDirector: '(0216) 29-21-25',
@@ -111,4 +159,87 @@ async function seedGlobalIfEmpty(strapi: Core.Strapi) {
     },
     status: 'published',
   });
+}
+
+/** Создаёт запись Menu с дефолтным mainMenu, если её ещё нет. */
+async function seedMenuIfEmpty(strapi: Core.Strapi) {
+  const existing = await strapi.documents('api::menu.menu').findFirst();
+  if (existing) return;
+
+  await strapi.documents('api::menu.menu').create({
+    data: { mainMenu: DEFAULT_MAIN_MENU },
+    status: 'published',
+  });
+  strapi.log.info('Menu single type seeded with default mainMenu.');
+}
+
+/** Собирает из mainMenu все URL и заголовки (разделы + подразделы) для страниц. */
+function collectUrlTitleFromMenu(mainMenu: Array<{ title: string; url?: string | null; links?: Array<{ title: string; url: string }> }>): Array<{ pageUrl: string; title: string }> {
+  const items: Array<{ pageUrl: string; title: string }> = [];
+  for (const section of mainMenu) {
+    const sectionUrl = (section.url ?? '').trim();
+    if (sectionUrl) {
+      items.push({
+        pageUrl: sectionUrl.startsWith('/') ? sectionUrl : `/${sectionUrl}`,
+        title: section.title || sectionUrl,
+      });
+    }
+    for (const link of section.links ?? []) {
+      const linkUrl = (link.url ?? '').trim();
+      if (linkUrl) {
+        items.push({
+          pageUrl: linkUrl.startsWith('/') ? linkUrl : `/${linkUrl}`,
+          title: link.title || linkUrl,
+        });
+      }
+    }
+  }
+  return items;
+}
+
+/**
+ * Создаёт записи Page для всех пунктов mainMenu (тип Menu), которых ещё нет.
+ * Заголовок подставляется из меню.
+ */
+async function syncPagesFromMainMenu(strapi: Core.Strapi) {
+  const menuDoc = await strapi.documents('api::menu.menu').findFirst({ status: 'published' });
+  const mainMenu = ((menuDoc as { mainMenu?: typeof DEFAULT_MAIN_MENU })?.mainMenu ?? DEFAULT_MAIN_MENU) as typeof DEFAULT_MAIN_MENU;
+  const toCreate = collectUrlTitleFromMenu(mainMenu);
+
+  for (const { pageUrl, title } of toCreate) {
+    const existing = await strapi.documents('api::page.page').findFirst({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      filters: { pageUrl } as any,
+    });
+    if (!existing) {
+      await strapi.documents('api::page.page').create({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: { pageUrl, title, content: [] } as any,
+        status: 'published',
+      });
+      strapi.log.info(`Page created from mainMenu: ${pageUrl} (${title})`);
+    }
+  }
+}
+
+/**
+ * Один раз обновляет статьи со старым sectionUrl (URL) на новое значение (подпись).
+ * После смены enum в схеме старые записи перестают проходить валидацию — миграция исправляет данные.
+ */
+async function migrateArticleSectionUrls(strapi: Core.Strapi) {
+  const oldValues = Object.keys(SECTION_URL_TO_STRAPI);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const docs = await strapi.documents('api::article.article').findMany({ filters: { sectionUrl: { $in: oldValues } } } as any);
+  for (const doc of docs) {
+    const oldVal = doc.sectionUrl as string;
+    const newVal = SECTION_URL_TO_STRAPI[oldVal];
+    if (newVal) {
+      await strapi.documents('api::article.article').update({
+        documentId: doc.documentId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: { sectionUrl: newVal } as any,
+      });
+      strapi.log.info(`Article sectionUrl migrated: ${oldVal} → ${newVal}`);
+    }
+  }
 }

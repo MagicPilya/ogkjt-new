@@ -460,6 +460,18 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
       true
     >;
     publishedAt: Schema.Attribute.DateTime;
+    sectionUrl: Schema.Attribute.Enumeration<
+      [
+        '\u041D\u041E\u0412\u041E\u0421\u0422\u0418 \u041A\u041E\u041B\u041B\u0415\u0414\u0416\u0410',
+        '\u041D\u041E\u0412\u041E\u0421\u0422\u0418 \u041E\u0411\u0429\u0415\u0416\u0418\u0422\u0418\u042F',
+        '\u041E \u043A\u043E\u043B\u043B\u0435\u0434\u0436\u0435',
+        '\u0410\u0431\u0438\u0442\u0443\u0440\u0438\u0435\u043D\u0442\u0430\u043C',
+        '\u041E\u0431\u0443\u0447\u0430\u044E\u0449\u0438\u043C\u0441\u044F',
+        '\u0412\u043E\u0441\u043F\u0438\u0442\u0430\u0442\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0431\u043E\u0442\u0430',
+        '\u041E\u0434\u043D\u043E \u043E\u043A\u043D\u043E',
+        '\u042D\u043B\u0435\u043A\u0442\u0440\u043E\u043D\u043D\u044B\u0435 \u043E\u0431\u0440\u0430\u0449\u0435\u043D\u0438\u044F',
+      ]
+    >;
     slug: Schema.Attribute.UID<'title'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -501,7 +513,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
-    description: '\u0413\u043B\u043E\u0431\u0430\u043B\u044C\u043D\u044B\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u0430\u0439\u0442\u0430 (\u041C\u0435\u043D\u044E, \u041A\u043E\u043D\u0442\u0430\u043A\u0442\u044B)';
+    description: '\u0413\u043B\u043E\u0431\u0430\u043B\u044C\u043D\u044B\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u0430\u0439\u0442\u0430 (\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u044B, \u0441\u043E\u0446\u0441\u0435\u0442\u0438). \u041C\u0435\u043D\u044E \u0432\u044B\u043D\u0435\u0441\u0435\u043D\u043E \u0432 \u043E\u0434\u0438\u043D\u043E\u0447\u043D\u044B\u0439 \u0442\u0438\u043F \u00AB\u041C\u0435\u043D\u044E\u00BB.';
     displayName: 'Global Settings';
     pluralName: 'globals';
     singularName: 'global';
@@ -524,7 +536,6 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
       'api::global.global'
     > &
       Schema.Attribute.Private;
-    mainMenu: Schema.Attribute.Component<'elements.menu-section', true>;
     phoneDirector: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'(0216) 29-21-25'>;
     phoneReception: Schema.Attribute.String &
@@ -540,11 +551,37 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiMenuMenu extends Struct.SingleTypeSchema {
+  collectionName: 'menus';
+  info: {
+    description: '\u0413\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E \u0441\u0430\u0439\u0442\u0430 (\u0432\u043A\u043B\u0430\u0434\u043A\u0438 \u0438 \u043F\u043E\u0434\u0432\u043A\u043B\u0430\u0434\u043A\u0438)';
+    displayName: '\u041C\u0435\u043D\u044E';
+    pluralName: 'menus';
+    singularName: 'menu';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::menu.menu'> &
+      Schema.Attribute.Private;
+    mainMenu: Schema.Attribute.Component<'elements.menu-section', true>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPagePage extends Struct.CollectionTypeSchema {
   collectionName: 'pages';
   info: {
-    description: '\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u043E\u043D\u043D\u044B\u0435 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u044B';
-    displayName: 'Page';
+    description: '\u041E\u0434\u043D\u0430 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0430 \u0441\u0430\u0439\u0442\u0430: \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D\u0430 \u043A \u043F\u0443\u043D\u043A\u0442\u0443 \u043C\u0435\u043D\u044E, \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043E\u043A \u043F\u043E\u0434\u0441\u0442\u0430\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u0438\u0437 \u043C\u0435\u043D\u044E, \u043A\u043E\u043D\u0442\u0435\u043D\u0442 \u0438 \u043E\u043F\u0446\u0438\u043E\u043D\u0430\u043B\u044C\u043D\u043E \u043B\u0435\u043D\u0442\u0430 \u043D\u043E\u0432\u043E\u0441\u0442\u0435\u0439';
+    displayName: '\u0421\u0442\u0440\u0430\u043D\u0438\u0446\u0430';
     pluralName: 'pages';
     singularName: 'page';
   };
@@ -552,6 +589,19 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    articleFeedSection: Schema.Attribute.Enumeration<
+      [
+        '\u041D\u0435 \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0442\u044C',
+        '\u041D\u041E\u0412\u041E\u0421\u0422\u0418 \u041A\u041E\u041B\u041B\u0415\u0414\u0416\u0410',
+        '\u041D\u041E\u0412\u041E\u0421\u0422\u0418 \u041E\u0411\u0429\u0415\u0416\u0418\u0422\u0418\u042F',
+        '\u041E \u043A\u043E\u043B\u043B\u0435\u0434\u0436\u0435',
+        '\u0410\u0431\u0438\u0442\u0443\u0440\u0438\u0435\u043D\u0442\u0430\u043C',
+        '\u041E\u0431\u0443\u0447\u0430\u044E\u0449\u0438\u043C\u0441\u044F',
+        '\u0412\u043E\u0441\u043F\u0438\u0442\u0430\u0442\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0431\u043E\u0442\u0430',
+        '\u041E\u0434\u043D\u043E \u043E\u043A\u043D\u043E',
+        '\u042D\u043B\u0435\u043A\u0442\u0440\u043E\u043D\u043D\u044B\u0435 \u043E\u0431\u0440\u0430\u0449\u0435\u043D\u0438\u044F',
+      ]
+    >;
     content: Schema.Attribute.Blocks;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -559,8 +609,11 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::page.page'> &
       Schema.Attribute.Private;
+    metaDescription: Schema.Attribute.Text;
+    pageUrl: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.CustomField<'global::menu-link-select'>;
     publishedAt: Schema.Attribute.DateTime;
-    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1081,6 +1134,7 @@ declare module '@strapi/strapi' {
       'api::article.article': ApiArticleArticle;
       'api::event.event': ApiEventEvent;
       'api::global.global': ApiGlobalGlobal;
+      'api::menu.menu': ApiMenuMenu;
       'api::page.page': ApiPagePage;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

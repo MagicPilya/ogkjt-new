@@ -1,33 +1,38 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
-import Link from "next/link";
-import { Metadata } from "next";
-import { getPageByPath, getArticles } from "@/lib/strapi";
-import { formatDate, getStrapiMedia } from "@/lib/utils";
-import { Events } from "@/components/blocks/Events";
+import { getMenu, getPageByPath, getArticles } from "@/lib/strapi";
+import { defaultMenu, normalizeMenu, getSectionByPath, getTitleForPath } from "@/lib/menu-sections";
+import { SubSectionLinks } from "@/components/blocks/SubSectionLinks";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
+import { Events } from "@/components/blocks/Events";
+import { formatDate, getStrapiMedia } from "@/lib/utils";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export async function generateMetadata(): Promise<Metadata> {
-  const pageData = await getPageByPath("news");
-  const pageTitle = pageData?.title ?? "Новости колледжа";
-  const title = `${pageTitle} | ${SITE_TITLE}`;
-  const description = pageData?.metaDescription ?? undefined;
-  return { title, description };
+interface SectionPageProps {
+  /** Путь без ведущего слэша, например about, about/administration */
+  path: string;
 }
 
-export default async function NewsPage() {
-  const pageData = await getPageByPath("news");
-  const title = pageData?.title ?? "Новости колледжа";
-  const feedSection = pageData?.articleFeedSection && pageData.articleFeedSection !== "Не показывать"
-    ? pageData.articleFeedSection
-    : "НОВОСТИ КОЛЛЕДЖА";
-  const { data: articles } = await getArticles(1, 50, feedSection);
+export default async function SectionPage({ path }: SectionPageProps) {
+  const pathname = "/" + path;
+  const menuData = await getMenu();
+  const menu = normalizeMenu(menuData?.mainMenu) ?? defaultMenu;
+  const sectionResult = getSectionByPath(pathname, menu);
+  if (!sectionResult) notFound();
+
+  const { section, sectionUrl, isRootSection } = sectionResult;
+  const pageData = await getPageByPath(path);
+  const feedSection = pageData?.articleFeedSection;
+  const showArticleFeed = !!feedSection && feedSection !== "Не показывать";
+  const { data: articles } = showArticleFeed
+    ? await getArticles(1, 50, feedSection)
+    : { data: [] };
+
+  const title = pageData?.title ?? getTitleForPath(pathname, menu);
 
   return (
     <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
@@ -35,13 +40,23 @@ export default async function NewsPage() {
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
           {title}
         </h1>
-        {pageData?.content && pageData.content.length > 0 && (
-          <div className="prose prose-slate dark:prose-invert max-w-2xl mx-auto text-left">
+        {pageData?.content && pageData.content.length > 0 ? (
+          <div className="prose prose-slate dark:prose-invert max-w-3xl mx-auto text-left">
             <ContentBlocks blocks={pageData.content} className="text-lg text-slate-600 dark:text-slate-400" />
           </div>
-        )}
+        ) : null}
       </div>
 
+      {isRootSection && section.links && section.links.length > 0 && (
+        <SubSectionLinks
+          links={section.links}
+          title="Подразделы"
+          variant="cards"
+          className="mb-10"
+        />
+      )}
+
+      {showArticleFeed && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
         <div className="lg:col-span-8 xl:col-span-9">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -96,6 +111,37 @@ export default async function NewsPage() {
           <Events />
         </div>
       </div>
+      )}
     </div>
   );
+}
+
+export async function getSectionPageMetadata(path: string) {
+  const pathname = "/" + path.replace(/^\//, "").trim();
+  const menuData = await getMenu();
+  const menu = normalizeMenu(menuData?.mainMenu) ?? defaultMenu;
+  const pageData = await getPageByPath(path);
+  const menuTitle = pageData?.title ?? getTitleForPath(pathname, menu);
+  const title = `${menuTitle} | ${SITE_TITLE}`;
+  const description =
+    pageData?.metaDescription ??
+    (pageData?.content && Array.isArray(pageData.content)
+      ? extractTextFromBlocks(pageData.content).slice(0, 160)
+      : undefined);
+  return { title, description };
+}
+
+function extractTextFromBlocks(blocks: any[]): string {
+  let text = "";
+  for (const block of blocks) {
+    if (block.children) {
+      for (const child of block.children) {
+        if (child.text) text += child.text;
+        if (child.children) {
+          for (const c of child.children) if (c.text) text += c.text;
+        }
+      }
+    }
+  }
+  return text.trim();
 }

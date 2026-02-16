@@ -1,52 +1,66 @@
 {
-  "kind": "collectionType",
-  "collectionName": "articles",
-  "info": {
-    "singularName": "article",
-    "pluralName": "articles",
-    "displayName": "News",
-    "description": "Новости колледжа"
-  },
-  "options": {
-    "draftAndPublish": true
-  },
-  "pluginOptions": {},
-  "attributes": {
-    "title": {
-      "type": "string",
-      "required": true
+    "kind": "collectionType",
+    "collectionName": "articles",
+    "info": {
+        "singularName": "article",
+        "pluralName": "articles",
+        "displayName": "News",
+        "description": "Новости колледжа"
     },
-    "slug": {
-      "type": "uid",
-      "targetField": "title"
+    "options": {
+        "draftAndPublish": true
     },
-    "announcement": {
-      "type": "text",
-      "required": true
-    },
-    "content": {
-      "type": "blocks"
-    },
-    "cover": {
-      "type": "media",
-      "multiple": false,
-      "required": false,
-      "allowedTypes": [
-        "images"
-      ]
-    },
-    "date": {
-      "type": "date"
-    },
-    "Media": {
-      "type": "media",
-      "multiple": true,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
+    "pluginOptions": {},
+    "attributes": {
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "slug": {
+            "type": "uid",
+            "targetField": "title"
+        },
+        "announcement": {
+            "type": "text",
+            "required": true
+        },
+        "content": {
+            "type": "blocks"
+        },
+        "cover": {
+            "type": "media",
+            "multiple": false,
+            "required": false,
+            "allowedTypes": [
+                "images"
+            ]
+        },
+        "date": {
+            "type": "date"
+        },
+        "Media": {
+            "type": "media",
+            "multiple": true,
+            "allowedTypes": [
+                "images",
+                "files",
+                "videos",
+                "audios"
+            ]
+        },
+        "sectionUrl": {
+            "type": "enumeration",
+            "enum": [
+                "НОВОСТИ КОЛЛЕДЖА",
+                "НОВОСТИ ОБЩЕЖИТИЯ",
+                "О колледже",
+                "Абитуриентам",
+                "Обучающимся",
+                "Воспитательная работа",
+                "Одно окно",
+                "Электронные обращения"
+            ],
+            "description": "Место размещения: новости колледжа/общежития или каталог раздела"
+        }
     }
-  }
 }

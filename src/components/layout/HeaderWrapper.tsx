@@ -1,10 +1,10 @@
-import { getGlobalSettings } from "@/lib/strapi";
+import { getMenu } from "@/lib/strapi";
 import { defaultMenu, normalizeMenu } from "@/lib/menu-sections";
 import { Header } from "./Header";
 
 export async function HeaderWrapper() {
-    const globalSettings = await getGlobalSettings();
-    const menu = normalizeMenu(globalSettings?.mainMenu) ?? defaultMenu;
+    const menuData = await getMenu();
+    const menu = normalizeMenu(menuData?.mainMenu) ?? defaultMenu;
 
     return <Header initialMenu={menu} />;
 }

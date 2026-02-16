@@ -1,5 +1,25 @@
 import { getStrapiURL } from "./utils";
 
+/** Соответствие URL раздела и значения enum в Strapi (Место размещения / Раздел ленты). */
+export const SECTION_URL_TO_STRAPI: Record<string, string> = {
+  "/news": "НОВОСТИ КОЛЛЕДЖА",
+  "/students/dormitory": "НОВОСТИ ОБЩЕЖИТИЯ",
+  "/about": "О колледже",
+  "/applicants": "Абитуриентам",
+  "/students": "Обучающимся",
+  "/ideology": "Воспитательная работа",
+  "/one-window": "Одно окно",
+  "/appeals": "Электронные обращения",
+};
+
+/** Приводит URL раздела или значение из Strapi к значению для фильтра API. */
+function toSectionValueForFilter(sectionUrlOrStrapiValue: string): string {
+  if (sectionUrlOrStrapiValue.startsWith("/")) {
+    return SECTION_URL_TO_STRAPI[sectionUrlOrStrapiValue] ?? sectionUrlOrStrapiValue;
+  }
+  return sectionUrlOrStrapiValue;
+}
+
 interface StrapiResponse<T> {
   data: T;
   meta: {
@@ -50,6 +70,7 @@ export interface Article {
   content: any[]; // Blocks content
   date: string;
   cover: StrapiImage | null;
+  sectionUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -58,9 +79,12 @@ export interface Article {
 export interface Page {
   id: number;
   documentId: string;
+  pageUrl: string;
   title: string;
-  slug: string;
-  content: any[]; // Strapi blocks
+  metaDescription?: string | null;
+  content: any[];
+  /** Раздел ленты новостей на странице или "Не показывать" */
+  articleFeedSection?: string | null;
   createdAt?: string;
   updatedAt?: string;
   publishedAt?: string | null;
@@ -82,7 +106,6 @@ export interface MenuSection {
 export interface GlobalSettings {
   id: number;
   documentId: string;
-  mainMenu: MenuSection[];
   address: string;
   phoneReception: string;
   phoneDirector: string;
@@ -92,45 +115,56 @@ export interface GlobalSettings {
   tiktokLink: string | null;
 }
 
-// ...
+export interface MenuData {
+  id: number;
+  documentId: string;
+  mainMenu: MenuSection[];
+}
 
 /**
- * Get global settings (menu, etc)
+ * Глобальные настройки (контакты, соцсети). Меню — отдельно через getMenu().
  */
 export async function getGlobalSettings() {
-  const data = await fetchAPI<StrapiResponse<GlobalSettings>>(
-    "/global",
-    {
-      "populate[mainMenu][populate]": "*",
-    },
-    {
-      next: { revalidate: 60 },
-    }
-  );
-
-  if (!data || !data.data) {
-    return null;
-  }
-
+  const data = await fetchAPI<StrapiResponse<GlobalSettings>>("/global", {}, {
+    next: { revalidate: 60 },
+  });
+  if (!data || !data.data) return null;
   return data.data;
 }
 
-export async function getPageBySlug(slug: string) {
+/**
+ * Главное меню сайта (одиночный тип «Меню» в Strapi).
+ */
+export async function getMenu() {
+  const data = await fetchAPI<StrapiResponse<MenuData>>(
+    "/menu",
+    { "populate[mainMenu][populate]": "*" },
+    { next: { revalidate: 60 } }
+  );
+  if (!data || !data.data) return null;
+  return data.data;
+}
+
+/**
+ * Страница по пути (например "news", "about/administration").
+ * Заголовок и путь берутся из меню; в админке задаётся только выбор «Страница» и контент.
+ */
+export async function getPageByPath(path: string) {
+  const pathNorm = path.replace(/^\//, "").trim();
+  const pageUrl = pathNorm ? `/${pathNorm}` : "/";
   const data = await fetchAPI<StrapiResponse<Page[]>>(
     "/pages",
-    {
-      "filters[slug][$eq]": slug,
-    },
-    {
-      next: { revalidate: 60 },
-    }
+    { "filters[pageUrl][$eq]": pageUrl },
+    { next: { revalidate: 60 } }
   );
 
-  if (!data || !Array.isArray(data.data)) {
-    return null;
-  }
-
+  if (!data || !Array.isArray(data.data)) return null;
   return data.data[0] || null;
+}
+
+/** @deprecated Используйте getPageByPath(path) */
+export async function getPageBySlug(slug: string) {
+  return getPageByPath(slug);
 }
 
 async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
@@ -149,28 +183,32 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
     const requestUrl = `${getStrapiURL()}/api${path}${queryString ? `?${queryString}` : ""}`;
 
     const response = await fetch(requestUrl, mergedOptions);
+    if (!response.ok) {
+      return {} as T;
+    }
     const data = await response.json();
-
     return data as T;
-  } catch (error) {
-    console.error(error);
+  } catch {
+    // Strapi недоступен (не запущен, сеть, неверный URL) — работаем без данных
     return {} as T;
   }
 }
 
 /**
- * Get all articles (news)
+ * Get all articles (news), optionally filtered by section URL for section feeds.
  */
-export async function getArticles(page = 1, pageSize = 10) {
-  const data = await fetchAPI<StrapiResponse<Article[]>>("/articles", {
+export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string | null) {
+  const params: Record<string, string> = {
     "populate": "*",
-    "sort": "createdAt:desc", // Сортируем по дате создания пока что
-    // "publicationState": "preview", // Раскомментируйте для отладки, если нужно видеть черновики
+    "sort": "createdAt:desc",
     "pagination[page]": String(page),
     "pagination[pageSize]": String(pageSize),
-  }, {
-     // Новости должны обновляться сразу после публикации
-     cache: "no-store",
+  };
+  if (sectionUrl) {
+    params["filters[sectionUrl][$eq]"] = toSectionValueForFilter(sectionUrl);
+  }
+  const data = await fetchAPI<StrapiResponse<Article[]>>("/articles", params, {
+    cache: "no-store",
   });
 
   if (!data || !Array.isArray(data.data)) {

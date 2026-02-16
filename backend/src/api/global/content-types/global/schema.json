@@ -5,18 +5,13 @@
     "singularName": "global",
     "pluralName": "globals",
     "displayName": "Global Settings",
-    "description": "Глобальные настройки сайта (Меню, Контакты)"
+    "description": "Глобальные настройки сайта (Контакты, соцсети). Меню вынесено в одиночный тип «Меню»."
   },
   "options": {
     "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
-    "mainMenu": {
-      "type": "component",
-      "repeatable": true,
-      "component": "elements.menu-section"
-    },
     "address": {
       "type": "string",
       "default": "211386, Республика Беларусь, г. Орша, Витебская обл., ул. Климента Тимирязева, 26."

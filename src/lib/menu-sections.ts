@@ -43,7 +43,8 @@ export const defaultMenu: MenuSection[] = [
         links: [
             { id: 11, title: "Дневное отделение", url: "/students/day" },
             { id: 12, title: "Заочное отделение", url: "/students/correspondence" },
-            { id: 13, title: "Общежитие", url: "/students/dormitory" },
+            { id: 13, title: "Общежитие — Общая информация", url: "/students/dormitory" },
+            { id: 14, title: "Общежитие — Новости", url: "/students/dormitory/news" },
         ]
     },
     {
@@ -51,9 +52,9 @@ export const defaultMenu: MenuSection[] = [
         title: "Воспитательная работа",
         url: "/ideology",
         links: [
-            { id: 14, title: "СППС", url: "/ideology/spps" },
-            { id: 15, title: "Молодёжная политика", url: "/ideology/youth-policy" },
-            { id: 16, title: "В помощь куратору", url: "/ideology/curator" },
+            { id: 15, title: "СППС", url: "/ideology/spps" },
+            { id: 16, title: "Молодёжная политика", url: "/ideology/youth-policy" },
+            { id: 17, title: "В помощь куратору", url: "/ideology/curator" },
         ]
     },
     {
@@ -76,6 +77,74 @@ export type SubSectionLink = { id: number; title: string; url: string };
 export function getSubLinks(sectionUrl: string): SubSectionLink[] {
     const section = defaultMenu.find(s => s.url === sectionUrl);
     return section?.links ?? [];
+}
+
+export interface SectionByPathResult {
+    section: MenuSection;
+    /** URL раздела для ленты статей (например /students/dormitory для страницы общежития) */
+    sectionUrl: string;
+    isRootSection: boolean;
+}
+
+/** Разделы с собственной лентой статей (длинные пути первыми для корректного match). */
+const FEED_SECTION_URLS = [
+    "/students/dormitory",
+    "/news",
+    "/about",
+    "/applicants",
+    "/students",
+    "/ideology",
+    "/one-window",
+    "/appeals",
+] as const;
+
+/**
+ * По pathname возвращает sectionUrl для ленты статей (значение из enum Article.sectionUrl).
+ * Например: /students/dormitory/news → /students/dormitory, /about/administration → /about.
+ */
+export function getFeedSectionUrlForPath(pathname: string): string {
+    const path = pathname.replace(/^\//, "").trim() || "";
+    const pathWithSlash = "/" + path;
+    for (const feedUrl of FEED_SECTION_URLS) {
+        if (pathWithSlash === feedUrl || pathWithSlash.startsWith(feedUrl + "/")) return feedUrl;
+    }
+    return "/" + path.split("/")[0];
+}
+
+/**
+ * Заголовок страницы по pathname из меню (раздел или подраздел).
+ */
+export function getTitleForPath(pathname: string, menu: MenuSection[]): string {
+  const path = pathname.replace(/^\//, "").trim() || "";
+  const pathWithSlash = "/" + path;
+  for (const section of menu) {
+    const sectionUrl = (section.url ?? "").replace(/^\//, "");
+    if (path === sectionUrl || pathWithSlash === (section.url ?? "")) return section.title ?? path;
+    for (const link of section.links ?? []) {
+      const linkUrl = (link.url ?? "").replace(/^\//, "");
+      if (path === linkUrl || pathWithSlash === (link.url ?? "")) return link.title ?? path;
+    }
+  }
+  return path;
+}
+
+/**
+ * По pathname (например /about или /about/administration) определяет секцию из меню.
+ * sectionUrl — для ленты статей (раздел из enum: новости колледжа, общежития или каталог).
+ */
+export function getSectionByPath(pathname: string, menu: MenuSection[]): SectionByPathResult | null {
+    const path = pathname.replace(/^\//, "").trim() || "";
+    const segments = path.split("/").filter(Boolean);
+    if (segments.length === 0) return null;
+    const rootSegment = segments[0];
+    const section = menu.find(s => (s.url ?? "").replace(/^\//, "") === rootSegment);
+    if (!section) return null;
+    const sectionUrl = getFeedSectionUrlForPath(pathname);
+    return {
+        section,
+        sectionUrl,
+        isRootSection: segments.length === 1,
+    };
 }
 
 /**

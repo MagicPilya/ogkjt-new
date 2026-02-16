@@ -4,25 +4,43 @@
   "info": {
     "singularName": "page",
     "pluralName": "pages",
-    "displayName": "Page",
-    "description": "Информационные страницы"
+    "displayName": "Страница",
+    "description": "Одна страница сайта: привязана к пункту меню, заголовок подставляется из меню, контент и опционально лента новостей"
   },
   "options": {
     "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
+    "pageUrl": {
+      "type": "customField",
+      "customField": "global::menu-link-select",
+      "required": true
+    },
     "title": {
       "type": "string",
       "required": true
     },
-    "slug": {
-      "type": "uid",
-      "targetField": "title",
-      "required": true
+    "metaDescription": {
+      "type": "text"
     },
     "content": {
       "type": "blocks"
+    },
+    "articleFeedSection": {
+      "type": "enumeration",
+      "enum": [
+        "Не показывать",
+        "НОВОСТИ КОЛЛЕДЖА",
+        "НОВОСТИ ОБЩЕЖИТИЯ",
+        "О колледже",
+        "Абитуриентам",
+        "Обучающимся",
+        "Воспитательная работа",
+        "Одно окно",
+        "Электронные обращения"
+      ],
+      "description": "Показывать под контентом страницы блок «Новости»: выберите раздел (откуда брать статьи) или «Не показывать»"
     }
   }
 }

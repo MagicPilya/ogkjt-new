@@ -1,0 +1,21 @@
+{
+  "kind": "singleType",
+  "collectionName": "menus",
+  "info": {
+    "singularName": "menu",
+    "pluralName": "menus",
+    "displayName": "Меню",
+    "description": "Главное меню сайта (вкладки и подвкладки)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "mainMenu": {
+      "type": "component",
+      "repeatable": true,
+      "component": "elements.menu-section"
+    }
+  }
+}
