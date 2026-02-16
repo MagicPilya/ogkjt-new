@@ -10,6 +10,8 @@ const PUBLIC_PERMISSION_ACTIONS = [
   'api::page.page.findOne',
   'api::global.global.find',
   'api::menu.menu.find',
+  'api::administration.administration.find',
+  'api::specialty.specialty.find',
 ] as const;
 
 /**

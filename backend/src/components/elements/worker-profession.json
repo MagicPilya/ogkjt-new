@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_elements_worker_professions",
+  "info": {
+    "displayName": "Профессия рабочего",
+    "icon": "briefcase",
+    "description": "Один пункт перечисления профессий рабочего"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "collectionName": "components_elements_specialty_items",
+  "info": {
+    "displayName": "Специальность",
+    "icon": "graduation-cap",
+    "description": "Одна специальность: название, шифр, специализации, квалификация, профессии рабочего"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "string",
+      "required": true
+    },
+    "specializations": {
+      "type": "component",
+      "repeatable": true,
+      "component": "elements.specialization-item"
+    },
+    "qualification": {
+      "type": "text",
+      "description": "Квалификация специалиста"
+    },
+    "workerProfessions": {
+      "type": "component",
+      "repeatable": true,
+      "component": "elements.worker-profession",
+      "description": "Профессия рабочего (перечисление)"
+    }
+  }
+}

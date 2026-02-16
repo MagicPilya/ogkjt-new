@@ -1,0 +1,22 @@
+{
+  "kind": "singleType",
+  "collectionName": "specialties",
+  "info": {
+    "singularName": "specialty",
+    "pluralName": "specialties",
+    "displayName": "Специальности",
+    "description": "Список специальностей для страницы «Абитуриентам → Специальности». Название и шифр, специализации (шифр), квалификация специалиста, профессия рабочего (перечисление)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "elements.specialty-item",
+      "description": "Список специальностей"
+    }
+  }
+}

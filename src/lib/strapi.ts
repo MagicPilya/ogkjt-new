@@ -107,6 +107,33 @@ export interface Administration {
   members?: AdministrationMember[] | null;
 }
 
+/** Одна специализация: название и шифр */
+export interface SpecializationItem {
+  name: string;
+  code: string;
+}
+
+/** Один пункт перечисления профессий рабочего */
+export interface WorkerProfession {
+  title: string;
+}
+
+/** Одна специальность: название, шифр, специализации, квалификация, профессии рабочего */
+export interface SpecialtyItem {
+  name: string;
+  code: string;
+  specializations?: SpecializationItem[] | null;
+  qualification?: string | null;
+  workerProfessions?: WorkerProfession[] | null;
+}
+
+/** Single type «Специальности» — список специальностей для страницы Абитуриентам → Специальности */
+export interface Specialties {
+  id?: number;
+  documentId?: string;
+  items?: SpecialtyItem[] | null;
+}
+
 export interface MenuLink {
   id: number;
   title: string;
@@ -201,6 +228,20 @@ export async function getPageBySlug(slug: string) {
 export async function getAdministration(): Promise<Administration | null> {
   const data = await fetchAPI<{ data: Administration }>(
     "/administration",
+    { status: "published", "populate": "*" },
+    { cache: "no-store" }
+  );
+  if (!data?.data) return null;
+  return data.data;
+}
+
+/**
+ * Данные блока «Специальности» (single type): список специальностей с названием, шифром,
+ * специализациями, квалификацией и профессиями рабочего. Используется на странице /applicants/specialties.
+ */
+export async function getSpecialties(): Promise<Specialties | null> {
+  const data = await fetchAPI<{ data: Specialties }>(
+    "/specialty",
     { status: "published", "populate": "*" },
     { cache: "no-store" }
   );
