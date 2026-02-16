@@ -34,6 +34,9 @@ interface HeaderProps {
 
 export function Header({ initialMenu }: HeaderProps) {
     const menuItems = initialMenu || defaultMenu;
+    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+
+    const closeMobileMenu = React.useCallback(() => setMobileMenuOpen(false), []);
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-slate-950 shadow-sm">
@@ -137,14 +140,14 @@ export function Header({ initialMenu }: HeaderProps) {
 
                 {/* Mobile Menu Button */}
                 <div className="xl:hidden shrink-0 ml-auto">
-                    <Sheet>
+                    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon" suppressHydrationWarning>
                                 <Menu className="h-6 w-6" />
                                 <span className="sr-only">Меню</span>
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto px-6">
+                        <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto px-6 pb-12">
                             <SheetTitle className="sr-only">Меню навигации</SheetTitle>
                             <div className="flex flex-col gap-6 mt-8">
                              {menuItems.map((item) => (
@@ -153,6 +156,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                         <>
                                             <Link
                                                 href={item.url || "#"}
+                                                onClick={closeMobileMenu}
                                                 className="font-bold text-lg text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 mb-1"
                                             >
                                                 {item.title}
@@ -162,6 +166,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                                     <Link 
                                                         key={subItem.id} 
                                                         href={subItem.url}
+                                                        onClick={closeMobileMenu}
                                                         className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
                                                     >
                                                         {subItem.title}
@@ -172,6 +177,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                     ) : (
                                         <Link 
                                             href={item.url || "#"}
+                                            onClick={closeMobileMenu}
                                             className="font-bold text-lg text-slate-900 dark:text-white hover:text-blue-600"
                                         >
                                             {item.title}
