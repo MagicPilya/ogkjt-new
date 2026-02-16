@@ -3,11 +3,12 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
-import { getMenu, getPageByPath, getArticles } from "@/lib/strapi";
+import { getMenu, getPageByPath, getArticles, getAdministration } from "@/lib/strapi";
 import { defaultMenu, normalizeMenu, getSectionByPath, getTitleForPath } from "@/lib/menu-sections";
 import { SubSectionLinks } from "@/components/blocks/SubSectionLinks";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { Events } from "@/components/blocks/Events";
+import { AdministrationCards } from "@/components/blocks/AdministrationCards";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
@@ -26,6 +27,8 @@ export default async function SectionPage({ path }: SectionPageProps) {
 
   const { section, sectionUrl, isRootSection } = sectionResult;
   const pageData = await getPageByPath(path);
+  const isAdministrationPage = path === "about/administration";
+  const administration = isAdministrationPage ? await getAdministration() : null;
   const feedSection = pageData?.articleFeedSection;
   const showArticleFeed = !!feedSection && feedSection !== "Не показывать";
   const { data: articles } = showArticleFeed
@@ -46,6 +49,10 @@ export default async function SectionPage({ path }: SectionPageProps) {
           </div>
         ) : null}
       </div>
+
+      {isAdministrationPage && administration?.members && administration.members.length > 0 && (
+        <AdministrationCards members={administration.members} />
+      )}
 
       {isRootSection && section.links && section.links.length > 0 && (
         <SubSectionLinks

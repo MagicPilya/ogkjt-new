@@ -90,6 +90,23 @@ export interface Page {
   publishedAt?: string | null;
 }
 
+/** Один сотрудник из блока «Администрация» (single type) */
+export interface AdministrationMember {
+  id?: number;
+  documentId?: string;
+  fullName: string;
+  position: string;
+  contacts?: string | null;
+  photo?: StrapiImage | null;
+}
+
+/** Single type «Администрация» — список сотрудников для страницы О колледже → Администрация */
+export interface Administration {
+  id?: number;
+  documentId?: string;
+  members?: AdministrationMember[] | null;
+}
+
 export interface MenuLink {
   id: number;
   title: string;
@@ -125,9 +142,11 @@ export interface MenuData {
  * Глобальные настройки (контакты, соцсети). Меню — отдельно через getMenu().
  */
 export async function getGlobalSettings() {
-  const data = await fetchAPI<StrapiResponse<GlobalSettings>>("/global", {}, {
-    next: { revalidate: 60 },
-  });
+  const data = await fetchAPI<StrapiResponse<GlobalSettings>>(
+    "/global",
+    { status: "published" },
+    { cache: "no-store" }
+  );
   if (!data || !data.data) return null;
   return data.data;
 }
@@ -138,8 +157,8 @@ export async function getGlobalSettings() {
 export async function getMenu() {
   const data = await fetchAPI<StrapiResponse<MenuData>>(
     "/menu",
-    { "populate[mainMenu][populate]": "*" },
-    { next: { revalidate: 60 } }
+    { status: "published", "populate[mainMenu][populate]": "*" },
+    { cache: "no-store" }
   );
   if (!data || !data.data) return null;
   return data.data;
@@ -148,15 +167,23 @@ export async function getMenu() {
 /**
  * Страница по пути (например "news", "about/administration").
  * Заголовок и путь берутся из меню; в админке задаётся только выбор «Страница» и контент.
+ * Ищем по полному URL (с ведущим слэшем); при отсутствии — пробуем без слэша (на случай иного формата в Strapi).
  */
 export async function getPageByPath(path: string) {
   const pathNorm = path.replace(/^\//, "").trim();
-  const pageUrl = pathNorm ? `/${pathNorm}` : "/";
-  const data = await fetchAPI<StrapiResponse<Page[]>>(
-    "/pages",
-    { "filters[pageUrl][$eq]": pageUrl },
-    { next: { revalidate: 60 } }
-  );
+  const pageUrlWithSlash = pathNorm ? `/${pathNorm}` : "/";
+  const params: Record<string, string> = {
+    status: "published",
+    "filters[pageUrl][$eq]": pageUrlWithSlash,
+    "populate": "*",
+  };
+
+  let data = await fetchAPI<StrapiResponse<Page[]>>("/pages", params, { cache: "no-store" });
+
+  if ((!data || !Array.isArray(data.data) || data.data.length === 0) && pathNorm) {
+    params["filters[pageUrl][$eq]"] = pathNorm;
+    data = await fetchAPI<StrapiResponse<Page[]>>("/pages", params, { cache: "no-store" });
+  }
 
   if (!data || !Array.isArray(data.data)) return null;
   return data.data[0] || null;
@@ -165,6 +192,20 @@ export async function getPageByPath(path: string) {
 /** @deprecated Используйте getPageByPath(path) */
 export async function getPageBySlug(slug: string) {
   return getPageByPath(slug);
+}
+
+/**
+ * Данные блока «Администрация» (single type): список сотрудников с ФИО, должностью, контактами, фото.
+ * Используется на странице /about/administration.
+ */
+export async function getAdministration(): Promise<Administration | null> {
+  const data = await fetchAPI<{ data: Administration }>(
+    "/administration",
+    { status: "published", "populate": "*" },
+    { cache: "no-store" }
+  );
+  if (!data?.data) return null;
+  return data.data;
 }
 
 async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
@@ -184,12 +225,19 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
 
     const response = await fetch(requestUrl, mergedOptions);
     if (!response.ok) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          `[Strapi] ${response.status} ${response.statusText}: ${requestUrl.replace(/\?.*/, "")}`
+        );
+      }
       return {} as T;
     }
     const data = await response.json();
     return data as T;
-  } catch {
-    // Strapi недоступен (не запущен, сеть, неверный URL) — работаем без данных
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[Strapi] Запрос не выполнен (сеть/URL):", getStrapiURL() + path);
+    }
     return {} as T;
   }
 }
@@ -199,6 +247,7 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
  */
 export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string | null) {
   const params: Record<string, string> = {
+    status: "published",
     "populate": "*",
     "sort": "createdAt:desc",
     "pagination[page]": String(page),
@@ -233,10 +282,10 @@ export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string |
  */
 export async function getArticleBySlug(slug: string) {
   const data = await fetchAPI<StrapiResponse<Article[]>>("/articles", {
+    status: "published",
     "filters[slug][$eq]": slug,
     "populate": "*",
   }, {
-    // Детальная страница новости тоже без кеша
     cache: "no-store",
   });
   
@@ -254,12 +303,13 @@ export async function getEvents(limit = 3) {
   const now = new Date().toISOString();
   
   const data = await fetchAPI<StrapiResponse<Event[]>>("/events", {
+    status: "published",
     "populate": "*",
     "sort": "date:asc",
-    "filters[date][$gte]": now, // Only future events
+    "filters[date][$gte]": now,
     "pagination[pageSize]": String(limit),
   }, {
-    next: { revalidate: 60 }
+    cache: "no-store",
   });
 
   if (!data || !Array.isArray(data.data)) {
@@ -289,12 +339,11 @@ export async function getEventById(id: number | string) {
   const data = await fetchAPI<StrapiResponse<Event[]>>(
     "/events",
     {
+      status: "published",
       "filters[id][$eq]": String(id),
       populate: "*",
     },
-    {
-      next: { revalidate: 60 },
-    }
+    { cache: "no-store" }
   );
 
   if (!data || !Array.isArray(data.data)) {

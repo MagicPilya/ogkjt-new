@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
+import { getStrapiMedia } from "@/lib/utils";
 
 type Block = {
   type: string;
@@ -12,6 +14,14 @@ type Block = {
     underline?: boolean;
     children?: Array<{ text?: string }>;
   }>;
+  /** Блок изображения: медиа из Strapi (после populate) */
+  image?: {
+    url?: string;
+    alternativeText?: string | null;
+    caption?: string | null;
+    width?: number;
+    height?: number;
+  } | null;
 };
 
 interface ContentBlocksProps {
@@ -19,7 +29,7 @@ interface ContentBlocksProps {
   className?: string;
 }
 
-/** Рендер блоков контента Strapi (paragraph, heading, list) */
+/** Рендер блоков контента Strapi (paragraph, heading, list, image) */
 export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return null;
 
@@ -60,6 +70,35 @@ export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
                 </li>
               ))}
             </ListTag>
+          );
+        }
+        if (block.type === "image" && block.image) {
+          const media = block.image as { url?: string; alternativeText?: string | null; width?: number; height?: number };
+          const url = media.url ?? (block.image as any)?.data?.attributes?.url;
+          const src = getStrapiMedia(url ?? null);
+          if (!src) return null;
+          const alt = media.alternativeText ?? (block.image as any)?.data?.attributes?.alternativeText ?? "";
+          const width = media.width ?? (block.image as any)?.data?.attributes?.width ?? 800;
+          const height = media.height ?? (block.image as any)?.data?.attributes?.height ?? 600;
+          return (
+            <figure key={index} className="my-6 w-full max-w-2xl mx-auto">
+              <span className="block relative w-full overflow-hidden rounded-md">
+                {/* unoptimized: грузим напрямую со Strapi; размер ограничен по ширине контейнера */}
+                <Image
+                  src={src}
+                  alt={alt || "Изображение"}
+                  width={width}
+                  height={height}
+                  className="h-auto w-full max-w-full object-contain"
+                  unoptimized
+                />
+              </span>
+              {media.caption ?? (block.image as any)?.data?.attributes?.caption ? (
+                <figcaption className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400">
+                  {media.caption ?? (block.image as any)?.data?.attributes?.caption}
+                </figcaption>
+              ) : null}
+            </figure>
           );
         }
         return null;

@@ -6,11 +6,15 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: 'localhost', // Разрешаем localhost
+        hostname: 'localhost',
+        port: '1337', // Strapi на локальной разработке
+        pathname: '/uploads/**',
       },
       {
         protocol: 'http',
-        hostname: '127.0.0.1', // Разрешаем IP
+        hostname: '127.0.0.1',
+        port: '1337',
+        pathname: '/uploads/**',
       },
       {
         protocol: 'http',

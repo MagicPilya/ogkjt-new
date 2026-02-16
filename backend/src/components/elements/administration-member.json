@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_elements_administration_members",
+  "info": {
+    "displayName": "Сотрудник администрации",
+    "icon": "user",
+    "description": "ФИО, должность, контакты, фото для карточки на странице «Администрация»"
+  },
+  "options": {},
+  "attributes": {
+    "fullName": {
+      "type": "string",
+      "required": true
+    },
+    "position": {
+      "type": "string",
+      "required": true
+    },
+    "contacts": {
+      "type": "text"
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}
