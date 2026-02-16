@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 import { MenuSection } from "@/lib/strapi";
 import { defaultMenu } from "@/lib/menu-sections";
@@ -43,6 +44,7 @@ export function Header({ initialMenu }: HeaderProps) {
                         <span className="md:hidden">Оршанский колледж - филиал БелГУТа</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
+                        <ThemeToggle />
                         <Button variant="ghost" size="sm" className="h-8 text-slate-600 dark:text-slate-300">
                             <Search className="mr-2 h-4 w-4" />
                             <span className="hidden sm:inline">Поиск</span>
