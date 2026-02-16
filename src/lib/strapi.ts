@@ -285,6 +285,8 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
 
 /**
  * Get all articles (news), optionally filtered by section URL for section feeds.
+ * Для раздела «Новости колледжа» в выборку попадают и статьи без раздела (sectionUrl = null),
+ * чтобы отображались существующие новости, у которых раздел не задан.
  */
 export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string | null) {
   const params: Record<string, string> = {
@@ -295,7 +297,15 @@ export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string |
     "pagination[pageSize]": String(pageSize),
   };
   if (sectionUrl) {
-    params["filters[sectionUrl][$eq]"] = toSectionValueForFilter(sectionUrl);
+    const sectionValue = toSectionValueForFilter(sectionUrl);
+    const isMainNews = sectionValue === "НОВОСТИ КОЛЛЕДЖА";
+    if (isMainNews) {
+      // На главной ленте новостей показываем и статьи без раздела (sectionUrl = null)
+      params["filters[$or][0][sectionUrl][$eq]"] = sectionValue;
+      params["filters[$or][1][sectionUrl][$null]"] = "true";
+    } else {
+      params["filters[sectionUrl][$eq]"] = sectionValue;
+    }
   }
   const data = await fetchAPI<StrapiResponse<Article[]>>("/articles", params, {
     cache: "no-store",

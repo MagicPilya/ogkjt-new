@@ -6,7 +6,8 @@ import { getArticles } from "@/lib/strapi";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 
 export async function NewsGrid() {
-    const { data: articles } = await getArticles(1, 3);
+    const { data: rawArticles } = await getArticles(1, 3);
+    const articles = Array.isArray(rawArticles) ? rawArticles : [];
 
     // В Strapi 5 дата публикации - publishedAt, а поле date мы создали сами вручную.
     // Переносим логику внутрь map, так как item доступен только там.

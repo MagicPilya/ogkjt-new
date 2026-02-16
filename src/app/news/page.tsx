@@ -27,7 +27,8 @@ export default async function NewsPage() {
   const feedSection = pageData?.articleFeedSection && pageData.articleFeedSection !== "Не показывать"
     ? pageData.articleFeedSection
     : "НОВОСТИ КОЛЛЕДЖА";
-  const { data: articles } = await getArticles(1, 50, feedSection);
+  const { data: rawArticles } = await getArticles(1, 50, feedSection);
+  const articles = Array.isArray(rawArticles) ? rawArticles : [];
 
   return (
     <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
