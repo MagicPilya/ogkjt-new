@@ -157,6 +157,7 @@ export interface GlobalSettings {
   instagramLink: string | null;
   telegramLink: string | null;
   tiktokLink: string | null;
+  vkLink: string | null;
 }
 
 export interface MenuData {

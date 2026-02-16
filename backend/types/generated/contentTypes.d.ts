@@ -578,6 +578,8 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    vkLink: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'https://vk.com/ofutorsha'>;
   };
 }
 

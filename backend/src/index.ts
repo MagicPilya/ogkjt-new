@@ -158,6 +158,7 @@ async function seedGlobalIfEmpty(strapi: Core.Strapi) {
       instagramLink: 'https://www.instagram.com/orsha_jd?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',
       telegramLink: 'https://t.me/orsha_jd',
       tiktokLink: 'https://www.tiktok.com/@bsut.orsha?_r=1&_t=ZS-93UxtlAecmO',
+      vkLink: 'https://vk.com/ofutorsha',
     },
     status: 'published',
   });
