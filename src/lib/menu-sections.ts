@@ -147,6 +147,50 @@ export function getSectionByPath(pathname: string, menu: MenuSection[]): Section
     };
 }
 
+/** Элемент хлебной крошки */
+export interface BreadcrumbItem {
+  href: string;
+  label: string;
+}
+
+/**
+ * Форматирует slug в читаемый заголовок (например news-slug → News slug).
+ */
+function slugToTitle(slug: string): string {
+  return slug
+    .split(/[-_]/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+/**
+ * Строит список пунктов хлебных крошек по pathname и меню.
+ * Для сегментов, не найденных в меню (например slug новости), подставляет форматированный slug или общий ярлык.
+ */
+export function getBreadcrumbItems(pathname: string, menu: MenuSection[]): BreadcrumbItem[] {
+  const path = pathname.replace(/^\//, "").trim() || "";
+  if (!path) return [];
+
+  const segments = path.split("/").filter(Boolean);
+  const items: BreadcrumbItem[] = [{ href: "/", label: "Главная" }];
+
+  for (let i = 0; i < segments.length; i++) {
+    const segmentPath = segments.slice(0, i + 1).join("/");
+    const href = "/" + segmentPath;
+    let label = getTitleForPath("/" + segmentPath, menu);
+    // Если метка совпадает с путём (не найдено в меню), форматируем или подставляем общий ярлык
+    if (label === segmentPath || label === segments[i]) {
+      const firstSegment = segments[0];
+      if (firstSegment === "news" && i === 1) label = "Новость";
+      else if (firstSegment === "events" && i === 1) label = "Событие";
+      else label = slugToTitle(segments[i]);
+    }
+    items.push({ href, label });
+  }
+
+  return items;
+}
+
 /**
  * Нормализует меню из Strapi: подставляет url/links из defaultMenu, если в ответе их нет.
  * Так поведение сайта одинаковое и при данных из CMS, и при встроенных данных.

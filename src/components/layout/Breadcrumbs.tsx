@@ -1,0 +1,57 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { defaultMenu, getBreadcrumbItems } from "@/lib/menu-sections";
+import { cn } from "@/lib/utils";
+
+export function Breadcrumbs({ className }: { className?: string }) {
+  const pathname = usePathname();
+  const items = getBreadcrumbItems(pathname, defaultMenu);
+
+  if (items.length === 0) return null;
+
+  return (
+    <nav
+      aria-label="Хлебные крошки"
+      className={cn(
+        "w-full border-b bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800",
+        className
+      )}
+    >
+      <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-3">
+        <ol className="flex flex-wrap items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+          {items.map((item, index) => {
+            const isLast = index === items.length - 1;
+            return (
+              <li key={item.href} className="flex items-center gap-1.5">
+                {index > 0 && (
+                  <ChevronRight
+                    className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500"
+                    aria-hidden
+                  />
+                )}
+                {isLast ? (
+                  <span
+                    className="font-medium text-slate-900 dark:text-slate-100 truncate max-w-[200px] sm:max-w-none"
+                    aria-current="page"
+                  >
+                    {item.label}
+                  </span>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate max-w-[200px] sm:max-w-none"
+                  >
+                    {item.label}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+    </nav>
+  );
+}
