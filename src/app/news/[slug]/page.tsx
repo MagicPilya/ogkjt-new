@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getArticleBySlug } from "@/lib/strapi";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
+import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 
 interface Props {
     params: Promise<{
@@ -78,49 +79,7 @@ export default async function NewsDetailPage({ params }: Props) {
                     <p className="lead text-xl text-slate-600 dark:text-slate-300 mb-6">
                         {item.announcement}
                     </p>
-                    
-                    {/* TODO: Render Blocks/Rich Text content properly */}
-                    {item.content && item.content.map((block: any, index: number) => {
-                        // Basic renderer for Strapi Blocks
-                        if (block.type === 'paragraph') {
-                             return (
-                                <p key={index}>
-                                    {block.children.map((child: any, childIndex: number) => {
-                                        if (child.type === 'text') {
-                                            let text = child.text;
-                                            if (child.bold) text = <strong key={childIndex}>{text}</strong>;
-                                            if (child.italic) text = <em key={childIndex}>{text}</em>;
-                                            if (child.underline) text = <u key={childIndex}>{text}</u>;
-                                            // Add more formatting here if needed
-                                            return <span key={childIndex}>{text}</span>;
-                                        }
-                                        return null;
-                                    })}
-                                </p>
-                             );
-                        }
-                        if (block.type === 'heading') {
-                            const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
-                            return (
-                                <Tag key={index}>
-                                     {block.children.map((child: any, childIndex: number) => child.text).join('')}
-                                </Tag>
-                            );
-                        }
-                        if (block.type === 'list') {
-                            const ListTag = block.format === 'ordered' ? 'ol' : 'ul';
-                            return (
-                                <ListTag key={index}>
-                                    {block.children.map((item: any, itemIndex: number) => (
-                                        <li key={itemIndex}>
-                                            {item.children.map((child: any, childIndex: number) => child.text).join('')}
-                                        </li>
-                                    ))}
-                                </ListTag>
-                            )
-                        }
-                        return null;
-                    })}
+                    <ContentBlocks blocks={item.content ?? undefined} />
                 </div>
             </article>
         </div>
