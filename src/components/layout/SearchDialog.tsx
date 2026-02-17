@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Search, Loader2, FileText, Newspaper } from "lucide-react";
+import { Search, Loader2, FileText, Newspaper, Users, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -109,7 +109,7 @@ export function SearchDialog() {
           <span className="hidden sm:inline">Поиск</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md pr-12">
+      <DialogContent className="sm:max-w-xl pr-12">
         <DialogTitle className="sr-only">Поиск по сайту</DialogTitle>
         <div className="flex flex-col gap-4">
           <div className="relative">
@@ -126,7 +126,7 @@ export function SearchDialog() {
             />
           </div>
 
-          <div className="max-h-[60vh] overflow-y-auto rounded-md border bg-muted/30 p-2">
+          <div className="max-h-[70vh] overflow-y-auto rounded-md border bg-muted/30 p-2">
             {debouncedQuery.length > 0 && debouncedQuery.length < MIN_QUERY_LENGTH && (
               <p className="px-2 py-4 text-sm text-muted-foreground">
                 Введите минимум {MIN_QUERY_LENGTH} символа
@@ -154,15 +154,19 @@ export function SearchDialog() {
                     >
                       {item.type === "article" ? (
                         <Newspaper className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                      ) : item.type === "administration" ? (
+                        <Users className="mt-0.5 h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" />
+                      ) : item.type === "specialty" ? (
+                        <GraduationCap className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                       ) : (
                         <FileText className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" />
                       )}
-                      <div className="min-w-0 flex-1 overflow-hidden max-w-full">
-                        <div className="font-medium truncate" title={item.title}>
+                      <div className="min-w-0 flex-1 min-h-0 max-w-full">
+                        <div className="font-medium break-words" title={item.title}>
                           {item.title}
                         </div>
                         {item.snippet && (
-                          <div className="mt-0.5 text-xs text-muted-foreground overflow-hidden break-words line-clamp-2 w-full [overflow-wrap:anywhere]">
+                          <div className="mt-0.5 text-xs text-muted-foreground break-words w-full [overflow-wrap:anywhere]">
                             {highlightSnippet(item.snippet, debouncedQuery)}
                           </div>
                         )}
