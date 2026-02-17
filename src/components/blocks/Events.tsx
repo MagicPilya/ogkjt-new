@@ -4,30 +4,41 @@ import { getEvents, getEventsInRange } from "@/lib/strapi";
 import Link from "next/link";
 import { EventsCalendar } from "./EventsCalendar";
 
+function formatYYYYMMDD(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export async function Events() {
+    const now = new Date();
+    const calendarStart = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+    const calendarEnd = new Date(now.getFullYear(), now.getMonth() + 3, 0);
+
     const [{ data: listEvents }, { data: calendarEvents }] = await Promise.all([
         getEvents(3),
-        (() => {
-            const now = new Date();
-            const start = new Date(now.getFullYear(), now.getMonth(), 1);
-            const end = new Date(now.getFullYear(), now.getMonth() + 2, 0);
-            return getEventsInRange(start, end);
-        })(),
+        getEventsInRange(calendarStart, calendarEnd),
     ]);
 
     const events = listEvents ?? [];
 
     return (
         <div className="flex flex-col gap-8">
-            {/* Calendar Widget — клик по дню с событием ведёт на страницу события */}
+            {/* Calendar Widget — только 3 месяца назад … 2 вперёд */}
             <div className="flex flex-col items-center text-center">
                 <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
-                    Календарь
+                    Календарь событий
                 </h2>
                 <EventsCalendar
                     events={calendarEvents ?? []}
-                    defaultMonth={new Date()}
+                    defaultMonth={formatYYYYMMDD(now)}
+                    startMonth={formatYYYYMMDD(calendarStart)}
+                    endMonth={formatYYYYMMDD(new Date(now.getFullYear(), now.getMonth() + 2, 1))}
                 />
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                    Нажмите на день с точкой — откроется список.
+                </p>
             </div>
 
             {/* Events List */}

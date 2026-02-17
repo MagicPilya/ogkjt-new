@@ -16,7 +16,7 @@ export async function NewsGrid() {
         <div className="h-full flex flex-col">
             <div className="flex flex-col items-center mb-8 text-center relative">
                 <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                    Последние новости
+                    Последние новости колледжа
                 </h2>
                 <Button variant="ghost" className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2" asChild>
                     <Link href="/news">
