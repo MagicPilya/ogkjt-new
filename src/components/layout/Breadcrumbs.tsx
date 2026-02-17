@@ -8,8 +8,9 @@ import { cn } from "@/lib/utils";
 
 export function Breadcrumbs({ className }: { className?: string }) {
   const pathname = usePathname();
-  const items = getBreadcrumbItems(pathname, defaultMenu);
+  if (pathname.startsWith("/events")) return null;
 
+  const items = getBreadcrumbItems(pathname, defaultMenu);
   if (items.length === 0) return null;
 
   return (

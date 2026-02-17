@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, Eye, ChevronDown } from "lucide-react";
+import { Menu, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { LowVisionToggle } from "@/components/theme/LowVisionToggle";
 import { SearchDialog } from "./SearchDialog";
 
 import { MenuSection } from "@/lib/strapi";
@@ -50,10 +51,7 @@ export function Header({ initialMenu }: HeaderProps) {
                     <div className="flex items-center gap-2 sm:gap-4">
                         <ThemeToggle />
                         <SearchDialog />
-                        <Button variant="ghost" size="sm" className="h-8 text-slate-600 dark:text-slate-300">
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">Версия для слабовидящих</span>
-                        </Button>
+                        <LowVisionToggle />
                     </div>
                 </div>
             </div>

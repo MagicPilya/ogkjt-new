@@ -112,6 +112,46 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Режим для слабовидящих: СТБ 2105-2010, WCAG 2.1 AA */
+[data-a11y="low-vision"] {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.145 0 0);
+  --border: oklch(0.2 0 0);
+  --ring: oklch(0.205 0 0);
+  font-size: 118.75%; /* ~19px при базе 16px, +20–25% */
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+[data-a11y="low-vision"].dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.985 0 0);
+  --border: oklch(0.5 0 0);
+  --ring: oklch(0.708 0 0);
+}
+[data-a11y="low-vision"] *,
+[data-a11y="low-vision"] *::before,
+[data-a11y="low-vision"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.05s !important;
+}
+[data-a11y="low-vision"] .hero-bg {
+  background-image: none !important;
+  background-color: oklch(0.25 0 0);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

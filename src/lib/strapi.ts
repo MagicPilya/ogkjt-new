@@ -353,7 +353,7 @@ export async function getArticleBySlug(slug: string) {
  */
 export async function getEvents(limit = 3) {
   const now = new Date().toISOString();
-  
+
   const data = await fetchAPI<StrapiResponse<Event[]>>("/events", {
     status: "published",
     "populate": "*",
@@ -378,6 +378,27 @@ export async function getEvents(limit = 3) {
     };
   }
 
+  return data;
+}
+
+/**
+ * Get events in a date range (for calendar: e.g. month)
+ */
+export async function getEventsInRange(start: Date, end: Date) {
+  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", {
+    status: "published",
+    "populate": "*",
+    "sort": "date:asc",
+    "filters[date][$gte]": start.toISOString(),
+    "filters[date][$lte]": end.toISOString(),
+    "pagination[pageSize]": "100",
+  }, {
+    cache: "no-store",
+  });
+
+  if (!data || !Array.isArray(data.data)) {
+    return { data: [] };
+  }
   return data;
 }
 

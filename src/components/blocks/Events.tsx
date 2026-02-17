@@ -1,35 +1,33 @@
 import { Card } from "@/components/ui/card";
 import { MapPin, Clock } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { getEvents } from "@/lib/strapi";
+import { getEvents, getEventsInRange } from "@/lib/strapi";
 import Link from "next/link";
+import { EventsCalendar } from "./EventsCalendar";
 
 export async function Events() {
-    const { data: events } = await getEvents(3);
+    const [{ data: listEvents }, { data: calendarEvents }] = await Promise.all([
+        getEvents(3),
+        (() => {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+            return getEventsInRange(start, end);
+        })(),
+    ]);
 
-    const eventDates = events?.map((event) => new Date(event.date)) ?? [];
+    const events = listEvents ?? [];
 
     return (
         <div className="flex flex-col gap-8">
-            {/* Calendar Widget */}
+            {/* Calendar Widget — клик по дню с событием ведёт на страницу события */}
             <div className="flex flex-col items-center text-center">
                 <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
                     Календарь
                 </h2>
-                <div className="border rounded-lg p-4 bg-white dark:bg-slate-950 shadow-sm w-full flex justify-center">
-                    <Calendar
-                        mode="single"
-                        selected={new Date()}
-                        modifiers={{
-                            eventDay: eventDates,
-                        }}
-                        modifiersClassNames={{
-                            eventDay:
-                                "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-blue-600",
-                        }}
-                        className="rounded-md"
-                    />
-                </div>
+                <EventsCalendar
+                    events={calendarEvents ?? []}
+                    defaultMonth={new Date()}
+                />
             </div>
 
             {/* Events List */}
@@ -38,7 +36,7 @@ export async function Events() {
                     Ближайшие события
                 </h2>
                 
-                {!events || events.length === 0 ? (
+                {events.length === 0 ? (
                     <p className="text-slate-500">Событий пока нет.</p>
                 ) : (
                     <div className="space-y-4 w-full">
