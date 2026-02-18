@@ -105,16 +105,30 @@ interface ContentBlocksProps {
   className?: string;
 }
 
+/** Проверяет, пустой ли абзац (нет текста или только пробелы) — для разделителя абзацев */
+function isParagraphEmpty(block: Block): boolean {
+  if (!block.children?.length) return true;
+  const text = block.children
+    .map((c: any) => c.text ?? (c.children?.map((cc: any) => cc?.text).join("") ?? ""))
+    .join("");
+  return !text || !text.trim();
+}
+
 /** Рендер блоков контента Strapi (paragraph, heading, list, quote, code, link, image) */
 export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return null;
+
+  const paragraphClass = "indent-[1.25em] mb-3 last:mb-0";
 
   return (
     <div className={className}>
       {blocks.map((block: Block, index: number) => {
         if (block.type === "paragraph") {
+          if (isParagraphEmpty(block)) {
+            return <div key={index} className="h-4 shrink-0" aria-hidden />;
+          }
           return (
-            <p key={index}>
+            <p key={index} className={paragraphClass}>
               {renderInlineNodes(block.children)}
             </p>
           );
@@ -122,7 +136,7 @@ export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
         if (block.type === "link" && block.url) {
           const content = renderInlineNodes(block.children);
           return (
-            <p key={index}>
+            <p key={index} className={paragraphClass}>
               {renderLink(block.url, content.length ? content : block.url)}
             </p>
           );

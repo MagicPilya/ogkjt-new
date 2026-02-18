@@ -5,11 +5,13 @@ import { ArrowRight, LayoutList, Layers } from "lucide-react";
 import type { SubSectionLink } from "@/lib/menu-sections";
 import { cn } from "@/lib/utils";
 
-type Variant = "cards" | "list" | "pills";
+type Variant = "cards" | "list" | "pills" | "minimal";
 
 interface SubSectionLinksProps {
     links: SubSectionLink[];
     title?: string;
+    /** Стиль заголовка: обычный (крупный) или более спокойный */
+    titleVariant?: "default" | "subtle";
     variant?: Variant;
     className?: string;
 }
@@ -19,15 +21,24 @@ export function SubSectionLinks({
     links,
     title = "Подразделы",
     variant = "cards",
+    titleVariant = "default",
     className,
 }: SubSectionLinksProps) {
     if (!links.length) return null;
 
     return (
-        <section className={cn("py-8", className)}>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
-                {title}
-            </h2>
+        <section className={cn(variant === "minimal" ? "py-2" : "py-8", className)}>
+            {title ? (
+                titleVariant === "subtle" ? (
+                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                        {title}
+                    </h2>
+                ) : (
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+                        {title}
+                    </h2>
+                )
+            ) : null}
 
             {variant === "cards" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -76,6 +87,20 @@ export function SubSectionLinks({
                         </Link>
                     ))}
                 </div>
+            )}
+
+            {variant === "minimal" && (
+                <nav className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:gap-x-4 md:gap-x-5 lg:gap-x-6 text-xs sm:text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-400">
+                    {links.map((link) => (
+                        <Link
+                            key={link.id}
+                            href={link.url}
+                            className="hover:text-blue-600 dark:hover:text-blue-400 underline-offset-2 hover:underline"
+                        >
+                            {link.title}
+                        </Link>
+                    ))}
+                </nav>
             )}
         </section>
     );

@@ -46,6 +46,14 @@ export default async function SectionPage({ path }: SectionPageProps) {
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
           {title}
         </h1>
+        {isRootSection && section.links && section.links.length > 0 && (
+          <SubSectionLinks
+            links={section.links}
+            title=""
+            variant="minimal"
+            className="mb-6"
+          />
+        )}
         {pageData?.content && pageData.content.length > 0 ? (
           <div className="prose prose-slate dark:prose-invert max-w-3xl mx-auto text-left">
             <ContentBlocks blocks={pageData.content} className="text-lg text-slate-600 dark:text-slate-400" />
@@ -59,15 +67,6 @@ export default async function SectionPage({ path }: SectionPageProps) {
 
       {isSpecialtiesPage && specialties?.items && specialties.items.length > 0 && (
         <SpecialtyCards items={specialties.items} />
-      )}
-
-      {isRootSection && section.links && section.links.length > 0 && (
-        <SubSectionLinks
-          links={section.links}
-          title="Подразделы"
-          variant="cards"
-          className="mb-10"
-        />
       )}
 
       {showArticleFeed && (
@@ -125,6 +124,16 @@ export default async function SectionPage({ path }: SectionPageProps) {
           <Events />
         </div>
       </div>
+      )}
+
+      {isRootSection && section.links && section.links.length > 0 && (
+        <SubSectionLinks
+          links={section.links}
+          title="Подразделы"
+          variant="cards"
+          titleVariant="subtle"
+          className="mt-12"
+        />
       )}
     </div>
   );
