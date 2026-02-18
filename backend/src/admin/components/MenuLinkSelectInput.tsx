@@ -6,7 +6,7 @@ import { useFetchClient } from '@strapi/strapi/admin';
 interface MenuSection {
   title: string;
   url?: string | null;
-  links?: Array<{ title: string; url: string }>;
+  links?: Array<{ title: string; url: string; sublinks?: Array<{ title: string; url: string }> }>;
 }
 
 interface Option {
@@ -25,41 +25,9 @@ interface MenuLinkSelectInputProps {
   error?: string;
 }
 
-/** Дефолтное меню, если API не вернул данные — селект никогда не пустой. */
-const FALLBACK_MENU: MenuSection[] = [
-  { title: 'Новости', url: '/news', links: [] },
-  { title: 'О колледже', url: '/about', links: [
-    { title: 'Администрация', url: '/about/administration' },
-    { title: 'Контакты и схема проезда', url: '/about/contacts' },
-    { title: 'Символика', url: '/about/symbols' },
-    { title: 'Профилактика коррупции', url: '/about/corruption' },
-    { title: 'Платные услуги', url: '/about/services' },
-    { title: 'История колледжа', url: '/about/history' },
-  ]},
-  { title: 'Абитуриентам', url: '/applicants', links: [
-    { title: 'Специальности', url: '/applicants/specialties' },
-    { title: 'План приёма', url: '/applicants/plan' },
-    { title: 'Документы', url: '/applicants/documents' },
-    { title: 'Информация о местах', url: '/applicants/transfer' },
-  ]},
-  { title: 'Обучающимся', url: '/students', links: [
-    { title: 'Дневное отделение', url: '/students/day' },
-    { title: 'Заочное отделение', url: '/students/correspondence' },
-    { title: 'Общежитие — Общая информация', url: '/students/dormitory' },
-    { title: 'Общежитие — Новости', url: '/students/dormitory/news' },
-  ]},
-  { title: 'Воспитательная работа', url: '/ideology', links: [
-    { title: 'СППС', url: '/ideology/spps' },
-    { title: 'Молодёжная политика', url: '/ideology/youth-policy' },
-    { title: 'В помощь куратору', url: '/ideology/curator' },
-  ]},
-  { title: 'Одно окно', url: '/one-window', links: [] },
-  { title: 'Электронные обращения', url: '/appeals', links: [] },
-];
-
 function flattenMenuToOptions(mainMenu: MenuSection[] | null | undefined): Option[] {
   const options: Option[] = [{ value: '', label: '— Не выбрано —' }];
-  const menu = mainMenu && Array.isArray(mainMenu) && mainMenu.length > 0 ? mainMenu : FALLBACK_MENU;
+  const menu = mainMenu && Array.isArray(mainMenu) && mainMenu.length > 0 ? mainMenu : [];
   for (const section of menu) {
     const sectionUrl = section.url?.trim() || '';
     if (sectionUrl) {
@@ -77,6 +45,16 @@ function flattenMenuToOptions(mainMenu: MenuSection[] | null | undefined): Optio
           label: `${section.title || ''} → ${link.title || linkUrl}`.trim(),
         });
       }
+      for (const sub of link.sublinks || []) {
+        const subUrl = (sub.url || '').trim();
+        if (subUrl) {
+          const subUrlNorm = subUrl.startsWith('/') ? subUrl : `/${subUrl}`;
+          options.push({
+            value: subUrlNorm,
+            label: `${section.title || ''} → ${link.title || ''} → ${sub.title || subUrl}`.trim(),
+          });
+        }
+      }
     }
   }
   return options;
@@ -93,13 +71,15 @@ const MenuLinkSelectInput = React.forwardRef<HTMLSelectElement, MenuLinkSelectIn
       let cancelled = false;
       setLoading(true);
       get('/api/menu?populate[mainMenu][populate]=*')
-        .then((res: { data?: { mainMenu?: MenuSection[] }; mainMenu?: MenuSection[] }) => {
+        .then((res: { data?: { data?: { mainMenu?: MenuSection[] }; mainMenu?: MenuSection[] }; mainMenu?: MenuSection[] }) => {
           if (cancelled) return;
-          const mainMenu = res.data?.mainMenu ?? (res as { mainMenu?: MenuSection[] }).mainMenu;
+          // Strapi 5: ответ API в res.data, контент single type в res.data.data
+          const body = res.data ?? res;
+          const mainMenu = body?.data?.mainMenu ?? body?.mainMenu ?? (res as { mainMenu?: MenuSection[] }).mainMenu;
           setOptions(flattenMenuToOptions(mainMenu));
         })
         .catch(() => {
-          if (!cancelled) setOptions(flattenMenuToOptions(FALLBACK_MENU));
+          if (!cancelled) setOptions(flattenMenuToOptions(null));
         })
         .finally(() => {
           if (!cancelled) setLoading(false);

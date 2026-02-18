@@ -134,10 +134,18 @@ export interface Specialties {
   items?: SpecialtyItem[] | null;
 }
 
+/** Пункт 3-го уровня меню (без вложенности). */
+export interface MenuSublink {
+  id: number;
+  title: string;
+  url: string;
+}
+
 export interface MenuLink {
   id: number;
   title: string;
   url: string;
+  sublinks?: MenuSublink[];
 }
 
 export interface MenuSection {
@@ -185,7 +193,7 @@ export async function getGlobalSettings() {
 export async function getMenu() {
   const data = await fetchAPI<StrapiResponse<MenuData>>(
     "/menu",
-    { status: "published", "populate[mainMenu][populate]": "*" },
+    { status: "published", "populate[mainMenu][populate][links][populate]": "*" },
     { cache: "no-store" }
   );
   if (!data || !data.data) return null;

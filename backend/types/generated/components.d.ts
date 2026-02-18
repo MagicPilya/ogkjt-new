@@ -22,6 +22,7 @@ export interface ElementsMenuLink extends Struct.ComponentSchema {
     icon: 'link';
   };
   attributes: {
+    sublinks: Schema.Attribute.Component<'elements.menu-sublink', true>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     url: Schema.Attribute.String & Schema.Attribute.Required;
   };
@@ -37,6 +38,19 @@ export interface ElementsMenuSection extends Struct.ComponentSchema {
     links: Schema.Attribute.Component<'elements.menu-link', true>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     url: Schema.Attribute.String;
+  };
+}
+
+export interface ElementsMenuSublink extends Struct.ComponentSchema {
+  collectionName: 'components_elements_menu_sublinks';
+  info: {
+    description: '\u041F\u0443\u043D\u043A\u0442 3-\u0433\u043E \u0443\u0440\u043E\u0432\u043D\u044F \u043C\u0435\u043D\u044E (\u0431\u0435\u0437 \u0432\u043B\u043E\u0436\u0435\u043D\u043D\u043E\u0441\u0442\u0438)';
+    displayName: 'Menu Sublink';
+    icon: 'link';
+  };
+  attributes: {
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    url: Schema.Attribute.String & Schema.Attribute.Required;
   };
 }
 
@@ -93,6 +107,7 @@ declare module '@strapi/strapi' {
       'elements.administration-member': ElementsAdministrationMember;
       'elements.menu-link': ElementsMenuLink;
       'elements.menu-section': ElementsMenuSection;
+      'elements.menu-sublink': ElementsMenuSublink;
       'elements.specialization-item': ElementsSpecializationItem;
       'elements.specialty-item': ElementsSpecialtyItem;
       'elements.worker-profession': ElementsWorkerProfession;

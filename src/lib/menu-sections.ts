@@ -1,4 +1,4 @@
-import type { MenuSection, MenuLink } from "./strapi";
+import type { MenuSection, MenuLink, MenuSublink } from "./strapi";
 
 /**
  * Единый источник структуры меню и подразделов.
@@ -112,7 +112,7 @@ export function getFeedSectionUrlForPath(pathname: string): string {
 }
 
 /**
- * Заголовок страницы по pathname из меню (раздел или подраздел).
+ * Заголовок страницы по pathname из меню (раздел, подраздел или пункт 3-го уровня).
  */
 export function getTitleForPath(pathname: string, menu: MenuSection[]): string {
   const path = pathname.replace(/^\//, "").trim() || "";
@@ -123,6 +123,10 @@ export function getTitleForPath(pathname: string, menu: MenuSection[]): string {
     for (const link of section.links ?? []) {
       const linkUrl = (link.url ?? "").replace(/^\//, "");
       if (path === linkUrl || pathWithSlash === (link.url ?? "")) return link.title ?? path;
+      for (const sub of link.sublinks ?? []) {
+        const subUrl = (sub.url ?? "").replace(/^\//, "");
+        if (path === subUrl || pathWithSlash === (sub.url ?? "")) return sub.title ?? path;
+      }
     }
   }
   return path;
@@ -192,7 +196,7 @@ export function getBreadcrumbItems(pathname: string, menu: MenuSection[]): Bread
 }
 
 /**
- * Нормализует меню из Strapi: подставляет url/links из defaultMenu, если в ответе их нет.
+ * Нормализует меню из Strapi: подставляет url/links/sublinks из defaultMenu, если в ответе их нет.
  * Так поведение сайта одинаковое и при данных из CMS, и при встроенных данных.
  */
 export function normalizeMenu(menu: MenuSection[] | null | undefined): MenuSection[] | null {
@@ -200,9 +204,14 @@ export function normalizeMenu(menu: MenuSection[] | null | undefined): MenuSecti
     return menu.map((item, index) => {
         const fallback = defaultMenu[index] ?? defaultMenu.find(d => d.url === item.url || d.title === item.title);
         const url = item.url ?? fallback?.url ?? "#";
-        const links = Array.isArray(item.links) && item.links.length > 0
-            ? item.links
-            : (fallback?.links ?? []) as MenuLink[];
+        const rawLinks = Array.isArray(item.links) && item.links.length > 0 ? item.links : (fallback?.links ?? []);
+        const links = rawLinks.map((link, linkIndex) => {
+            const fbLink = Array.isArray(fallback?.links) ? fallback.links[linkIndex] : undefined;
+            const sublinks = Array.isArray(link.sublinks) && link.sublinks.length > 0
+                ? link.sublinks
+                : (fbLink && "sublinks" in fbLink ? (fbLink as MenuLink).sublinks : undefined) ?? [] as MenuSublink[];
+            return { id: link.id, title: link.title, url: link.url, sublinks };
+        }) as MenuLink[];
         return { id: item.id, title: item.title, url, links };
     });
 }

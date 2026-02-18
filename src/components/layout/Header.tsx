@@ -106,7 +106,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                                         </NavigationMenuLink>
                                                     </li>
                                                     {item.links.map((subItem) => (
-                                                        <li key={subItem.id}>
+                                                        <li key={subItem.id} className="space-y-1">
                                                             <NavigationMenuLink asChild>
                                                                 <Link
                                                                     href={subItem.url}
@@ -115,6 +115,22 @@ export function Header({ initialMenu }: HeaderProps) {
                                                                     <div className="text-sm font-medium leading-none">{subItem.title}</div>
                                                                 </Link>
                                                             </NavigationMenuLink>
+                                                            {subItem.sublinks && subItem.sublinks.length > 0 && (
+                                                                <ul className="pl-3 ml-2 border-l border-slate-200 dark:border-slate-700 space-y-1">
+                                                                    {subItem.sublinks.map((subSubItem) => (
+                                                                        <li key={subSubItem.id}>
+                                                                            <NavigationMenuLink asChild>
+                                                                                <Link
+                                                                                    href={subSubItem.url}
+                                                                                    className="block select-none rounded-md py-2 px-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-xs text-muted-foreground hover:text-foreground"
+                                                                                >
+                                                                                    {subSubItem.title}
+                                                                                </Link>
+                                                                            </NavigationMenuLink>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            )}
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -161,14 +177,29 @@ export function Header({ initialMenu }: HeaderProps) {
                                             </Link>
                                             <div className="pl-4 flex flex-col gap-3 border-l-2 border-slate-100 dark:border-slate-800">
                                                 {item.links.map((subItem) => (
-                                                    <Link 
-                                                        key={subItem.id} 
-                                                        href={subItem.url}
-                                                        onClick={closeMobileMenu}
-                                                        className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
-                                                    >
-                                                        {subItem.title}
-                                                    </Link>
+                                                    <div key={subItem.id} className="flex flex-col gap-2">
+                                                        <Link 
+                                                            href={subItem.url}
+                                                            onClick={closeMobileMenu}
+                                                            className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
+                                                        >
+                                                            {subItem.title}
+                                                        </Link>
+                                                        {subItem.sublinks && subItem.sublinks.length > 0 && (
+                                                            <div className="pl-3 flex flex-col gap-1.5 border-l-2 border-slate-200 dark:border-slate-700">
+                                                                {subItem.sublinks.map((subSubItem) => (
+                                                                    <Link 
+                                                                        key={subSubItem.id} 
+                                                                        href={subSubItem.url}
+                                                                        onClick={closeMobileMenu}
+                                                                        className="text-slate-500 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 text-sm"
+                                                                    >
+                                                                        {subSubItem.title}
+                                                                    </Link>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 ))}
                                             </div>
                                         </>

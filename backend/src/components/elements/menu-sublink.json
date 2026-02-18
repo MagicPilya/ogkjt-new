@@ -1,0 +1,1 @@
+{"collectionName":"components_elements_menu_sublinks","info":{"displayName":"Menu Sublink","icon":"link","description":"Пункт 3-го уровня меню (без вложенности)"},"options":{},"attributes":{"title":{"type":"string","required":true},"url":{"type":"string","required":true}}}
