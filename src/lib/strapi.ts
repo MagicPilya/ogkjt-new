@@ -159,6 +159,12 @@ export interface MenuSection {
 export interface GlobalSettings {
   id: number;
   documentId: string;
+  collegeFullName?: string | null;
+  collegeShortName?: string | null;
+  collegeMainName?: string | null;
+  collegeBranchShortName?: string | null;
+  heroBranchWord?: string | null;
+  universityName?: string | null;
   address: string;
   phoneReception: string;
   phoneDirector: string;
@@ -167,6 +173,11 @@ export interface GlobalSettings {
   telegramLink: string | null;
   tiktokLink: string | null;
   vkLink: string | null;
+  resources?: Array<{
+    id?: number;
+    title: string;
+    url: string;
+  }> | null;
 }
 
 export interface MenuData {
@@ -179,7 +190,10 @@ export interface MenuData {
  * Глобальные настройки (контакты, соцсети). Меню — отдельно через getMenu().
  */
 export async function getGlobalSettings(locale?: Locale) {
-  const params: Record<string, string> = { status: "published" };
+  const params: Record<string, string> = {
+    status: "published",
+    "populate[resources]": "*",
+  };
   if (locale) params.locale = locale;
   const data = await fetchAPI<StrapiResponse<GlobalSettings>>(
     "/global",

@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_elements_footer_resources",
+  "info": {
+    "displayName": "Footer Resource",
+    "icon": "link"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "url": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

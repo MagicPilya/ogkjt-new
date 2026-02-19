@@ -15,6 +15,24 @@ export interface ElementsAdministrationMember extends Struct.ComponentSchema {
   };
 }
 
+export interface ElementsFooterResource extends Struct.ComponentSchema {
+  collectionName: 'components_elements_footer_resources';
+  info: {
+    displayName: 'Footer Resource';
+    icon: 'link';
+  };
+  attributes: {
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    url: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface ElementsMenuLink extends Struct.ComponentSchema {
   collectionName: 'components_elements_menu_links';
   info: {
@@ -105,6 +123,7 @@ declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
       'elements.administration-member': ElementsAdministrationMember;
+      'elements.footer-resource': ElementsFooterResource;
       'elements.menu-link': ElementsMenuLink;
       'elements.menu-section': ElementsMenuSection;
       'elements.menu-sublink': ElementsMenuSublink;

@@ -1,9 +1,45 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
+import { collegeNamesFallback } from "@/lib/site-defaults";
 
-export function Hero({ locale }: { locale?: Locale }) {
+interface HeroProps {
+  locale?: Locale;
+  collegeShortName?: string | null;
+  collegeFullName?: string | null;
+  universityName?: string | null;
+}
+
+export function Hero({
+  locale = "ru",
+  collegeShortName,
+  collegeFullName,
+  universityName,
+}: HeroProps) {
   const base = locale ? `/${locale}` : "";
+  const fallback = collegeNamesFallback[locale];
+  const shortName = collegeShortName || fallback.short;
+  const fullName = collegeFullName || fallback.full;
+  const university = universityName || fallback.university;
+
+  const quotedMatch = fullName.match(/[«"](.*?)[»"]/);
+  let prefixText = fullName;
+  let highlightedText: string | null = null;
+  let suffixText = "";
+
+  if (quotedMatch && typeof quotedMatch.index === "number") {
+    prefixText = fullName.slice(0, quotedMatch.index).trimEnd();
+    highlightedText = quotedMatch[0];
+    suffixText = fullName.slice(quotedMatch.index + quotedMatch[0].length);
+  } else {
+    const idx = fullName.indexOf(university);
+    if (idx >= 0) {
+      prefixText = fullName.slice(0, idx).trimEnd();
+      highlightedText = university;
+      suffixText = fullName.slice(idx + university.length);
+    }
+  }
+
   return (
     <section className="relative h-[80vh] min-h-[600px] flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -21,11 +57,19 @@ export function Hero({ locale }: { locale?: Locale }) {
       {/* Content */}
       <div className="container mx-auto relative z-10 text-center text-white animate-in fade-in zoom-in duration-1000 px-4 sm:px-6">
         <span className="hidden md:inline-block py-1 px-4 md:px-5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-200 text-sm font-medium mb-6 backdrop-blur-sm">
-          Филиал БелГУТа
+          {shortName}
         </span>
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight max-w-4xl mx-auto leading-tight mt-4 md:mt-0">
-          Оршанский колледж — филиал учреждения образования <br className="hidden md:block" />
-          <span className="text-blue-400">«Белорусский государственный университет транспорта»</span>
+          {highlightedText ? (
+            <>
+              {prefixText}
+              <br className="hidden md:block" />
+              <span className="text-blue-400">{highlightedText}</span>
+              {suffixText}
+            </>
+          ) : (
+            fullName
+          )}
         </h1>
         <p className="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto leading-relaxed">
           Качественное образование. Гарантированное трудоустройство. Уверенное будущее.

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { STRAPI_URL } from "@/lib/config";
+import { defaultLocale, isValidLocale, type Locale } from "@/lib/i18n";
 
 export interface SearchResultItem {
   type: "article" | "page" | "administration" | "specialty";
@@ -156,6 +157,8 @@ function getSpecialtyItemSearchableText(s: SpecialtyItemRow): string {
 
 export async function GET(request: NextRequest) {
   const rawQuery = request.nextUrl.searchParams.get("q")?.trim() ?? "";
+  const localeParam = request.nextUrl.searchParams.get("locale")?.trim() ?? "";
+  const locale: Locale = isValidLocale(localeParam) ? localeParam : defaultLocale;
   if (rawQuery.length < 2) {
     return NextResponse.json({ results: [] });
   }
@@ -166,21 +169,25 @@ export async function GET(request: NextRequest) {
   const [articlesRes, pagesRes, administrationData, specialtiesData] = await Promise.all([
     fetchStrapi<ArticleRow>("/articles", {
       status: "published",
+      locale,
       populate: "*",
       "pagination[pageSize]": String(SEARCH_PAGE_SIZE),
       sort: "createdAt:desc",
     }),
     fetchStrapi<PageRow>("/pages", {
       status: "published",
+      locale,
       populate: "*",
       "pagination[pageSize]": String(SEARCH_PAGE_SIZE),
     }),
     fetchStrapiSingle<AdministrationRow>("/administration", {
       status: "published",
+      locale,
       populate: "*",
     }),
     fetchStrapiSingle<SpecialtiesRow>("/specialty", {
       status: "published",
+      locale,
       populate: "*",
     }),
   ]);

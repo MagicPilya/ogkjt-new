@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { defaultMenu, getBreadcrumbItems } from "@/lib/menu-sections";
+import { getBreadcrumbItems, getDefaultMenu } from "@/lib/menu-sections";
 import { cn } from "@/lib/utils";
 import { defaultLocale, isValidLocale } from "@/lib/i18n";
+import { uiStrings } from "@/lib/ui-strings";
 
 export function Breadcrumbs({ className }: { className?: string }) {
   const pathname = usePathname();
@@ -15,14 +16,14 @@ export function Breadcrumbs({ className }: { className?: string }) {
 
   if (pathWithoutLocale.startsWith("/events")) return null;
 
-  const items = getBreadcrumbItems(pathWithoutLocale, defaultMenu);
+  const items = getBreadcrumbItems(pathWithoutLocale, getDefaultMenu(locale), locale);
   if (items.length === 0) return null;
 
   const prefix = (href: string) => (href === "/" ? `/${locale}` : `/${locale}${href}`);
 
   return (
     <nav
-      aria-label="Хлебные крошки"
+      aria-label={uiStrings.breadcrumbsLabel[locale]}
       className={cn(
         "w-full border-b bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800",
         className

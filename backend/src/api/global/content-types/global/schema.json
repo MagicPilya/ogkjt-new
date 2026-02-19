@@ -10,6 +10,36 @@
   "options": { "draftAndPublish": true },
   "pluginOptions": { "i18n": { "localized": true } },
   "attributes": {
+    "collegeFullName": {
+      "type": "string",
+      "default": "Оршанский колледж - филиал учреждения образования «Белорусский государственный университет транспорта»",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "collegeShortName": {
+      "type": "string",
+      "default": "Оршанский колледж - филиал БелГУТа",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "collegeMainName": {
+      "type": "string",
+      "default": "Оршанский колледж",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "collegeBranchShortName": {
+      "type": "string",
+      "default": "филиал БелГУТа",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "heroBranchWord": {
+      "type": "string",
+      "default": "филиал",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "universityName": {
+      "type": "string",
+      "default": "Белорусский государственный университет транспорта",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
     "address": {
       "type": "string",
       "default": "211386, Республика Беларусь, г. Орша, Витебская обл., ул. Климента Тимирязева, 26.",
@@ -48,6 +78,12 @@
     "vkLink": {
       "type": "string",
       "default": "https://vk.com/ofutorsha",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "resources": {
+      "type": "component",
+      "repeatable": true,
+      "component": "elements.footer-resource",
       "pluginOptions": { "i18n": { "localized": true } }
     }
   }

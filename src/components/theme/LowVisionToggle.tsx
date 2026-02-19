@@ -3,6 +3,8 @@
 import * as React from "react";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { Locale } from "@/lib/i18n";
+import { uiStrings } from "@/lib/ui-strings";
 
 export const LOW_VISION_STORAGE_KEY = "a11y-low-vision";
 
@@ -22,7 +24,7 @@ function applyLowVision(enabled: boolean) {
   }
 }
 
-export function LowVisionToggle() {
+export function LowVisionToggle({ locale = "ru" }: { locale?: Locale }) {
   const [active, setActive] = React.useState(false);
 
   React.useEffect(() => {
@@ -45,12 +47,12 @@ export function LowVisionToggle() {
       variant="ghost"
       size="sm"
       onClick={toggle}
-      aria-label={active ? "Выключить версию для слабовидящих" : "Включить версию для слабовидящих"}
+      aria-label={active ? uiStrings.disableLowVision[locale] : uiStrings.enableLowVision[locale]}
       aria-pressed={active}
       className="h-11 min-h-[44px] min-w-[44px] px-3 sm:px-4 text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       <Eye className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-      <span className="hidden sm:inline">Версия для слабовидящих</span>
+      <span className="hidden sm:inline">{uiStrings.lowVisionLabel[locale]}</span>
     </Button>
   );
 }

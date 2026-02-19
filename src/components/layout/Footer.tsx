@@ -1,6 +1,8 @@
 import { Logo } from "./Logo";
-import { GlobalSettings } from "@/lib/strapi";
-import { siteDefaults } from "@/lib/site-defaults";
+import { GlobalSettings, MenuSection } from "@/lib/strapi";
+import { collegeNamesFallback, siteDefaults } from "@/lib/site-defaults";
+import type { Locale } from "@/lib/i18n";
+import { uiStrings } from "@/lib/ui-strings";
 import Link from "next/link";
 
 /* Брендовые иконки соцсетей (SVG) */
@@ -27,97 +29,153 @@ const VKIcon = ({ className }: { className?: string }) => (
 );
 
 interface FooterProps {
-    settings?: GlobalSettings | null;
+  settings?: GlobalSettings | null;
+  menu?: MenuSection[] | null;
+  locale?: Locale;
 }
 
-export function Footer({ settings }: FooterProps) {
-    const address = settings?.address || siteDefaults.address;
-    const phoneReception = settings?.phoneReception || siteDefaults.phoneReception;
-    const phoneDirector = settings?.phoneDirector || siteDefaults.phoneDirector;
-    const email = settings?.email || siteDefaults.email;
+const fallbackResources: Record<Locale, Array<{ title: string; url: string }>> = {
+  ru: [
+    { title: "Сайт Президента РБ", url: "https://president.gov.by" },
+    { title: "Министерство образования", url: "https://edu.gov.by" },
+    { title: "Белорусская железная дорога", url: "https://rw.by" },
+    { title: "Обращения.бел", url: "https://обращения.бел" },
+  ],
+  be: [
+    { title: "Сайт Прэзідэнта РБ", url: "https://president.gov.by" },
+    { title: "Міністэрства адукацыі", url: "https://edu.gov.by" },
+    { title: "Беларуская чыгунка", url: "https://rw.by" },
+    { title: "Звароты.бел", url: "https://обращения.бел" },
+  ],
+  en: [
+    { title: "President of Belarus", url: "https://president.gov.by" },
+    { title: "Ministry of Education", url: "https://edu.gov.by" },
+    { title: "Belarusian Railway", url: "https://rw.by" },
+    { title: "Appeals.bel", url: "https://обращения.бел" },
+  ],
+};
 
-    return (
-        <footer className="bg-slate-50 border-t dark:bg-slate-950">
-            <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-                    <div className="col-span-1 md:col-span-1 flex flex-col items-center justify-center w-full">
-                        <Logo variant="footer" />
+export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
+  const fallback = collegeNamesFallback[locale];
+  const address = settings?.address || siteDefaults.address;
+  const phoneReception = settings?.phoneReception || siteDefaults.phoneReception;
+  const phoneDirector = settings?.phoneDirector || siteDefaults.phoneDirector;
+  const email = settings?.email || siteDefaults.email;
+  const fullCollegeName = settings?.collegeFullName || fallback.full;
+  const shortCollegeName = settings?.collegeShortName || fallback.short;
+  const logoLine1 = settings?.collegeMainName || fallback.main;
+  const logoLine2 = settings?.collegeBranchShortName || fallback.branchShort;
+  const resourcesRaw = settings?.resources as unknown;
+  const normalizedResources = Array.isArray(resourcesRaw)
+    ? resourcesRaw
+        .map((item) => {
+          const entry = item as
+            | { title?: string; url?: string; attributes?: { title?: string; url?: string } }
+            | null
+            | undefined;
+          const title = entry?.title || entry?.attributes?.title;
+          const url = entry?.url || entry?.attributes?.url;
+          return title && url ? { title, url } : null;
+        })
+        .filter((item): item is { title: string; url: string } => Boolean(item))
+    : [];
+  const resources = normalizedResources.length > 0 ? normalizedResources : fallbackResources[locale];
+  const navigation = (menu ?? []).filter((item) => !!item.url);
+  const prefix = (url: string) => (url?.startsWith("/") ? `/${locale}${url}` : `/${locale}/${url}`);
+
+  return (
+    <footer className="bg-slate-50 border-t dark:bg-slate-950">
+      <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+          <div className="col-span-1 md:col-span-1 flex flex-col items-center justify-center w-full">
+            <Logo
+              variant="footer"
+              locale={locale}
+              line1={logoLine1}
+              line2={logoLine2}
+              fullName={fullCollegeName}
+              shortName={shortCollegeName}
+            />
 
                         {/* Соцсети */}
-                        <h3 className="font-semibold mt-6 mb-3 text-lg text-slate-700 dark:text-slate-300">
-                            Подписывайтесь и следите за нами в соцсетях:
-                        </h3>
-                        <div className="flex gap-4 justify-center">
-                            {settings?.instagramLink && (
-                                <a href={settings.instagramLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors" aria-label="Instagram">
-                                    <InstagramIcon className="h-6 w-6" />
-                                </a>
-                            )}
-                            {settings?.telegramLink && (
-                                <a href={settings.telegramLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#0088cc] transition-colors" aria-label="Telegram">
-                                    <TelegramIcon className="h-6 w-6" />
-                                </a>
-                            )}
-                            {settings?.tiktokLink && (
-                                <a href={settings.tiktokLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-black dark:hover:text-white transition-colors" aria-label="TikTok">
-                                    <TikTokIcon className="h-6 w-6" />
-                                </a>
-                            )}
-                            {settings?.vkLink && (
-                                <a href={settings.vkLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#0077FF] transition-colors" aria-label="ВКонтакте">
-                                    <VKIcon className="h-6 w-6" />
-                                </a>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                        <h3 className="font-semibold mb-4 text-lg">Навигация</h3>
-                        <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                            <li><Link href="/news" className="hover:text-blue-600">Новости</Link></li>
-                            <li><Link href="/about" className="hover:text-blue-600">О колледже</Link></li>
-                            <li><Link href="/applicants" className="hover:text-blue-600">Абитуриентам</Link></li>
-                            <li><Link href="/students" className="hover:text-blue-600">Обучающимся</Link></li>
-                            <li><Link href="/ideology" className="hover:text-blue-600">Воспитательная работа</Link></li>
-                            <li><Link href="/one-window" className="hover:text-blue-600">Одно окно</Link></li>
-                        </ul>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                        <h3 className="font-semibold mb-4 text-lg">Ресурсы</h3>
-                        <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                            <li><a href="https://president.gov.by" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">Сайт Президента РБ</a></li>
-                            <li><a href="https://edu.gov.by" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">Министерство образования</a></li>
-                            <li><a href="https://rw.by" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">Белорусская железная дорога</a></li>
-                            <li><a href="https://обращения.бел" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">Обращения.бел</a></li>
-                        </ul>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                        <h3 className="font-semibold mb-4 text-lg">Контакты</h3>
-                        <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                            <li>{address}</li>
-                            <li>
-                                <span className="block text-xs text-slate-400">Приемная:</span>
-                                <a href={`tel:${phoneReception}`} className="hover:text-blue-600">{phoneReception}</a>
-                            </li>
-                            {phoneDirector && (
-                                <li>
-                                    <span className="block text-xs text-slate-400">Директор:</span>
-                                    <a href={`tel:${phoneDirector}`} className="hover:text-blue-600">{phoneDirector}</a>
-                                </li>
-                            )}
-                            <li>
-                                <a href={`mailto:${email}`} className="hover:text-blue-600">{email}</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 text-center text-sm text-slate-500 dark:text-slate-400">
-                    © {new Date().getFullYear()} {siteDefaults.copyright}. Все права защищены.
-                </div>
+            <h3 className="font-semibold mt-6 mb-3 text-lg text-slate-700 dark:text-slate-300">
+              {uiStrings.footerFollowUs[locale]}
+            </h3>
+            <div className="flex gap-4 justify-center">
+              {settings?.instagramLink && (
+                <a href={settings.instagramLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors" aria-label="Instagram">
+                  <InstagramIcon className="h-6 w-6" />
+                </a>
+              )}
+              {settings?.telegramLink && (
+                <a href={settings.telegramLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#0088cc] transition-colors" aria-label="Telegram">
+                  <TelegramIcon className="h-6 w-6" />
+                </a>
+              )}
+              {settings?.tiktokLink && (
+                <a href={settings.tiktokLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-black dark:hover:text-white transition-colors" aria-label="TikTok">
+                  <TikTokIcon className="h-6 w-6" />
+                </a>
+              )}
+              {settings?.vkLink && (
+                <a href={settings.vkLink} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#0077FF] transition-colors" aria-label="ВКонтакте">
+                  <VKIcon className="h-6 w-6" />
+                </a>
+              )}
             </div>
-        </footer>
-    );
+          </div>
+
+          <div className="flex flex-col items-center">
+            <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerNavigation[locale]}</h3>
+            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+              {navigation.map((item) => (
+                <li key={item.id}>
+                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600">
+                    {item.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerResources[locale]}</h3>
+            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+              {resources.map((resource, index) => (
+                <li key={`${resource.url}-${index}`}>
+                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                    {resource.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerContacts[locale]}</h3>
+            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+              <li>{address}</li>
+              <li>
+                <span className="block text-xs text-slate-400">{uiStrings.receptionLabel[locale]}</span>
+                <a href={`tel:${phoneReception}`} className="hover:text-blue-600">{phoneReception}</a>
+              </li>
+              {phoneDirector && (
+                <li>
+                  <span className="block text-xs text-slate-400">{uiStrings.directorLabel[locale]}</span>
+                  <a href={`tel:${phoneDirector}`} className="hover:text-blue-600">{phoneDirector}</a>
+                </li>
+              )}
+              <li>
+                <a href={`mailto:${email}`} className="hover:text-blue-600">{email}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 text-center text-sm text-slate-500 dark:text-slate-400">
+          {uiStrings.footerYearPrefix[locale]} {new Date().getFullYear()} {fullCollegeName}. {uiStrings.allRightsReserved[locale]}
+        </div>
+      </div>
+    </footer>
+  );
 }

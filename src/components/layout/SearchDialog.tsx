@@ -13,11 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import type { SearchResultItem } from "@/app/api/search/route";
 import type { Locale } from "@/lib/i18n";
+import { uiStrings } from "@/lib/ui-strings";
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
-const PLACEHOLDER_MOBILE = "Поиск (2+ символа)";
-const PLACEHOLDER_DESKTOP = "Введите запрос (минимум 2 символа)...";
 const PLACEHOLDER_BREAKPOINT_PX = 768;
 
 /** Экранирует спецсимволы для RegExp. */
@@ -42,21 +41,28 @@ function highlightSnippet(snippet: string, query: string): React.ReactNode[] {
 }
 
 export function SearchDialog({ locale }: { locale?: Locale }) {
-  const prefix = (url: string) => (locale ? `/${locale}${url}` : url);
+  const activeLocale = locale ?? "ru";
+  const prefix = (url: string) => `/${activeLocale}${url}`;
+  const activeLocaleRef = React.useRef(activeLocale);
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
   const [results, setResults] = React.useState<SearchResultItem[]>([]);
   const [loading, setLoading] = React.useState(false);
-  const [placeholder, setPlaceholder] = React.useState(PLACEHOLDER_MOBILE);
+  const [placeholder, setPlaceholder] = React.useState(uiStrings.searchPlaceholderMobile[activeLocale]);
 
   React.useEffect(() => {
     const mql = window.matchMedia(`(min-width: ${PLACEHOLDER_BREAKPOINT_PX}px)`);
-    const update = () => setPlaceholder(mql.matches ? PLACEHOLDER_DESKTOP : PLACEHOLDER_MOBILE);
+    const update = () =>
+      setPlaceholder(
+        mql.matches
+          ? uiStrings.searchPlaceholderDesktop[activeLocale]
+          : uiStrings.searchPlaceholderMobile[activeLocale]
+      );
     update();
     mql.addEventListener("change", update);
     return () => mql.removeEventListener("change", update);
-  }, []);
+  }, [activeLocale]);
 
   React.useEffect(() => {
     if (!query.trim()) {
@@ -68,13 +74,19 @@ export function SearchDialog({ locale }: { locale?: Locale }) {
   }, [query]);
 
   React.useEffect(() => {
+    activeLocaleRef.current = activeLocale;
+  }, [activeLocale]);
+
+  React.useEffect(() => {
     if (debouncedQuery.length < MIN_QUERY_LENGTH) {
       setResults([]);
       return;
     }
     let cancelled = false;
     setLoading(true);
-    fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`)
+    fetch(
+      `/api/search?q=${encodeURIComponent(debouncedQuery)}&locale=${encodeURIComponent(activeLocaleRef.current)}`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && Array.isArray(data.results)) setResults(data.results);
@@ -108,11 +120,11 @@ export function SearchDialog({ locale }: { locale?: Locale }) {
           className="h-8 text-slate-600 dark:text-slate-300"
         >
           <Search className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline">Поиск</span>
+          <span className="hidden sm:inline">{uiStrings.search[activeLocale]}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl pr-12">
-        <DialogTitle className="sr-only">Поиск по сайту</DialogTitle>
+        <DialogTitle className="sr-only">{uiStrings.searchSite[activeLocale]}</DialogTitle>
         <div className="flex flex-col gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -124,25 +136,25 @@ export function SearchDialog({ locale }: { locale?: Locale }) {
               className="pl-9"
               autoFocus
               autoComplete="off"
-              aria-label="Поиск"
+              aria-label={uiStrings.search[activeLocale]}
             />
           </div>
 
           <div className="max-h-[70vh] overflow-y-auto rounded-md border bg-muted/30 p-2">
             {debouncedQuery.length > 0 && debouncedQuery.length < MIN_QUERY_LENGTH && (
               <p className="px-2 py-4 text-sm text-muted-foreground">
-                Введите минимум {MIN_QUERY_LENGTH} символа
+                {uiStrings.enterMinChars[activeLocale]} {MIN_QUERY_LENGTH} {uiStrings.symbolsCount[activeLocale]}
               </p>
             )}
             {debouncedQuery.length >= MIN_QUERY_LENGTH && loading && (
               <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm">Поиск...</span>
+                <span className="text-sm">{uiStrings.searching[activeLocale]}</span>
               </div>
             )}
             {debouncedQuery.length >= MIN_QUERY_LENGTH && !loading && results.length === 0 && (
               <p className="px-2 py-8 text-center text-sm text-muted-foreground">
-                Ничего не найдено
+                {uiStrings.notFound[activeLocale]}
               </p>
             )}
             {!loading && results.length > 0 && (

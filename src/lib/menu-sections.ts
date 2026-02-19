@@ -1,11 +1,14 @@
+import type { Locale } from "./i18n";
 import type { MenuSection, MenuLink, MenuSublink } from "./strapi";
+import { uiStrings } from "./ui-strings";
 
 /**
  * Единый источник структуры меню и подразделов.
  * Используется при отсутствии Strapi или при развёртывании без CMS.
  * Редактируйте только здесь — изменения переносятся при любом клонировании/сборке.
  */
-export const defaultMenu: MenuSection[] = [
+const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
+  ru: [
     {
         id: 1,
         title: "Новости",
@@ -69,7 +72,144 @@ export const defaultMenu: MenuSection[] = [
         url: "/appeals",
         links: []
     }
-];
+  ],
+  be: [
+    {
+      id: 1,
+      title: "Навіны",
+      url: "/news",
+      links: []
+    },
+    {
+      id: 2,
+      title: "Пра каледж",
+      url: "/about",
+      links: [
+        { id: 1, title: "Адміністрацыя", url: "/about/administration" },
+        { id: 2, title: "Кантакты і схема праезду", url: "/about/contacts" },
+        { id: 3, title: "Сімволіка", url: "/about/symbols" },
+        { id: 4, title: "Прафілактыка карупцыі", url: "/about/corruption" },
+        { id: 5, title: "Платныя паслугі", url: "/about/services" },
+        { id: 6, title: "Гісторыя каледжа", url: "/about/history" },
+      ]
+    },
+    {
+      id: 3,
+      title: "Абітурыентам",
+      url: "/applicants",
+      links: [
+        { id: 7, title: "Спецыяльнасці", url: "/applicants/specialties" },
+        { id: 8, title: "План прыёму", url: "/applicants/plan" },
+        { id: 9, title: "Дакументы", url: "/applicants/documents" },
+        { id: 10, title: "Інфармацыя аб месцах", url: "/applicants/transfer" },
+      ]
+    },
+    {
+      id: 4,
+      title: "Навучэнцам",
+      url: "/students",
+      links: [
+        { id: 11, title: "Дзённае аддзяленне", url: "/students/day" },
+        { id: 12, title: "Завочнае аддзяленне", url: "/students/correspondence" },
+        { id: 13, title: "Інтэрнат - Агульная інфармацыя", url: "/students/dormitory" },
+        { id: 14, title: "Інтэрнат - Навіны", url: "/students/dormitory/news" },
+      ]
+    },
+    {
+      id: 5,
+      title: "Выхаваўчая работа",
+      url: "/ideology",
+      links: [
+        { id: 15, title: "СППС", url: "/ideology/spps" },
+        { id: 16, title: "Моладзевая палітыка", url: "/ideology/youth-policy" },
+        { id: 17, title: "У дапамогу куратару", url: "/ideology/curator" },
+      ]
+    },
+    {
+      id: 6,
+      title: "Адно акно",
+      url: "/one-window",
+      links: []
+    },
+    {
+      id: 7,
+      title: "Электронныя звароты",
+      url: "/appeals",
+      links: []
+    }
+  ],
+  en: [
+    {
+      id: 1,
+      title: "News",
+      url: "/news",
+      links: []
+    },
+    {
+      id: 2,
+      title: "About College",
+      url: "/about",
+      links: [
+        { id: 1, title: "Administration", url: "/about/administration" },
+        { id: 2, title: "Contacts and directions", url: "/about/contacts" },
+        { id: 3, title: "Symbols", url: "/about/symbols" },
+        { id: 4, title: "Anti-corruption", url: "/about/corruption" },
+        { id: 5, title: "Paid services", url: "/about/services" },
+        { id: 6, title: "College history", url: "/about/history" },
+      ]
+    },
+    {
+      id: 3,
+      title: "Applicants",
+      url: "/applicants",
+      links: [
+        { id: 7, title: "Specialties", url: "/applicants/specialties" },
+        { id: 8, title: "Admission plan", url: "/applicants/plan" },
+        { id: 9, title: "Documents", url: "/applicants/documents" },
+        { id: 10, title: "Information on places", url: "/applicants/transfer" },
+      ]
+    },
+    {
+      id: 4,
+      title: "Students",
+      url: "/students",
+      links: [
+        { id: 11, title: "Full-time department", url: "/students/day" },
+        { id: 12, title: "Part-time department", url: "/students/correspondence" },
+        { id: 13, title: "Dormitory - General info", url: "/students/dormitory" },
+        { id: 14, title: "Dormitory - News", url: "/students/dormitory/news" },
+      ]
+    },
+    {
+      id: 5,
+      title: "Educational work",
+      url: "/ideology",
+      links: [
+        { id: 15, title: "SPPS", url: "/ideology/spps" },
+        { id: 16, title: "Youth policy", url: "/ideology/youth-policy" },
+        { id: 17, title: "For curators", url: "/ideology/curator" },
+      ]
+    },
+    {
+      id: 6,
+      title: "One window",
+      url: "/one-window",
+      links: []
+    },
+    {
+      id: 7,
+      title: "Electronic appeals",
+      url: "/appeals",
+      links: []
+    }
+  ],
+};
+
+export const defaultMenu: MenuSection[] = defaultMenuByLocale.ru;
+
+export function getDefaultMenu(locale: Locale = "ru"): MenuSection[] {
+  return defaultMenuByLocale[locale] ?? defaultMenuByLocale.ru;
+}
 
 export type SubSectionLink = { id: number; title: string; url: string };
 
@@ -171,12 +311,12 @@ function slugToTitle(slug: string): string {
  * Строит список пунктов хлебных крошек по pathname и меню.
  * Для сегментов, не найденных в меню (например slug новости), подставляет форматированный slug или общий ярлык.
  */
-export function getBreadcrumbItems(pathname: string, menu: MenuSection[]): BreadcrumbItem[] {
+export function getBreadcrumbItems(pathname: string, menu: MenuSection[], locale: Locale = "ru"): BreadcrumbItem[] {
   const path = pathname.replace(/^\//, "").trim() || "";
   if (!path) return [];
 
   const segments = path.split("/").filter(Boolean);
-  const items: BreadcrumbItem[] = [{ href: "/", label: "Главная" }];
+  const items: BreadcrumbItem[] = [{ href: "/", label: uiStrings.home[locale] }];
 
   for (let i = 0; i < segments.length; i++) {
     const segmentPath = segments.slice(0, i + 1).join("/");
@@ -185,8 +325,8 @@ export function getBreadcrumbItems(pathname: string, menu: MenuSection[]): Bread
     // Если метка совпадает с путём (не найдено в меню), форматируем или подставляем общий ярлык
     if (label === segmentPath || label === segments[i]) {
       const firstSegment = segments[0];
-      if (firstSegment === "news" && i === 1) label = "Новость";
-      else if (firstSegment === "events" && i === 1) label = "Событие";
+      if (firstSegment === "news" && i === 1) label = uiStrings.newsItem[locale];
+      else if (firstSegment === "events" && i === 1) label = uiStrings.eventItem[locale];
       else label = slugToTitle(segments[i]);
     }
     items.push({ href, label });
@@ -200,9 +340,12 @@ export function getBreadcrumbItems(pathname: string, menu: MenuSection[]): Bread
  * Всегда возвращает полную структуру на основе defaultMenu, чтобы маршруты (например /applicants)
  * работали для всех локалей, даже если в Strapi для be/en не заполнены все разделы меню.
  */
-export function normalizeMenu(menu: MenuSection[] | null | undefined): MenuSection[] | null {
+export function normalizeMenu(
+  menu: MenuSection[] | null | undefined,
+  locale: Locale = "ru"
+): MenuSection[] | null {
     // defaultMenu — источник правды для структуры; данные Strapi — только переопределения (title и т.д.)
-    return defaultMenu.map((defaultSection, index) => {
+    return getDefaultMenu(locale).map((defaultSection, index) => {
         const strapiItem = menu?.find(
             (m) =>
                 (m.url && (m.url.replace(/^\//, "") === (defaultSection.url ?? "").replace(/^\//, ""))) ||

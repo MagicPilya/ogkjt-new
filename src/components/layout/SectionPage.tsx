@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { getMenu, getPageByPath, getArticles, getAdministration, getSpecialties } from "@/lib/strapi";
-import { defaultMenu, normalizeMenu, getSectionByPath, getTitleForPath } from "@/lib/menu-sections";
+import { getSectionByPath, getTitleForPath, normalizeMenu } from "@/lib/menu-sections";
 import { SubSectionLinks } from "@/components/blocks/SubSectionLinks";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { Events } from "@/components/blocks/Events";
@@ -24,7 +24,7 @@ interface SectionPageProps {
 export default async function SectionPage({ path, locale }: SectionPageProps) {
   const pathname = "/" + path;
   const menuData = await getMenu(locale);
-  const menu = normalizeMenu(menuData?.mainMenu) ?? defaultMenu;
+  const menu = normalizeMenu(menuData?.mainMenu, locale ?? "ru") ?? [];
   const sectionResult = getSectionByPath(pathname, menu);
   if (!sectionResult) notFound();
 
@@ -147,7 +147,7 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
 export async function getSectionPageMetadata(path: string, locale?: Locale) {
   const pathname = "/" + path.replace(/^\//, "").trim();
   const menuData = await getMenu(locale);
-  const menu = normalizeMenu(menuData?.mainMenu) ?? defaultMenu;
+  const menu = normalizeMenu(menuData?.mainMenu, locale ?? "ru") ?? [];
   const pageData = await getPageByPath(path, locale);
   const menuTitle = pageData?.title ?? getTitleForPath(pathname, menu);
   const title = `${menuTitle} | ${SITE_TITLE}`;

@@ -584,6 +584,34 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
         };
       }> &
       Schema.Attribute.DefaultTo<'211386, \u0420\u0435\u0441\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u0411\u0435\u043B\u0430\u0440\u0443\u0441\u044C, \u0433. \u041E\u0440\u0448\u0430, \u0412\u0438\u0442\u0435\u0431\u0441\u043A\u0430\u044F \u043E\u0431\u043B., \u0443\u043B. \u041A\u043B\u0438\u043C\u0435\u043D\u0442\u0430 \u0422\u0438\u043C\u0438\u0440\u044F\u0437\u0435\u0432\u0430, 26.'>;
+    collegeBranchShortName: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'\u0444\u0438\u043B\u0438\u0430\u043B \u0411\u0435\u043B\u0413\u0423\u0422\u0430'>;
+    collegeFullName: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'\u041E\u0440\u0448\u0430\u043D\u0441\u043A\u0438\u0439 \u043A\u043E\u043B\u043B\u0435\u0434\u0436 - \u0444\u0438\u043B\u0438\u0430\u043B \u0443\u0447\u0440\u0435\u0436\u0434\u0435\u043D\u0438\u044F \u043E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u044F \u00AB\u0411\u0435\u043B\u043E\u0440\u0443\u0441\u0441\u043A\u0438\u0439 \u0433\u043E\u0441\u0443\u0434\u0430\u0440\u0441\u0442\u0432\u0435\u043D\u043D\u044B\u0439 \u0443\u043D\u0438\u0432\u0435\u0440\u0441\u0438\u0442\u0435\u0442 \u0442\u0440\u0430\u043D\u0441\u043F\u043E\u0440\u0442\u0430\u00BB'>;
+    collegeMainName: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'\u041E\u0440\u0448\u0430\u043D\u0441\u043A\u0438\u0439 \u043A\u043E\u043B\u043B\u0435\u0434\u0436'>;
+    collegeShortName: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'\u041E\u0440\u0448\u0430\u043D\u0441\u043A\u0438\u0439 \u043A\u043E\u043B\u043B\u0435\u0434\u0436 - \u0444\u0438\u043B\u0438\u0430\u043B \u0411\u0435\u043B\u0413\u0423\u0422\u0430'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -594,6 +622,13 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
         };
       }> &
       Schema.Attribute.DefaultTo<'ogkjt@bsut.by'>;
+    heroBranchWord: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'\u0444\u0438\u043B\u0438\u0430\u043B'>;
     instagramLink: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -618,6 +653,12 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
       }> &
       Schema.Attribute.DefaultTo<'(0216) 29-31-10'>;
     publishedAt: Schema.Attribute.DateTime;
+    resources: Schema.Attribute.Component<'elements.footer-resource', true> &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
     telegramLink: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -632,6 +673,13 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
         };
       }> &
       Schema.Attribute.DefaultTo<'https://www.tiktok.com/@bsut.orsha?_r=1&_t=ZS-93UxtlAecmO'>;
+    universityName: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'\u0411\u0435\u043B\u043E\u0440\u0443\u0441\u0441\u043A\u0438\u0439 \u0433\u043E\u0441\u0443\u0434\u0430\u0440\u0441\u0442\u0432\u0435\u043D\u043D\u044B\u0439 \u0443\u043D\u0438\u0432\u0435\u0440\u0441\u0438\u0442\u0435\u0442 \u0442\u0440\u0430\u043D\u0441\u043F\u043E\u0440\u0442\u0430'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

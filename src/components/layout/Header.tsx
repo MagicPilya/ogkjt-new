@@ -21,23 +21,29 @@ import {
     navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { Logo } from "./Logo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { LowVisionToggle } from "@/components/theme/LowVisionToggle";
 import { SearchDialog } from "./SearchDialog";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
-import { MenuSection } from "@/lib/strapi";
-import { defaultMenu } from "@/lib/menu-sections";
+import { GlobalSettings, MenuSection } from "@/lib/strapi";
 import type { Locale } from "@/lib/i18n";
+import { collegeNamesFallback } from "@/lib/site-defaults";
+import { uiStrings } from "@/lib/ui-strings";
 
 interface HeaderProps {
   initialMenu?: MenuSection[] | null;
+  settings?: GlobalSettings | null;
   locale?: Locale;
 }
 
-export function Header({ initialMenu, locale = "ru" }: HeaderProps) {
-  const menuItems = initialMenu || defaultMenu;
+export function Header({ initialMenu, settings, locale = "ru" }: HeaderProps) {
+  const menuItems = initialMenu ?? [];
+  const fallback = collegeNamesFallback[locale];
+  const fullCollegeName = settings?.collegeFullName || collegeNamesFallback[locale].full;
+  const shortCollegeName = settings?.collegeShortName || collegeNamesFallback[locale].short;
+  const logoLine1 = settings?.collegeMainName || fallback.main;
+  const logoLine2 = settings?.collegeBranchShortName || fallback.branchShort;
   const prefix = (url: string) => (url?.startsWith("/") ? `/${locale}${url}` : `/${locale}/${url}` || `/${locale}`);
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
@@ -49,14 +55,14 @@ export function Header({ initialMenu, locale = "ru" }: HeaderProps) {
             <div className="bg-slate-50 dark:bg-slate-900 border-b py-2">
                 <div className="w-full px-4 md:px-8 flex items-center justify-between text-xs sm:text-sm">
                     <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
-                        <span className="hidden md:inline-block">Оршанский колледж - филиал учреждения образования «Белорусский государственный университет транспорта»</span>
-                        <span className="md:hidden">Оршанский колледж - филиал БелГУТа</span>
+                        <span className="hidden md:inline-block">{fullCollegeName}</span>
+                        <span className="md:hidden">{shortCollegeName}</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
                         <LocaleSwitcher currentLocale={locale} />
-                        <ThemeToggle />
+                        <ThemeToggle locale={locale} />
                         <SearchDialog locale={locale} />
-                        <LowVisionToggle />
+                        <LowVisionToggle locale={locale} />
                     </div>
                 </div>
             </div>
@@ -71,9 +77,9 @@ export function Header({ initialMenu, locale = "ru" }: HeaderProps) {
                         </div>
                         <div className="flex flex-col">
                             <span className="font-bold text-xl leading-tight text-slate-900 dark:text-white group-hover:text-blue-700 transition-colors">
-                                Оршанский колледж –
+                                {logoLine1}
                             </span>
-                            <span className="text-sm text-slate-500 font-medium">филиал БелГУТа</span>
+                            <span className="text-sm text-slate-500 font-medium">{logoLine2}</span>
                         </div>
                     </Link>
                 </div>
@@ -106,7 +112,11 @@ export function Header({ initialMenu, locale = "ru" }: HeaderProps) {
                                                                 href={prefix(item.url || "#")}
                                                                 className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground font-medium text-blue-600 dark:text-blue-400 border-b border-slate-100 dark:border-slate-800"
                                                             >
-                                                                Обзор раздела
+                                                                {locale === "be"
+                                                                  ? "Агляд раздзела"
+                                                                  : locale === "en"
+                                                                    ? "Section overview"
+                                                                    : "Обзор раздела"}
                                                             </Link>
                                                         </NavigationMenuLink>
                                                     </li>
@@ -163,11 +173,11 @@ export function Header({ initialMenu, locale = "ru" }: HeaderProps) {
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon" suppressHydrationWarning>
                                 <Menu className="h-6 w-6" />
-                                <span className="sr-only">Меню</span>
+                                <span className="sr-only">{locale === "be" ? "Меню" : locale === "en" ? "Menu" : "Меню"}</span>
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto px-6 pb-12">
-                            <SheetTitle className="sr-only">Меню навигации</SheetTitle>
+                            <SheetTitle className="sr-only">{uiStrings.footerNavigation[locale]}</SheetTitle>
                             <div className="flex flex-col gap-6 mt-8">
                              {menuItems.map((item) => (
                                 <div key={item.id} className="flex flex-col gap-2">
