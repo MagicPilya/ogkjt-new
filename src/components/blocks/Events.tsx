@@ -1,9 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { MapPin, Clock } from "lucide-react";
 import { getEvents, getEventsInRange } from "@/lib/strapi";
+import { translateEventList } from "@/lib/translateEvent";
 import Link from "next/link";
 import { EventsCalendar } from "./EventsCalendar";
-import type { Locale } from "@/lib/i18n";
+import { uiStrings } from "@/lib/ui-strings";
+import { defaultLocale, type Locale } from "@/lib/i18n";
 
 const INTL_LOCALE: Record<Locale, string> = { ru: "ru-RU", be: "be-BY", en: "en-US" };
 
@@ -20,39 +22,50 @@ export async function Events({ locale }: { locale?: Locale }) {
   const calendarEnd = new Date(now.getFullYear(), now.getMonth() + 3, 0);
   const intlLocale = locale ? INTL_LOCALE[locale] : "ru-RU";
 
-  const [{ data: listEvents }, { data: calendarEvents }] = await Promise.all([
+  const [{ data: listData }, { data: calendarData }] = await Promise.all([
     getEvents(3, locale),
     getEventsInRange(calendarStart, calendarEnd, locale),
   ]);
 
-    const events = listEvents ?? [];
+  const loc = locale ?? "ru";
+  const rawList = listData ?? [];
+  const rawCalendar = calendarData ?? [];
+  const events =
+    loc !== defaultLocale
+      ? await translateEventList(rawList, loc)
+      : rawList;
+  const calendarEvents =
+    loc !== defaultLocale
+      ? await translateEventList(rawCalendar, loc)
+      : rawCalendar;
 
-    return (
+  return (
         <div className="flex flex-col gap-8">
             {/* Calendar Widget — только 3 месяца назад … 2 вперёд */}
             <div className="flex flex-col items-center text-center">
                 <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
-                    Календарь событий
+                    {uiStrings.calendarTitle[loc]}
                 </h2>
                 <EventsCalendar
+                    locale={loc}
                     events={calendarEvents ?? []}
                     defaultMonth={formatYYYYMMDD(now)}
                     startMonth={formatYYYYMMDD(calendarStart)}
                     endMonth={formatYYYYMMDD(new Date(now.getFullYear(), now.getMonth() + 2, 1))}
                 />
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
-                    Нажмите на день с точкой — откроется список.
+                    {uiStrings.calendarHint[loc]}
                 </p>
             </div>
 
             {/* Events List */}
             <div className="flex flex-col items-center text-center w-full">
                 <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
-                    Ближайшие события
+                    {uiStrings.upcomingEvents[loc]}
                 </h2>
                 
                 {events.length === 0 ? (
-                    <p className="text-slate-500">Событий пока нет.</p>
+                    <p className="text-slate-500">{uiStrings.noEvents[loc]}</p>
                 ) : (
                     <div className="space-y-4 w-full">
                         {events.map((event) => {
@@ -60,7 +73,7 @@ export async function Events({ locale }: { locale?: Locale }) {
                             const day = eventDate.getDate();
                             const month = eventDate.toLocaleString(intlLocale, { month: "short" });
                             const time = eventDate.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit" });
-                            const eventsHref = locale ? `/${locale}/events/${event.id}` : `/events/${event.id}`;
+                            const eventsHref = `/${loc}/events/${event.id}`;
 
                             return (
                                 <Link key={event.id} href={eventsHref}>

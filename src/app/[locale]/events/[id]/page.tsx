@@ -5,8 +5,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getEventById } from "@/lib/strapi";
+import { getEventForLocale } from "@/lib/translateEvent";
 import { formatDate } from "@/lib/utils";
 import { FileViewer } from "@/components/ui/file-viewer";
+import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 
 interface Props {
@@ -15,23 +17,25 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, locale } = await params;
-  const event = await getEventById(id, locale);
+  const result = await getEventForLocale(getEventById, id, locale);
 
-  if (!event) {
-    return { title: "Событие не найдено" };
+  if (!result) {
+    return { title: uiStrings.eventNotFound[locale] };
   }
 
   return {
-    title: `${event.title} | МГЖК`,
-    description: event.location || undefined,
+    title: `${result.event.title} | МГЖК`,
+    description: result.event.location || undefined,
   };
 }
 
 export default async function EventDetailPage({ params }: Props) {
   const { id, locale } = await params;
-  const event = await getEventById(id, locale);
+  const result = await getEventForLocale(getEventById, id, locale);
 
-  if (!event) notFound();
+  if (!result) notFound();
+
+  const event = result.event;
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -43,7 +47,7 @@ export default async function EventDetailPage({ params }: Props) {
         >
           <Link href={`/${locale}/news`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Вернуться к новостям
+            {uiStrings.backToNews[locale]}
           </Link>
         </Button>
       </div>
@@ -71,10 +75,11 @@ export default async function EventDetailPage({ params }: Props) {
           <div className="mb-8 flex justify-center">
             <FileViewer
               file={event.file}
+              locale={locale}
               trigger={
                 <Button variant="outline">
                   <FileText className="mr-2 h-4 w-4" />
-                  Открыть вложенный файл
+                  {uiStrings.openAttachedFile[locale]}
                 </Button>
               }
             />
@@ -124,7 +129,7 @@ export default async function EventDetailPage({ params }: Props) {
             })
           ) : (
             <p className="text-slate-600 dark:text-slate-300">
-              Описание события пока не добавлено.
+              {uiStrings.eventDescriptionEmpty[locale]}
             </p>
           )}
         </div>

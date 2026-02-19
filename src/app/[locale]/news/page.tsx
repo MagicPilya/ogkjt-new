@@ -1,13 +1,14 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
+import { Calendar, Languages } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
 import { getPageByPath, getArticles } from "@/lib/strapi";
+import { getArticlesForLocale } from "@/lib/translateArticle";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 import { Events } from "@/components/blocks/Events";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
-import type { Locale } from "@/lib/i18n";
+import { translationDisclaimer, type Locale } from "@/lib/i18n";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 
@@ -35,11 +36,26 @@ export default async function NewsPage({ params }: Props) {
     pageData?.articleFeedSection && pageData.articleFeedSection !== "Не показывать"
       ? pageData.articleFeedSection
       : "НОВОСТИ КОЛЛЕДЖА";
-  const { data: rawArticles } = await getArticles(1, 50, feedSection, locale);
-  const articles = Array.isArray(rawArticles) ? rawArticles : [];
+  const { data: articles, isTranslated } = await getArticlesForLocale(
+    getArticles,
+    1,
+    50,
+    feedSection,
+    locale
+  );
 
   return (
     <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
+      {isTranslated && (
+        <div
+          className="mb-6 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+          role="note"
+          aria-label={translationDisclaimer[locale]}
+        >
+          <Languages className="h-4 w-4 shrink-0" />
+          <span>{translationDisclaimer[locale]}</span>
+        </div>
+      )}
       <div className="mb-10 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
           {title}

@@ -4,9 +4,18 @@ import { useCallback, useMemo, useRef, useState, type ComponentProps } from "rea
 import { useRouter } from "next/navigation";
 import { isSameDay } from "date-fns";
 import { ru } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { uiStrings } from "@/lib/ui-strings";
+import {
+  formatCaption as formatCaptionLabel,
+  formatMonthDropdown as formatMonthShort,
+  formatWeekdayName as formatWeekdayShort,
+  formatPopoverDate,
+} from "@/lib/calendar-locale";
 import type { Event } from "@/lib/strapi";
+import type { Locale } from "@/lib/i18n";
 
 const dotClassEvent =
   "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-blue-600 cursor-pointer";
@@ -50,18 +59,20 @@ function parseLocalYYYYMMDD(s: string): Date {
   return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
 
+const INTL_LOCALE: Record<Locale, string> = { ru: "ru-RU", be: "be-BY", en: "en-US" };
+
 interface EventsCalendarProps {
+  locale?: Locale;
   events: Event[];
-  /** ISO string — начальный месяц навигации (3 месяца назад) */
   startMonth?: string;
-  /** ISO string — конечный месяц навигации (2 месяца вперёд) */
   endMonth?: string;
-  /** ISO string — какой месяц показать по умолчанию */
   defaultMonth?: string;
 }
 
-export function EventsCalendar({ events, defaultMonth, startMonth, endMonth }: EventsCalendarProps) {
+export function EventsCalendar({ locale = "ru", events, defaultMonth, startMonth, endMonth }: EventsCalendarProps) {
   const router = useRouter();
+  const intlLocale = INTL_LOCALE[locale];
+  const dateFnsLocale = locale === "en" ? enUS : ru;
   const lastClickRef = useRef<{ x: number; y: number } | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [popoverPosition, setPopoverPosition] = useState<{ x: number; y: number } | null>(null);
@@ -142,19 +153,16 @@ export function EventsCalendar({ events, defaultMonth, startMonth, endMonth }: E
       <div className="border rounded-lg p-4 bg-white dark:bg-slate-950 shadow-sm w-full flex justify-center">
         <Calendar
           mode="single"
-          locale={ru}
+          locale={dateFnsLocale}
           defaultMonth={defaultMonthDate}
           startMonth={startMonthDate}
           endMonth={endMonthDate}
           selected={undefined}
           onSelect={handleSelect}
           formatters={{
-            formatCaption: (month) =>
-              month.toLocaleDateString("ru-RU", { month: "long", year: "numeric" }),
-            formatMonthDropdown: (month) =>
-              month.toLocaleDateString("ru-RU", { month: "short" }),
-            formatWeekdayName: (weekday) =>
-              weekday.toLocaleDateString("ru-RU", { weekday: "short" }),
+            formatCaption: (month) => formatCaptionLabel(month, locale),
+            formatMonthDropdown: (month) => formatMonthShort(month, locale),
+            formatWeekdayName: (weekday) => formatWeekdayShort(weekday, locale),
           }}
           modifiers={{
             eventDay: (date: Date) => eventDatesFuture.some((d) => isSameDay(date, d)),
@@ -183,25 +191,21 @@ export function EventsCalendar({ events, defaultMonth, startMonth, endMonth }: E
         >
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <p className="text-xs text-slate-500 dark:text-slate-400 px-0.5 shrink-0">
-              {selectedDay.toLocaleDateString("ru-RU", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
+              {formatPopoverDate(selectedDay, locale)}
             </p>
             <button
               type="button"
               onClick={closePopover}
               className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm shrink-0"
-              aria-label="Закрыть"
+              aria-label={uiStrings.close[locale]}
             >
-              Закрыть
+              {uiStrings.close[locale]}
             </button>
           </div>
           <ul className="space-y-1 overflow-y-auto max-h-[260px]">
             {selectedEvents.map((event) => {
               const eventDate = new Date(event.date);
-              const time = eventDate.toLocaleTimeString("ru-RU", {
+              const time = eventDate.toLocaleTimeString(intlLocale, {
                 hour: "2-digit",
                 minute: "2-digit",
               });
@@ -209,7 +213,7 @@ export function EventsCalendar({ events, defaultMonth, startMonth, endMonth }: E
                 <li key={event.id}>
                   <button
                     type="button"
-                    onClick={() => router.push(`/events/${event.id}`)}
+                    onClick={() => router.push(`/${locale}/events/${event.id}`)}
                     className="w-full text-left text-sm py-1.5 px-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                   >
                     <span className="block truncate">{event.title}</span>

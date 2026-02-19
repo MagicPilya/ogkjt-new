@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowLeft } from "lucide-react";
+import { Calendar, ArrowLeft, Languages } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getArticleBySlug } from "@/lib/strapi";
+import { getArticleForLocale } from "@/lib/translateArticle";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
-import type { Locale } from "@/lib/i18n";
+import { translationDisclaimer, type Locale } from "@/lib/i18n";
 
 interface Props {
   params: Promise<{ locale: Locale; slug: string }>;
@@ -17,28 +18,40 @@ export const revalidate = 0;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale } = await params;
-  const item = await getArticleBySlug(slug, locale);
+  const result = await getArticleForLocale(getArticleBySlug, slug, locale);
 
-  if (!item) {
+  if (!result) {
     return { title: "Новость не найдена" };
   }
 
   return {
-    title: `${item.title} | МГЖК`,
-    description: item.announcement,
+    title: `${result.article.title} | МГЖК`,
+    description: result.article.announcement,
   };
 }
 
 export default async function NewsDetailPage({ params }: Props) {
   const { slug, locale } = await params;
-  const item = await getArticleBySlug(slug, locale);
+  const result = await getArticleForLocale(getArticleBySlug, slug, locale);
 
-  if (!item) notFound();
+  if (!result) notFound();
 
+  const { article: item, isTranslated } = result;
   const imageUrl = getStrapiMedia(item.cover?.url || null);
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
+      {isTranslated && (
+        <div
+          className="mb-6 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+          role="note"
+          aria-label={translationDisclaimer[locale]}
+        >
+          <Languages className="h-4 w-4 shrink-0" />
+          <span>{translationDisclaimer[locale]}</span>
+        </div>
+      )}
+
       <div className="flex justify-center mb-8">
         <Button variant="ghost" className="pl-0 hover:bg-transparent hover:text-blue-600" asChild>
           <Link href={`/${locale}/news`}>

@@ -21,6 +21,13 @@ export const localeShortLabels: Record<Locale, string> = {
   en: "EN",
 };
 
+/** Пометка при авто-переводе контента (новости и т.п.) */
+export const translationDisclaimer: Record<Locale, string> = {
+  ru: "Перевод может быть неточным",
+  be: "Пераклад можа быць неточным",
+  en: "Translation may be inaccurate",
+};
+
 export function isValidLocale(value: string): value is Locale {
   return locales.includes(value as Locale);
 }

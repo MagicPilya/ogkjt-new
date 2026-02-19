@@ -1,5 +1,5 @@
 import { getStrapiURL } from "./utils";
-import type { Locale } from "./i18n";
+import { defaultLocale, type Locale } from "./i18n";
 
 /** Соответствие URL раздела и значения enum в Strapi (Место размещения / Раздел ленты). */
 export const SECTION_URL_TO_STRAPI: Record<string, string> = {
@@ -400,9 +400,10 @@ export async function getArticleBySlug(slug: string, locale?: Locale) {
 }
 
 /**
- * Get upcoming events
+ * Get upcoming events.
+ * События для всех локалей одни и те же — всегда запрашиваем defaultLocale.
  */
-export async function getEvents(limit = 3, locale?: Locale) {
+export async function getEvents(limit = 3, _locale?: Locale) {
   const now = new Date().toISOString();
   const params: Record<string, string> = {
     status: "published",
@@ -411,7 +412,7 @@ export async function getEvents(limit = 3, locale?: Locale) {
     "filters[date][$gte]": now,
     "pagination[pageSize]": String(limit),
   };
-  if (locale) params.locale = locale;
+  params.locale = defaultLocale;
   const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
     cache: "no-store",
   });
@@ -434,9 +435,10 @@ export async function getEvents(limit = 3, locale?: Locale) {
 }
 
 /**
- * Get events in a date range (for calendar: e.g. month)
+ * Get events in a date range (for calendar).
+ * События для всех локалей одни и те же — всегда defaultLocale.
  */
-export async function getEventsInRange(start: Date, end: Date, locale?: Locale) {
+export async function getEventsInRange(start: Date, end: Date, _locale?: Locale) {
   const params: Record<string, string> = {
     status: "published",
     "populate": "*",
@@ -445,7 +447,7 @@ export async function getEventsInRange(start: Date, end: Date, locale?: Locale) 
     "filters[date][$lte]": end.toISOString(),
     "pagination[pageSize]": "100",
   };
-  if (locale) params.locale = locale;
+  params.locale = defaultLocale;
   const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
     cache: "no-store",
   });
@@ -457,18 +459,16 @@ export async function getEventsInRange(start: Date, end: Date, locale?: Locale) 
 }
 
 /**
- * Get single event by id
- *
- * Используем список с фильтром по id, чтобы не зависеть
- * от маршрута /events/:id (который у тебя даёт 404).
+ * Get single event by id.
+ * События общие для всех локалей — всегда запрашиваем defaultLocale (при смене языка не 404).
  */
-export async function getEventById(id: number | string, locale?: Locale) {
+export async function getEventById(id: number | string, _locale?: Locale) {
   const params: Record<string, string> = {
     status: "published",
     "filters[id][$eq]": String(id),
     populate: "*",
   };
-  if (locale) params.locale = locale;
+  params.locale = defaultLocale;
   const data = await fetchAPI<StrapiResponse<Event[]>>(
     "/events",
     params,
