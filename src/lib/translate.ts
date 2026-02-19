@@ -35,6 +35,31 @@ async function translateViaMyMemory(
 }
 
 /**
+ * Google Translate (неофициальный gtx endpoint) как fallback без ключа.
+ */
+async function translateViaGoogleGtx(
+  text: string,
+  source: Locale,
+  target: Locale
+): Promise<string> {
+  const url =
+    "https://translate.googleapis.com/translate_a/single" +
+    `?client=gtx&sl=${localeToCode[source]}&tl=${localeToCode[target]}&dt=t&q=${encodeURIComponent(text)}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if (!res.ok) return text;
+  const data = (await res.json()) as unknown;
+  if (!Array.isArray(data) || !Array.isArray(data[0])) return text;
+
+  const chunks = (data[0] as unknown[])
+    .filter((row): row is unknown[] => Array.isArray(row))
+    .map((row) => (typeof row[0] === "string" ? row[0] : ""))
+    .filter(Boolean);
+
+  const translated = chunks.join("");
+  return translated.trim() ? translated : text;
+}
+
+/**
  * Переводит текст с source на target: сначала LibreTranslate, при ошибке — MyMemory.
  */
 export async function translateText(
@@ -71,7 +96,17 @@ export async function translateText(
   }
 
   try {
-    return await translateViaMyMemory(t, source, target);
+    const gtx = await translateViaGoogleGtx(t, source, target);
+    if (gtx && gtx.trim() && gtx !== t) {
+      return gtx;
+    }
+  } catch (err) {
+    console.warn("[translate] Google GTX fallback failed:", err);
+  }
+
+  try {
+    const myMemory = await translateViaMyMemory(t, source, target);
+    return myMemory;
   } catch (err) {
     console.warn("[translate] MyMemory fallback failed:", err);
     return text;

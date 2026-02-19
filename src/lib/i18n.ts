@@ -24,7 +24,7 @@ export const localeShortLabels: Record<Locale, string> = {
 /** Пометка при авто-переводе контента (новости и т.п.) */
 export const translationDisclaimer: Record<Locale, string> = {
   ru: "Перевод может быть неточным",
-  be: "Пераклад можа быць неточным",
+  be: "Пераклад можа быць недакладным",
   en: "Translation may be inaccurate",
 };
 

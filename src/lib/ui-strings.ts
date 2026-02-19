@@ -203,6 +203,72 @@ export const uiStrings = {
     be: "Падзей пакуль няма.",
     en: "No events yet.",
   } as Record<Locale, string>,
+  // Hero-блок
+  heroSubtitle: {
+    ru: "Качественное образование. Гарантированное трудоустройство. Уверенное будущее.",
+    be: "Якасная адукацыя. Гарантаванае працаўладкаванне. Упэўненая будучыня.",
+    en: "Quality education. Guaranteed employment. A confident future.",
+  } as Record<Locale, string>,
+  heroApplyDocuments: {
+    ru: "Подать документы",
+    be: "Падаць дакументы",
+    en: "Apply now",
+  } as Record<Locale, string>,
+  heroSpecialties: {
+    ru: "Наши специальности",
+    be: "Нашы спецыяльнасці",
+    en: "Our specialties",
+  } as Record<Locale, string>,
+  featuresTitle: {
+    ru: "Почему выбирают нас?",
+    be: "Чаму выбіраюць нас?",
+    en: "Why choose us?",
+  } as Record<Locale, string>,
+  featuresSubtitle: {
+    ru: "Мы создаем условия для профессионального роста и комфортного обучения каждого студента.",
+    be: "Мы ствараем умовы для прафесійнага росту і камфортнага навучання кожнага студэнта.",
+    en: "We create conditions for professional growth and comfortable learning for every student.",
+  } as Record<Locale, string>,
+  featureEmploymentTitle: {
+    ru: "Гарантированное трудоустройство",
+    be: "Гарантаванае працаўладкаванне",
+    en: "Guaranteed employment",
+  } as Record<Locale, string>,
+  featureEmploymentDescription: {
+    ru: "100% выпускников получают первое рабочее место на предприятиях Белорусской железной дороги.",
+    be: "100% выпускнікоў атрымліваюць першае працоўнае месца на прадпрыемствах Беларускай чыгункі.",
+    en: "100% of graduates receive their first job at Belarusian Railway enterprises.",
+  } as Record<Locale, string>,
+  featureDormitoryTitle: {
+    ru: "Общежитие всем желающим",
+    be: "Інтэрнат для ўсіх ахвотных",
+    en: "Dormitory for all who need it",
+  } as Record<Locale, string>,
+  featureDormitoryDescription: {
+    ru: "Комфортабельное общежитие предоставляется всем иногородним учащимся на весь период обучения.",
+    be: "Камфортны інтэрнат прадастаўляецца ўсім іншагароднім навучэнцам на ўвесь перыяд навучання.",
+    en: "A comfortable dormitory is provided to all non-resident students for the entire study period.",
+  } as Record<Locale, string>,
+  featurePracticeTitle: {
+    ru: "Практика на реальных объектах",
+    be: "Практыка на рэальных аб'ектах",
+    en: "Hands-on practice at real facilities",
+  } as Record<Locale, string>,
+  featurePracticeDescription: {
+    ru: "Производственное обучение проходит в депо и на станциях БЖД с использованием современного оборудования.",
+    be: "Вытворчае навучанне праходзіць у дэпо і на станцыях БЧ з выкарыстаннем сучаснага абсталявання.",
+    en: "Practical training takes place in depots and at Belarusian Railway stations using modern equipment.",
+  } as Record<Locale, string>,
+  featureEducationTitle: {
+    ru: "Высокое качество образования",
+    be: "Высокая якасць адукацыі",
+    en: "High quality education",
+  } as Record<Locale, string>,
+  featureEducationDescription: {
+    ru: "Опытные преподаватели и современные методики обучения обеспечивают высокий уровень подготовки специалистов.",
+    be: "Вопытныя выкладчыкі і сучасныя методыкі навучання забяспечваюць высокі ўзровень падрыхтоўкі спецыялістаў.",
+    en: "Experienced teachers and modern learning methods ensure a high level of specialist training.",
+  } as Record<Locale, string>,
   close: {
     ru: "Закрыть",
     be: "Закрыць",

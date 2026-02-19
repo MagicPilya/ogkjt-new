@@ -7,8 +7,6 @@ import type { Locale } from "./i18n";
 import { defaultLocale } from "./i18n";
 import { translateText, translateLongText } from "./translate";
 
-const SEP = "\u200B\u200B\u200B";
-
 type ContentBlock = {
   type?: string;
   text?: string;
@@ -101,16 +99,6 @@ async function translateContentBlocks(
 
   const texts = collectTexts(blocks as ContentBlock[]);
   if (texts.length === 0) return [];
-
-  const SEP_PLACEHOLDER = " " + SEP + " ";
-  const joined = texts.join(SEP_PLACEHOLDER);
-  const translated = await translateLongText(joined, source, target);
-  const parts = translated.split(SEP).map((p) => (typeof p === "string" ? p.trim() : ""));
-
-  if (parts.length === texts.length) {
-    return parts;
-  }
-  // Разделитель потерялся — переводим каждый фрагмент по отдельности
   return Promise.all(texts.map((t) => translateLongText(t, source, target)));
 }
 
@@ -121,14 +109,8 @@ async function translateContentBlocks(
 export async function translateBatch(texts: string[], source: Locale, target: Locale): Promise<string[]> {
   if (texts.length === 0) return [];
   if (source === target) return texts;
-  const SEP_PLACEHOLDER = " " + SEP + " ";
-  const joined = texts.join(SEP_PLACEHOLDER);
-  const translated = await translateLongText(joined, source, target);
-  const parts = translated.split(SEP).map((p) => (typeof p === "string" ? p.trim() : ""));
-  if (parts.length === texts.length) {
-    return parts;
-  }
-  // Разделитель потерялся при переводе — переводим по одному
+  // Поэлементный перевод надёжнее для списков карточек:
+  // часть внешних API иногда искажает разделители при батч-склейке.
   return Promise.all(texts.map((t) => translateText(t, source, target)));
 }
 

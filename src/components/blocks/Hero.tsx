@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 import { collegeNamesFallback } from "@/lib/site-defaults";
+import { uiStrings } from "@/lib/ui-strings";
 
 interface HeroProps {
   locale?: Locale;
@@ -72,14 +73,14 @@ export function Hero({
           )}
         </h1>
         <p className="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Качественное образование. Гарантированное трудоустройство. Уверенное будущее.
+          {uiStrings.heroSubtitle[locale]}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg h-14 px-8 shadow-lg shadow-blue-900/20" asChild>
-            <Link href={`${base}/applicants/documents`}>Подать документы</Link>
+            <Link href={`${base}/applicants/documents`}>{uiStrings.heroApplyDocuments[locale]}</Link>
           </Button>
           <Button size="lg" variant="outline" className="text-lg h-14 px-8 bg-transparent hover:bg-white/10 border-white/30 text-white hover:text-white backdrop-blur-sm" asChild>
-            <Link href={`${base}/applicants/specialties`}>Наши специальности</Link>
+            <Link href={`${base}/applicants/specialties`}>{uiStrings.heroSpecialties[locale]}</Link>
           </Button>
         </div>
       </div>

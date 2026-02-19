@@ -21,7 +21,7 @@ export default async function HomePage({ params }: Props) {
         collegeFullName={globalSettings?.collegeFullName}
         universityName={globalSettings?.universityName}
       />
-      <Features />
+      <Features locale={locale} />
 
       <section className="py-16 bg-slate-50/50 dark:bg-slate-900/50">
         <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto">

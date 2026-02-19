@@ -8,6 +8,7 @@ import { getArticleForLocale } from "@/lib/translateArticle";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
+import { uiStrings } from "@/lib/ui-strings";
 
 interface Props {
   params: Promise<{ locale: Locale; slug: string }>;
@@ -56,7 +57,7 @@ export default async function NewsDetailPage({ params }: Props) {
         <Button variant="ghost" className="pl-0 hover:bg-transparent hover:text-blue-600" asChild>
           <Link href={`/${locale}/news`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Вернуться к новостям
+            {uiStrings.backToNews[locale]}
           </Link>
         </Button>
       </div>

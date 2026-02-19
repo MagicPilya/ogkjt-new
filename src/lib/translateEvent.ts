@@ -7,8 +7,6 @@ import { defaultLocale } from "./i18n";
 import { translateText, translateLongText } from "./translate";
 import { translateBatch } from "./translateArticle";
 
-const SEP = "\u200B\u200B\u200B";
-
 type DescBlock = {
   type?: string;
   text?: string;
@@ -52,13 +50,6 @@ async function translateDescriptionBlocks(
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return [];
   const texts = collectDescTexts(blocks as DescBlock[]);
   if (texts.length === 0) return [];
-  const SEP_PLACEHOLDER = " " + SEP + " ";
-  const joined = texts.join(SEP_PLACEHOLDER);
-  const translated = await translateLongText(joined, source, target);
-  const parts = translated.split(SEP).map((p) => (typeof p === "string" ? p.trim() : ""));
-  if (parts.length === texts.length) {
-    return parts;
-  }
   return Promise.all(texts.map((t) => translateLongText(t, source, target)));
 }
 
