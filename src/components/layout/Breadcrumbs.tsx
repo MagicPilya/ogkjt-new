@@ -5,13 +5,20 @@ import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { defaultMenu, getBreadcrumbItems } from "@/lib/menu-sections";
 import { cn } from "@/lib/utils";
+import { defaultLocale, isValidLocale } from "@/lib/i18n";
 
 export function Breadcrumbs({ className }: { className?: string }) {
   const pathname = usePathname();
-  if (pathname.startsWith("/events")) return null;
+  const segments = pathname.split("/").filter(Boolean);
+  const locale = segments.length > 0 && isValidLocale(segments[0]) ? segments[0] : defaultLocale;
+  const pathWithoutLocale = "/" + segments.slice(1).join("/") || "/";
 
-  const items = getBreadcrumbItems(pathname, defaultMenu);
+  if (pathWithoutLocale.startsWith("/events")) return null;
+
+  const items = getBreadcrumbItems(pathWithoutLocale, defaultMenu);
   if (items.length === 0) return null;
+
+  const prefix = (href: string) => (href === "/" ? `/${locale}` : `/${locale}${href}`);
 
   return (
     <nav
@@ -42,7 +49,7 @@ export function Breadcrumbs({ className }: { className?: string }) {
                   </span>
                 ) : (
                   <Link
-                    href={item.href}
+                    href={prefix(item.href)}
                     className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate max-w-[200px] sm:max-w-none"
                   >
                     {item.label}

@@ -1,4 +1,5 @@
 import { getStrapiURL } from "./utils";
+import type { Locale } from "./i18n";
 
 /** Соответствие URL раздела и значения enum в Strapi (Место размещения / Раздел ленты). */
 export const SECTION_URL_TO_STRAPI: Record<string, string> = {
@@ -177,10 +178,12 @@ export interface MenuData {
 /**
  * Глобальные настройки (контакты, соцсети). Меню — отдельно через getMenu().
  */
-export async function getGlobalSettings() {
+export async function getGlobalSettings(locale?: Locale) {
+  const params: Record<string, string> = { status: "published" };
+  if (locale) params.locale = locale;
   const data = await fetchAPI<StrapiResponse<GlobalSettings>>(
     "/global",
-    { status: "published" },
+    params,
     { cache: "no-store" }
   );
   if (!data || !data.data) return null;
@@ -190,10 +193,15 @@ export async function getGlobalSettings() {
 /**
  * Главное меню сайта (одиночный тип «Меню» в Strapi).
  */
-export async function getMenu() {
+export async function getMenu(locale?: Locale) {
+  const params: Record<string, string> = {
+    status: "published",
+    "populate[mainMenu][populate][links][populate]": "*",
+  };
+  if (locale) params.locale = locale;
   const data = await fetchAPI<StrapiResponse<MenuData>>(
     "/menu",
-    { status: "published", "populate[mainMenu][populate][links][populate]": "*" },
+    params,
     { cache: "no-store" }
   );
   if (!data || !data.data) return null;
@@ -205,7 +213,7 @@ export async function getMenu() {
  * Заголовок и путь берутся из меню; в админке задаётся только выбор «Страница» и контент.
  * Ищем по полному URL (с ведущим слэшем); при отсутствии — пробуем без слэша (на случай иного формата в Strapi).
  */
-export async function getPageByPath(path: string) {
+export async function getPageByPath(path: string, locale?: Locale) {
   const pathNorm = path.replace(/^\//, "").trim();
   const pageUrlWithSlash = pathNorm ? `/${pathNorm}` : "/";
   const params: Record<string, string> = {
@@ -213,6 +221,7 @@ export async function getPageByPath(path: string) {
     "filters[pageUrl][$eq]": pageUrlWithSlash,
     "populate": "*",
   };
+  if (locale) params.locale = locale;
 
   let data = await fetchAPI<StrapiResponse<Page[]>>("/pages", params, { cache: "no-store" });
 
@@ -225,19 +234,21 @@ export async function getPageByPath(path: string) {
   return data.data[0] || null;
 }
 
-/** @deprecated Используйте getPageByPath(path) */
-export async function getPageBySlug(slug: string) {
-  return getPageByPath(slug);
+/** @deprecated Используйте getPageByPath(path, locale) */
+export async function getPageBySlug(slug: string, locale?: Locale) {
+  return getPageByPath(slug, locale);
 }
 
 /**
  * Данные блока «Администрация» (single type): список сотрудников с ФИО, должностью, контактами, фото.
  * Используется на странице /about/administration.
  */
-export async function getAdministration(): Promise<Administration | null> {
+export async function getAdministration(locale?: Locale): Promise<Administration | null> {
+  const params: Record<string, string> = { status: "published", "populate": "*" };
+  if (locale) params.locale = locale;
   const data = await fetchAPI<{ data: Administration }>(
     "/administration",
-    { status: "published", "populate": "*" },
+    params,
     { cache: "no-store" }
   );
   if (!data?.data) return null;
@@ -248,10 +259,12 @@ export async function getAdministration(): Promise<Administration | null> {
  * Данные блока «Специальности» (single type): список специальностей с названием, шифром,
  * специализациями, квалификацией и профессиями рабочего. Используется на странице /applicants/specialties.
  */
-export async function getSpecialties(): Promise<Specialties | null> {
+export async function getSpecialties(locale?: Locale): Promise<Specialties | null> {
+  const params: Record<string, string> = { status: "published", "populate": "*" };
+  if (locale) params.locale = locale;
   const data = await fetchAPI<{ data: Specialties }>(
     "/specialty",
-    { status: "published", "populate": "*" },
+    params,
     { cache: "no-store" }
   );
   if (!data?.data) return null;
@@ -263,15 +276,26 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
     return {} as T;
   }
   try {
+    const requestedLocale = urlParamsObject && typeof urlParamsObject === "object" && "locale" in urlParamsObject
+      ? (urlParamsObject as { locale?: string }).locale
+      : undefined;
+
+    const queryString = new URLSearchParams(urlParamsObject).toString();
+    const requestUrl = `${getStrapiURL()}/api${path}${queryString ? `?${queryString}` : ""}`;
+
     const mergedOptions = {
+      cache: "no-store" as RequestCache,
       headers: {
         "Content-Type": "application/json",
+        "Cache-Control": "no-store, no-cache",
+        "Pragma": "no-cache",
       },
       ...options,
     };
 
-    const queryString = new URLSearchParams(urlParamsObject).toString();
-    const requestUrl = `${getStrapiURL()}/api${path}${queryString ? `?${queryString}` : ""}`;
+    if (process.env.NODE_ENV === "development" && requestedLocale !== undefined) {
+      console.log("[Strapi] Запрос:", path, "| locale =", requestedLocale);
+    }
 
     const response = await fetch(requestUrl, mergedOptions);
     if (!response.ok) {
@@ -283,6 +307,17 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
       return {} as T;
     }
     const data = await response.json();
+
+    if (process.env.NODE_ENV === "development" && requestedLocale !== undefined) {
+      const resLocale = (data as { data?: { locale?: string } | Array<{ locale?: string }> })?.data != null
+        ? (Array.isArray((data as { data: unknown }).data)
+          ? (data as { data: Array<{ locale?: string }> }).data[0]?.locale
+          : (data as { data: { locale?: string } }).data?.locale)
+        : undefined;
+      if (resLocale !== undefined && resLocale !== requestedLocale) {
+        console.warn("[Strapi] В ответе другая локаль: запрашивали", requestedLocale, ", пришло", resLocale, "|", path);
+      }
+    }
     return data as T;
   } catch (err) {
     if (process.env.NODE_ENV === "development") {
@@ -297,7 +332,12 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
  * Для раздела «Новости колледжа» в выборку попадают и статьи без раздела (sectionUrl = null),
  * чтобы отображались существующие новости, у которых раздел не задан.
  */
-export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string | null) {
+export async function getArticles(
+  page = 1,
+  pageSize = 10,
+  sectionUrl?: string | null,
+  locale?: Locale
+) {
   const params: Record<string, string> = {
     status: "published",
     "populate": "*",
@@ -305,6 +345,7 @@ export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string |
     "pagination[page]": String(page),
     "pagination[pageSize]": String(pageSize),
   };
+  if (locale) params.locale = locale;
   if (sectionUrl) {
     const sectionValue = toSectionValueForFilter(sectionUrl);
     const isMainNews = sectionValue === "НОВОСТИ КОЛЛЕДЖА";
@@ -340,15 +381,17 @@ export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string |
 /**
  * Get single article by slug
  */
-export async function getArticleBySlug(slug: string) {
-  const data = await fetchAPI<StrapiResponse<Article[]>>("/articles", {
+export async function getArticleBySlug(slug: string, locale?: Locale) {
+  const params: Record<string, string> = {
     status: "published",
     "filters[slug][$eq]": slug,
     "populate": "*",
-  }, {
+  };
+  if (locale) params.locale = locale;
+  const data = await fetchAPI<StrapiResponse<Article[]>>("/articles", params, {
     cache: "no-store",
   });
-  
+
   if (!data || !Array.isArray(data.data)) {
     return null;
   }
@@ -359,16 +402,17 @@ export async function getArticleBySlug(slug: string) {
 /**
  * Get upcoming events
  */
-export async function getEvents(limit = 3) {
+export async function getEvents(limit = 3, locale?: Locale) {
   const now = new Date().toISOString();
-
-  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", {
+  const params: Record<string, string> = {
     status: "published",
     "populate": "*",
     "sort": "date:asc",
     "filters[date][$gte]": now,
     "pagination[pageSize]": String(limit),
-  }, {
+  };
+  if (locale) params.locale = locale;
+  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
     cache: "no-store",
   });
 
@@ -392,15 +436,17 @@ export async function getEvents(limit = 3) {
 /**
  * Get events in a date range (for calendar: e.g. month)
  */
-export async function getEventsInRange(start: Date, end: Date) {
-  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", {
+export async function getEventsInRange(start: Date, end: Date, locale?: Locale) {
+  const params: Record<string, string> = {
     status: "published",
     "populate": "*",
     "sort": "date:asc",
     "filters[date][$gte]": start.toISOString(),
     "filters[date][$lte]": end.toISOString(),
     "pagination[pageSize]": "100",
-  }, {
+  };
+  if (locale) params.locale = locale;
+  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
     cache: "no-store",
   });
 
@@ -416,14 +462,16 @@ export async function getEventsInRange(start: Date, end: Date) {
  * Используем список с фильтром по id, чтобы не зависеть
  * от маршрута /events/:id (который у тебя даёт 404).
  */
-export async function getEventById(id: number | string) {
+export async function getEventById(id: number | string, locale?: Locale) {
+  const params: Record<string, string> = {
+    status: "published",
+    "filters[id][$eq]": String(id),
+    populate: "*",
+  };
+  if (locale) params.locale = locale;
   const data = await fetchAPI<StrapiResponse<Event[]>>(
     "/events",
-    {
-      status: "published",
-      "filters[id][$eq]": String(id),
-      populate: "*",
-    },
+    params,
     { cache: "no-store" }
   );
 

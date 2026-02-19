@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FileText, Clock, Eye, UserCheck, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { isValidLocale } from "@/lib/i18n";
 
 const items = [
     {
@@ -38,21 +40,25 @@ const items = [
 ];
 
 export function QuickAccessPanel() {
-    const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const seg = pathname.split("/").filter(Boolean)[0];
+  const locale = seg && isValidLocale(seg) ? seg : null;
+  const href = (url: string) => (url === "#" ? "#" : locale ? `/${locale}${url}` : url);
 
-    return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
-            {/* Раскрывающееся меню */}
-            <div 
-                className={cn(
-                    "flex flex-col items-end gap-3 transition-all duration-300 ease-in-out origin-bottom-right",
-                    isOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10 pointer-events-none"
-                )}
-            >
-                {items.map((item, index) => (
-                    <Link 
-                        key={index}
-                        href={item.href}
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+      {/* Раскрывающееся меню */}
+      <div
+        className={cn(
+          "flex flex-col items-end gap-3 transition-all duration-300 ease-in-out origin-bottom-right",
+          isOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-10 pointer-events-none"
+        )}
+      >
+        {items.map((item, index) => (
+          <Link
+            key={index}
+            href={href(item.href)}
                         className="flex items-center gap-3 group"
                         onClick={() => setIsOpen(false)} // Закрываем при клике
                     >

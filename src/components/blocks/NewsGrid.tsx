@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar } from "lucide-react";
 import { getArticles } from "@/lib/strapi";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
+import type { Locale } from "@/lib/i18n";
 
-export async function NewsGrid() {
-    const { data: rawArticles } = await getArticles(1, 3);
+export async function NewsGrid({ locale }: { locale?: Locale }) {
+  const { data: rawArticles } = await getArticles(1, 3, null, locale);
     const articles = Array.isArray(rawArticles) ? rawArticles : [];
 
     // В Strapi 5 дата публикации - publishedAt, а поле date мы создали сами вручную.
@@ -19,7 +20,7 @@ export async function NewsGrid() {
                     Последние новости колледжа
                 </h2>
                 <Button variant="ghost" className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2" asChild>
-                    <Link href="/news">
+                    <Link href={locale ? `/${locale}/news` : "/news"}>
                         Все новости <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                 </Button>
@@ -49,10 +50,10 @@ export async function NewsGrid() {
                             <CardHeader>
                                 <div className="flex items-center text-sm text-slate-500 mb-2">
                                     <Calendar className="mr-2 h-4 w-4" />
-                                    {formatDate(displayDate)}
+                                    {formatDate(displayDate, locale)}
                                 </div>
                                 <CardTitle className="line-clamp-2 hover:text-blue-600 transition-colors text-lg">
-                                    <Link href={`/news/${item.slug}`}>
+                                    <Link href={locale ? `/${locale}/news/${item.slug}` : `/news/${item.slug}`}>
                                         {item.title}
                                     </Link>
                                 </CardTitle>
@@ -69,7 +70,7 @@ export async function NewsGrid() {
 
             <div className="mt-8 text-center sm:hidden">
                 <Button variant="outline" className="w-full" asChild>
-                    <Link href="/news">Все новости</Link>
+                    <Link href={locale ? `/${locale}/news` : "/news"}>Все новости</Link>
                 </Button>
             </div>
         </div>

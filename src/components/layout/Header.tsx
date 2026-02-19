@@ -25,16 +25,20 @@ import { Logo } from "./Logo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { LowVisionToggle } from "@/components/theme/LowVisionToggle";
 import { SearchDialog } from "./SearchDialog";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
 import { MenuSection } from "@/lib/strapi";
 import { defaultMenu } from "@/lib/menu-sections";
+import type { Locale } from "@/lib/i18n";
 
 interface HeaderProps {
-    initialMenu?: MenuSection[] | null;
+  initialMenu?: MenuSection[] | null;
+  locale?: Locale;
 }
 
-export function Header({ initialMenu }: HeaderProps) {
-    const menuItems = initialMenu || defaultMenu;
+export function Header({ initialMenu, locale = "ru" }: HeaderProps) {
+  const menuItems = initialMenu || defaultMenu;
+  const prefix = (url: string) => (url?.startsWith("/") ? `/${locale}${url}` : `/${locale}/${url}` || `/${locale}`);
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
     const closeMobileMenu = React.useCallback(() => setMobileMenuOpen(false), []);
@@ -49,8 +53,9 @@ export function Header({ initialMenu }: HeaderProps) {
                         <span className="md:hidden">Оршанский колледж - филиал БелГУТа</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
+                        <LocaleSwitcher currentLocale={locale} />
                         <ThemeToggle />
-                        <SearchDialog />
+                        <SearchDialog locale={locale} />
                         <LowVisionToggle />
                     </div>
                 </div>
@@ -59,7 +64,7 @@ export function Header({ initialMenu }: HeaderProps) {
             {/* Уровень 2: Лого и Главное меню */}
             <div className="w-full px-4 md:px-8 relative flex h-24 items-center">
                 <div className="flex items-center gap-8 shrink-0 z-10">
-                    <Link href="/" className="flex items-center gap-4 group">
+                    <Link href={prefix("/")} className="flex items-center gap-4 group">
                         {/* Логотип */}
                         <div className="h-14 w-14 relative bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl group-hover:bg-blue-700 transition-colors shrink-0">
                         <TrainFront size={36} />
@@ -83,7 +88,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                         <>
                                             <NavigationMenuTrigger asChild>
                                                 <Link
-                                                    href={item.url || "#"}
+                                                    href={prefix(item.url || "#")}
                                                     className={cn(
                                                         navigationMenuTriggerStyle(),
                                                         "text-base font-medium bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2"
@@ -98,7 +103,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                                     <li className="md:col-span-2">
                                                         <NavigationMenuLink asChild>
                                                             <Link
-                                                                href={item.url || "#"}
+                                                                href={prefix(item.url || "#")}
                                                                 className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground font-medium text-blue-600 dark:text-blue-400 border-b border-slate-100 dark:border-slate-800"
                                                             >
                                                                 Обзор раздела
@@ -109,7 +114,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                                         <li key={subItem.id} className="space-y-1">
                                                             <NavigationMenuLink asChild>
                                                                 <Link
-                                                                    href={subItem.url}
+                                                                    href={prefix(subItem.url)}
                                                                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                                                 >
                                                                     <div className="text-sm font-medium leading-none">{subItem.title}</div>
@@ -121,7 +126,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                                                         <li key={subSubItem.id}>
                                                                             <NavigationMenuLink asChild>
                                                                                 <Link
-                                                                                    href={subSubItem.url}
+                                                                                    href={prefix(subSubItem.url)}
                                                                                     className="block select-none rounded-md py-2 px-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-xs text-muted-foreground hover:text-foreground"
                                                                                 >
                                                                                     {subSubItem.title}
@@ -139,7 +144,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                     ) : (
                                         <NavigationMenuLink asChild>
                                             <Link 
-                                                href={item.url || "#"} 
+                                                href={prefix(item.url || "#")} 
                                                 className={cn(navigationMenuTriggerStyle(), "text-base font-medium bg-transparent")}
                                             >
                                                 {item.title}
@@ -169,7 +174,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                     {item.links && item.links.length > 0 ? (
                                         <>
                                             <Link
-                                                href={item.url || "#"}
+                                                href={prefix(item.url || "#")}
                                                 onClick={closeMobileMenu}
                                                 className="font-bold text-lg text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 mb-1"
                                             >
@@ -179,7 +184,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                                 {item.links.map((subItem) => (
                                                     <div key={subItem.id} className="flex flex-col gap-2">
                                                         <Link 
-                                                            href={subItem.url}
+                                                            href={prefix(subItem.url)}
                                                             onClick={closeMobileMenu}
                                                             className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
                                                         >
@@ -190,7 +195,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                                                 {subItem.sublinks.map((subSubItem) => (
                                                                     <Link 
                                                                         key={subSubItem.id} 
-                                                                        href={subSubItem.url}
+                                                                        href={prefix(subSubItem.url)}
                                                                         onClick={closeMobileMenu}
                                                                         className="text-slate-500 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 text-sm"
                                                                     >
@@ -205,7 +210,7 @@ export function Header({ initialMenu }: HeaderProps) {
                                         </>
                                     ) : (
                                         <Link 
-                                            href={item.url || "#"}
+                                            href={prefix(item.url || "#")}
                                             onClick={closeMobileMenu}
                                             className="font-bold text-lg text-slate-900 dark:text-white hover:text-blue-600"
                                         >

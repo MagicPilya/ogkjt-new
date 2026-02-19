@@ -7,21 +7,18 @@ import type { Metadata } from "next";
 import { getEventById } from "@/lib/strapi";
 import { formatDate } from "@/lib/utils";
 import { FileViewer } from "@/components/ui/file-viewer";
+import type { Locale } from "@/lib/i18n";
 
 interface Props {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ locale: Locale; id: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
-  const event = await getEventById(id);
+  const { id, locale } = await params;
+  const event = await getEventById(id, locale);
 
   if (!event) {
-    return {
-      title: "Событие не найдено",
-    };
+    return { title: "Событие не найдено" };
   }
 
   return {
@@ -31,14 +28,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function EventDetailPage({ params }: Props) {
-  const { id } = await params;
-  const event = await getEventById(id);
+  const { id, locale } = await params;
+  const event = await getEventById(id, locale);
 
-  if (!event) {
-    notFound();
-  }
-
-  const eventDate = new Date(event.date);
+  if (!event) notFound();
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -48,7 +41,7 @@ export default async function EventDetailPage({ params }: Props) {
           className="pl-0 hover:bg-transparent hover:text-blue-600"
           asChild
         >
-          <Link href="/news">
+          <Link href={`/${locale}/news`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Вернуться к новостям
           </Link>
@@ -60,7 +53,7 @@ export default async function EventDetailPage({ params }: Props) {
           <div className="flex items-center justify-center text-sm text-slate-500 mb-4 gap-3 flex-wrap">
             <span className="inline-flex items-center">
               <Calendar className="mr-2 h-4 w-4" />
-              {formatDate(event.date)}
+              {formatDate(event.date, locale)}
             </span>
             {event.location && (
               <span className="inline-flex items-center">
@@ -97,15 +90,9 @@ export default async function EventDetailPage({ params }: Props) {
                     {block.children.map((child: any, childIndex: number) => {
                       if (child.type === "text") {
                         let text: React.ReactNode = child.text;
-                        if (child.bold) {
-                          text = <strong key={childIndex}>{text}</strong>;
-                        }
-                        if (child.italic) {
-                          text = <em key={childIndex}>{text}</em>;
-                        }
-                        if (child.underline) {
-                          text = <u key={childIndex}>{text}</u>;
-                        }
+                        if (child.bold) text = <strong key={childIndex}>{text}</strong>;
+                        if (child.italic) text = <em key={childIndex}>{text}</em>;
+                        if (child.underline) text = <u key={childIndex}>{text}</u>;
                         return <span key={childIndex}>{text}</span>;
                       }
                       return null;
@@ -113,33 +100,26 @@ export default async function EventDetailPage({ params }: Props) {
                   </p>
                 );
               }
-
               if (block.type === "heading") {
                 const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
                 return (
                   <Tag key={index}>
-                    {block.children
-                      .map((child: any) => child.text)
-                      .join("")}
+                    {block.children.map((child: any) => child.text).join("")}
                   </Tag>
                 );
               }
-
               if (block.type === "list") {
                 const ListTag = block.format === "ordered" ? "ol" : "ul";
                 return (
                   <ListTag key={index}>
                     {block.children.map((item: any, itemIndex: number) => (
                       <li key={itemIndex}>
-                        {item.children
-                          .map((child: any) => child.text)
-                          .join("")}
+                        {item.children.map((child: any) => child.text).join("")}
                       </li>
                     ))}
                   </ListTag>
                 );
               }
-
               return null;
             })
           ) : (
@@ -152,4 +132,3 @@ export default async function EventDetailPage({ params }: Props) {
     </div>
   );
 }
-

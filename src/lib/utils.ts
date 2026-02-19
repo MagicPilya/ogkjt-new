@@ -55,9 +55,17 @@ export function getStrapiMedia(url: string | null) {
   return `${getStrapiMediaBase()}${url}`;
 }
 
-export function formatDate(dateString: string) {
+/** Коды локалей для Intl (ru, be, en). */
+const INTL_LOCALE_MAP: Record<string, string> = {
+  ru: "ru-RU",
+  be: "be-BY",
+  en: "en-US",
+};
+
+export function formatDate(dateString: string, locale?: string) {
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat("ru-RU", {
+  const intlLocale = locale ? INTL_LOCALE_MAP[locale] ?? "ru-RU" : "ru-RU";
+  return new Intl.DateTimeFormat(intlLocale, {
     day: "numeric",
     month: "long",
     year: "numeric",

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { SearchResultItem } from "@/app/api/search/route";
+import type { Locale } from "@/lib/i18n";
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -40,7 +41,8 @@ function highlightSnippet(snippet: string, query: string): React.ReactNode[] {
   );
 }
 
-export function SearchDialog() {
+export function SearchDialog({ locale }: { locale?: Locale }) {
+  const prefix = (url: string) => (locale ? `/${locale}${url}` : url);
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
@@ -148,7 +150,7 @@ export function SearchDialog() {
                 {results.map((item) => (
                   <li key={`${item.type}-${item.id}`}>
                     <Link
-                      href={item.url}
+                      href={prefix(item.url)}
                       onClick={() => setOpen(false)}
                       className="flex gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none min-w-0"
                     >

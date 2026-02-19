@@ -3,6 +3,9 @@ import { MapPin, Clock } from "lucide-react";
 import { getEvents, getEventsInRange } from "@/lib/strapi";
 import Link from "next/link";
 import { EventsCalendar } from "./EventsCalendar";
+import type { Locale } from "@/lib/i18n";
+
+const INTL_LOCALE: Record<Locale, string> = { ru: "ru-RU", be: "be-BY", en: "en-US" };
 
 function formatYYYYMMDD(d: Date) {
   const y = d.getFullYear();
@@ -11,15 +14,16 @@ function formatYYYYMMDD(d: Date) {
   return `${y}-${m}-${day}`;
 }
 
-export async function Events() {
-    const now = new Date();
-    const calendarStart = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-    const calendarEnd = new Date(now.getFullYear(), now.getMonth() + 3, 0);
+export async function Events({ locale }: { locale?: Locale }) {
+  const now = new Date();
+  const calendarStart = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+  const calendarEnd = new Date(now.getFullYear(), now.getMonth() + 3, 0);
+  const intlLocale = locale ? INTL_LOCALE[locale] : "ru-RU";
 
-    const [{ data: listEvents }, { data: calendarEvents }] = await Promise.all([
-        getEvents(3),
-        getEventsInRange(calendarStart, calendarEnd),
-    ]);
+  const [{ data: listEvents }, { data: calendarEvents }] = await Promise.all([
+    getEvents(3, locale),
+    getEventsInRange(calendarStart, calendarEnd, locale),
+  ]);
 
     const events = listEvents ?? [];
 
@@ -54,11 +58,12 @@ export async function Events() {
                         {events.map((event) => {
                             const eventDate = new Date(event.date);
                             const day = eventDate.getDate();
-                            const month = eventDate.toLocaleString('ru-RU', { month: 'short' });
-                            const time = eventDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                            const month = eventDate.toLocaleString(intlLocale, { month: "short" });
+                            const time = eventDate.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit" });
+                            const eventsHref = locale ? `/${locale}/events/${event.id}` : `/events/${event.id}`;
 
                             return (
-                                <Link key={event.id} href={`/events/${event.id}`}>
+                                <Link key={event.id} href={eventsHref}>
                                     <Card className="flex overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
                                         <div className="bg-blue-600 text-white p-3 flex flex-col items-center justify-center min-w-[70px]">
                                             <span className="text-xl font-bold">{day}</span>

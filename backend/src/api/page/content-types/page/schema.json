@@ -7,40 +7,33 @@
     "displayName": "Страница",
     "description": "Одна страница сайта: привязана к пункту меню, заголовок подставляется из меню, контент и опционально лента новостей"
   },
-  "options": {
-    "draftAndPublish": true
-  },
-  "pluginOptions": {},
+  "options": { "draftAndPublish": true },
+  "pluginOptions": { "i18n": { "localized": true } },
   "attributes": {
     "pageUrl": {
       "type": "customField",
       "customField": "global::menu-link-select",
-      "required": true
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
     },
     "title": {
       "type": "string",
-      "required": true
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": true } }
     },
     "metaDescription": {
-      "type": "text"
+      "type": "text",
+      "pluginOptions": { "i18n": { "localized": true } }
     },
     "content": {
-      "type": "blocks"
+      "type": "blocks",
+      "pluginOptions": { "i18n": { "localized": true } }
     },
     "articleFeedSection": {
       "type": "enumeration",
-      "enum": [
-        "Не показывать",
-        "НОВОСТИ КОЛЛЕДЖА",
-        "НОВОСТИ ОБЩЕЖИТИЯ",
-        "О колледже",
-        "Абитуриентам",
-        "Обучающимся",
-        "Воспитательная работа",
-        "Одно окно",
-        "Электронные обращения"
-      ],
-      "description": "Показывать под контентом страницы блок «Новости»: выберите раздел (откуда брать статьи) или «Не показывать»"
+      "enum": ["Не показывать", "НОВОСТИ КОЛЛЕДЖА", "НОВОСТИ ОБЩЕЖИТИЯ", "О колледже", "Абитуриентам", "Обучающимся", "Воспитательная работа", "Одно окно", "Электронные обращения"],
+      "description": "Показывать под контентом страницы блок «Новости»: выберите раздел (откуда брать статьи) или «Не показывать»",
+      "pluginOptions": { "i18n": { "localized": true } }
     }
   }
 }

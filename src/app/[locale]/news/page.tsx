@@ -7,27 +7,35 @@ import { getPageByPath, getArticles } from "@/lib/strapi";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 import { Events } from "@/components/blocks/Events";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
+import type { Locale } from "@/lib/i18n";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function generateMetadata(): Promise<Metadata> {
-  const pageData = await getPageByPath("news");
+interface Props {
+  params: Promise<{ locale: Locale }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const pageData = await getPageByPath("news", locale);
   const pageTitle = pageData?.title ?? "Новости колледжа";
   const title = `${pageTitle} | ${SITE_TITLE}`;
   const description = pageData?.metaDescription ?? undefined;
   return { title, description };
 }
 
-export default async function NewsPage() {
-  const pageData = await getPageByPath("news");
+export default async function NewsPage({ params }: Props) {
+  const { locale } = await params;
+  const pageData = await getPageByPath("news", locale);
   const title = pageData?.title ?? "Новости колледжа";
-  const feedSection = pageData?.articleFeedSection && pageData.articleFeedSection !== "Не показывать"
-    ? pageData.articleFeedSection
-    : "НОВОСТИ КОЛЛЕДЖА";
-  const { data: rawArticles } = await getArticles(1, 50, feedSection);
+  const feedSection =
+    pageData?.articleFeedSection && pageData.articleFeedSection !== "Не показывать"
+      ? pageData.articleFeedSection
+      : "НОВОСТИ КОЛЛЕДЖА";
+  const { data: rawArticles } = await getArticles(1, 50, feedSection, locale);
   const articles = Array.isArray(rawArticles) ? rawArticles : [];
 
   return (
@@ -67,12 +75,10 @@ export default async function NewsPage() {
                   <CardHeader>
                     <div className="flex items-center justify-center text-sm text-slate-500 mb-2">
                       <Calendar className="mr-2 h-4 w-4" />
-                      {item.date ? formatDate(item.date) : "Без даты"}
+                      {item.date ? formatDate(item.date, locale) : "Без даты"}
                     </div>
                     <CardTitle className="line-clamp-2 hover:text-blue-600 transition-colors">
-                      <Link href={`/news/${item.slug}`}>
-                        {item.title}
-                      </Link>
+                      <Link href={`/${locale}/news/${item.slug}`}>{item.title}</Link>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex-1">
@@ -82,9 +88,7 @@ export default async function NewsPage() {
                   </CardContent>
                   <CardFooter className="justify-center">
                     <Button variant="link" className="p-0 h-auto font-semibold text-blue-600" asChild>
-                      <Link href={`/news/${item.slug}`}>
-                        Читать далее
-                      </Link>
+                      <Link href={`/${locale}/news/${item.slug}`}>Читать далее</Link>
                     </Button>
                   </CardFooter>
                 </Card>
@@ -94,7 +98,7 @@ export default async function NewsPage() {
         </div>
 
         <div className="lg:col-span-4 xl:col-span-3">
-          <Events />
+          <Events locale={locale} />
         </div>
       </div>
     </div>

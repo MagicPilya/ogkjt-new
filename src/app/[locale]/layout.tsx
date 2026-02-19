@@ -1,0 +1,37 @@
+import { notFound } from "next/navigation";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
+import { FooterWrapper } from "@/components/layout/FooterWrapper";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { QuickAccessPanel } from "@/components/blocks/QuickAccessPanel";
+import { HtmlLang } from "@/components/layout/HtmlLang";
+import { isValidLocale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
+
+/** Все страницы с локалью рендерятся на сервере при каждом запросе, чтобы контент из Strapi всегда соответствовал выбранному языку. */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: Readonly<{
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}>) {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) notFound();
+
+  return (
+    <ThemeProvider>
+      <HtmlLang locale={locale as Locale} />
+      <HeaderWrapper locale={locale as Locale} />
+      <main className="flex-1">
+        <Breadcrumbs />
+        {children}
+      </main>
+      <QuickAccessPanel />
+      <FooterWrapper locale={locale as Locale} />
+    </ThemeProvider>
+  );
+}

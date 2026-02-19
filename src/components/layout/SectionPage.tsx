@@ -11,37 +11,40 @@ import { Events } from "@/components/blocks/Events";
 import { AdministrationCards } from "@/components/blocks/AdministrationCards";
 import { SpecialtyCards } from "@/components/blocks/SpecialtyCards";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
+import type { Locale } from "@/lib/i18n";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 
 interface SectionPageProps {
   /** Путь без ведущего слэша, например about, about/administration */
   path: string;
+  locale?: Locale;
 }
 
-export default async function SectionPage({ path }: SectionPageProps) {
+export default async function SectionPage({ path, locale }: SectionPageProps) {
   const pathname = "/" + path;
-  const menuData = await getMenu();
+  const menuData = await getMenu(locale);
   const menu = normalizeMenu(menuData?.mainMenu) ?? defaultMenu;
   const sectionResult = getSectionByPath(pathname, menu);
   if (!sectionResult) notFound();
 
   const { section, sectionUrl, isRootSection } = sectionResult;
-  const pageData = await getPageByPath(path);
+  const pageData = await getPageByPath(path, locale);
   const isAdministrationPage = path === "about/administration";
   const isSpecialtiesPage = path === "applicants/specialties";
-  const administration = isAdministrationPage ? await getAdministration() : null;
-  const specialties = isSpecialtiesPage ? await getSpecialties() : null;
+  const administration = isAdministrationPage ? await getAdministration(locale) : null;
+  const specialties = isSpecialtiesPage ? await getSpecialties(locale) : null;
   const feedSection = pageData?.articleFeedSection;
   const showArticleFeed = !!feedSection && feedSection !== "Не показывать";
   const { data: articles } = showArticleFeed
-    ? await getArticles(1, 50, feedSection)
+    ? await getArticles(1, 50, feedSection, locale)
     : { data: [] };
+  const newsHref = (slug: string) => (locale ? `/${locale}/news/${slug}` : `/news/${slug}`);
 
   const title = pageData?.title ?? getTitleForPath(pathname, menu);
 
   return (
-    <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
+    <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12" data-locale={locale}>
       <div className="mb-10 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
           {title}
@@ -52,6 +55,7 @@ export default async function SectionPage({ path }: SectionPageProps) {
             title=""
             variant="minimal"
             className="mb-6"
+            locale={locale}
           />
         )}
         {pageData?.content && pageData.content.length > 0 ? (
@@ -94,10 +98,10 @@ export default async function SectionPage({ path }: SectionPageProps) {
                   <CardHeader>
                     <div className="flex items-center justify-center text-sm text-slate-500 mb-2">
                       <Calendar className="mr-2 h-4 w-4" />
-                      {item.date ? formatDate(item.date) : "Без даты"}
+                      {item.date ? formatDate(item.date, locale) : "Без даты"}
                     </div>
                     <CardTitle className="line-clamp-2 hover:text-blue-600 transition-colors">
-                      <Link href={`/news/${item.slug}`}>
+                      <Link href={newsHref(item.slug)}>
                         {item.title}
                       </Link>
                     </CardTitle>
@@ -109,7 +113,7 @@ export default async function SectionPage({ path }: SectionPageProps) {
                   </CardContent>
                   <CardFooter className="justify-center">
                     <Button variant="link" className="p-0 h-auto font-semibold text-blue-600" asChild>
-                      <Link href={`/news/${item.slug}`}>
+                      <Link href={newsHref(item.slug)}>
                         Читать далее
                       </Link>
                     </Button>
@@ -121,7 +125,7 @@ export default async function SectionPage({ path }: SectionPageProps) {
         </div>
 
         <div className="lg:col-span-4 xl:col-span-3">
-          <Events />
+          <Events locale={locale} />
         </div>
       </div>
       )}
@@ -133,17 +137,18 @@ export default async function SectionPage({ path }: SectionPageProps) {
           variant="cards"
           titleVariant="subtle"
           className="mt-12"
+          locale={locale}
         />
       )}
     </div>
   );
 }
 
-export async function getSectionPageMetadata(path: string) {
+export async function getSectionPageMetadata(path: string, locale?: Locale) {
   const pathname = "/" + path.replace(/^\//, "").trim();
-  const menuData = await getMenu();
+  const menuData = await getMenu(locale);
   const menu = normalizeMenu(menuData?.mainMenu) ?? defaultMenu;
-  const pageData = await getPageByPath(path);
+  const pageData = await getPageByPath(path, locale);
   const menuTitle = pageData?.title ?? getTitleForPath(pathname, menu);
   const title = `${menuTitle} | ${SITE_TITLE}`;
   const description =
