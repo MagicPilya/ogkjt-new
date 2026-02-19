@@ -1,0 +1,32 @@
+---
+description: Правило по локализации single-type API в Strapi (Глобальные настройки, Меню, Специальности, Администрация и т.д.)
+globs: backend/src/api/**/*.ts
+---
+
+# Strapi i18n для single-type (Меню, Специальности, Администрация)
+
+## Проблема
+Типы контента с включённым i18n (pluginOptions.i18n.localized: true) в Strapi хранят **отдельную запись на каждую локаль**. Дефолтный `createCoreController` для single-type **не передаёт** параметр `locale` из query в Document Service, поэтому API может возвращать одну и ту же локаль (например, последнюю опубликованную) для всех запросов. В результате при публикации en данные для ru «подменяются» или отображаются одинаково.
+
+## Решение
+Для каждого **single-type с i18n** в контроллере обязательно переопределить и **find**, и **update** (и при необходимости create/publish), иначе:
+- **find** без locale — отдаётся одна и та же локаль на все запросы;
+- **update** без locale — при сохранении в админке в одной локали меняются данные для всех локалей (дефолтный контроллер не передаёт locale в Document Service).
+
+**find:** брать `locale` из `ctx.query.locale`, передавать в `findFirst({ status: 'published', ...(locale && { locale }) })`, возвращать `{ data: doc }` или `ctx.notFound()`.
+
+**update:** брать `locale` из `ctx.query.locale`, получать `documentId` через `findFirst({ locale })` или `findFirst({})`, вызывать `strapi.documents(uid).update({ documentId, ...(locale && { locale }), data })`.
+
+Примеры уже сделаны в:
+- `backend/src/api/global/controllers/global.ts`
+- `backend/src/api/menu/controllers/menu.ts`
+- `backend/src/api/specialty/controllers/specialty.ts`
+- `backend/src/api/administration/controllers/administration.ts`
+
+## При добавлении нового single-type с i18n
+1. Не использовать голый `createCoreController('api::xxx.xxx')`.
+2. Переопределить `find`, читать `ctx.query.locale` и передавать в `findFirst`.
+3. При внутренних вызовах Document Service (bootstrap, middleware) всегда явно указывать `locale`, например `DEFAULT_MENU_LOCALE` в `backend/src/index.ts`.
+
+## Фронтенд
+При запросах к API single-type всегда передавать нужную локаль: `getMenu(locale)`, `getSpecialties(locale)` и т.д. В `src/lib/strapi.ts` параметр `locale` уже пробрасывается в query.

@@ -15,7 +15,8 @@
     "mainMenu": {
       "type": "component",
       "repeatable": true,
-      "component": "elements.menu-section"
+      "component": "elements.menu-section",
+      "pluginOptions": { "i18n": { "localized": true } }
     }
   }
 }

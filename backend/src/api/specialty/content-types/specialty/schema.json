@@ -16,7 +16,8 @@
       "type": "component",
       "repeatable": true,
       "component": "elements.specialty-item",
-      "description": "Список специальностей"
+      "description": "Список специальностей",
+      "pluginOptions": { "i18n": { "localized": true } }
     }
   }
 }

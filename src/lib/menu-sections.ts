@@ -197,21 +197,45 @@ export function getBreadcrumbItems(pathname: string, menu: MenuSection[]): Bread
 
 /**
  * Нормализует меню из Strapi: подставляет url/links/sublinks из defaultMenu, если в ответе их нет.
- * Так поведение сайта одинаковое и при данных из CMS, и при встроенных данных.
+ * Всегда возвращает полную структуру на основе defaultMenu, чтобы маршруты (например /applicants)
+ * работали для всех локалей, даже если в Strapi для be/en не заполнены все разделы меню.
  */
 export function normalizeMenu(menu: MenuSection[] | null | undefined): MenuSection[] | null {
-    if (!menu || !Array.isArray(menu) || menu.length === 0) return null;
-    return menu.map((item, index) => {
-        const fallback = defaultMenu[index] ?? defaultMenu.find(d => d.url === item.url || d.title === item.title);
-        const url = item.url ?? fallback?.url ?? "#";
-        const rawLinks = Array.isArray(item.links) && item.links.length > 0 ? item.links : (fallback?.links ?? []);
-        const links = rawLinks.map((link, linkIndex) => {
-            const fbLink = Array.isArray(fallback?.links) ? fallback.links[linkIndex] : undefined;
-            const sublinks = Array.isArray(link.sublinks) && link.sublinks.length > 0
-                ? link.sublinks
-                : (fbLink && "sublinks" in fbLink ? (fbLink as MenuLink).sublinks : undefined) ?? [] as MenuSublink[];
-            return { id: link.id, title: link.title, url: link.url, sublinks };
+    // defaultMenu — источник правды для структуры; данные Strapi — только переопределения (title и т.д.)
+    return defaultMenu.map((defaultSection, index) => {
+        const strapiItem = menu?.find(
+            (m) =>
+                (m.url && (m.url.replace(/^\//, "") === (defaultSection.url ?? "").replace(/^\//, ""))) ||
+                m.title === defaultSection.title
+        );
+        const rawUrl = strapiItem?.url ?? defaultSection.url ?? "#";
+        const url = rawUrl === "#" ? "#" : rawUrl.startsWith("/") ? rawUrl : "/" + rawUrl;
+        const defaultLinks = defaultSection.links ?? [];
+        const strapiLinks = Array.isArray(strapiItem?.links) ? strapiItem.links : [];
+        const links = defaultLinks.map((defaultLink, linkIndex) => {
+            const strapiLink = strapiLinks[linkIndex] ?? strapiLinks.find(
+                (s) => (s.url && (s.url.replace(/^\//, "") === (defaultLink.url ?? "").replace(/^\//, ""))) || s.title === defaultLink.title
+            );
+            const link = strapiLink ?? defaultLink;
+            const fbLink = defaultLink;
+            const linkUrlRaw = link.url ?? fbLink?.url ?? "#";
+            const linkUrl = linkUrlRaw === "#" ? "#" : linkUrlRaw.startsWith("/") ? linkUrlRaw : "/" + linkUrlRaw;
+            const sublinks =
+                Array.isArray(link.sublinks) && link.sublinks.length > 0
+                    ? link.sublinks
+                    : (fbLink && "sublinks" in fbLink ? (fbLink as MenuLink).sublinks : undefined) ?? ([] as MenuSublink[]);
+            return {
+                id: link.id,
+                title: link.title,
+                url: linkUrl,
+                sublinks,
+            };
         }) as MenuLink[];
-        return { id: item.id, title: item.title, url, links };
+        return {
+            id: strapiItem?.id ?? defaultSection.id,
+            title: strapiItem?.title ?? defaultSection.title,
+            url,
+            links,
+        };
     });
 }

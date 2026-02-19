@@ -2,6 +2,15 @@
 
 Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
 
+## Локализация (i18n) для single-type
+
+Типы **Глобальные настройки**, **Меню**, **Специальности**, **Администрация** включены в i18n. Чтобы для каждой локали (ru, en, be) отдавались свои данные:
+
+- **API**: в контроллере обязательно передавать `locale` из `ctx.query.locale` в `findFirst`. Дефолтный контроллер этого не делает — без кастомного `find` для ru и en может возвращаться одна и та же запись.
+- **Внутренние вызовы** (bootstrap, sync страниц, подстановка title из меню) в `src/index.ts` используют константу `DEFAULT_MENU_LOCALE` ('ru'), чтобы не зависеть от «первой попавшейся» локали.
+
+При добавлении нового single-type с i18n см. примеры в `api::global.global`, `api::menu.menu`, `api::specialty.specialty`, `api::administration.administration` и правило в `.cursor/rules/strapi-i18n-single-types.mdc`.
+
 ### `develop`
 
 Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)

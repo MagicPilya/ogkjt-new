@@ -1,5 +1,8 @@
 import type { Core } from '@strapi/strapi';
 
+/** Локаль по умолчанию для внутренних операций с меню (bootstrap, sync страниц, подстановка title). Не влияет на API: там locale берётся из query. */
+const DEFAULT_MENU_LOCALE = 'ru';
+
 /** Действия API, которые разрешаем для роли Public (find и findOne для контента, find для Global и Menu) */
 const PUBLIC_PERMISSION_ACTIONS = [
   'api::article.article.find',
@@ -62,7 +65,10 @@ export default {
       const data = context.params?.data as { pageUrl?: string | null; title?: string | null } | undefined;
       if (!data?.pageUrl) return next();
 
-      const menuDoc = await strapi.documents('api::menu.menu').findFirst({ status: 'published' });
+      const menuDoc = await strapi.documents('api::menu.menu').findFirst({
+        status: 'published',
+        locale: DEFAULT_MENU_LOCALE,
+      });
       const mainMenu = (menuDoc as { mainMenu?: Array<{ title?: string; url?: string | null; links?: Array<{ title: string; url: string; sublinks?: Array<{ title: string; url: string }> }> }> })?.mainMenu ?? [];
       const title = getTitleForUrl(mainMenu, data.pageUrl);
       if (title) (data as { title: string }).title = title;
@@ -102,7 +108,9 @@ async function setPublicPermissions(strapi: Core.Strapi) {
 }
 
 async function seedGlobalIfEmpty(strapi: Core.Strapi) {
-  const existing = await strapi.documents('api::global.global').findFirst();
+  const existing = await strapi.documents('api::global.global').findFirst({
+    locale: DEFAULT_MENU_LOCALE,
+  });
   if (existing) return;
 
   await strapi.documents('api::global.global').create({
@@ -117,17 +125,21 @@ async function seedGlobalIfEmpty(strapi: Core.Strapi) {
       vkLink: 'https://vk.com/ofutorsha',
     },
     status: 'published',
+    locale: DEFAULT_MENU_LOCALE,
   });
 }
 
-/** Создаёт запись Menu с пустым mainMenu, если её ещё нет. */
+/** Создаёт запись Menu с пустым mainMenu для дефолтной локали, если её ещё нет. */
 async function seedMenuIfEmpty(strapi: Core.Strapi) {
-  const existing = await strapi.documents('api::menu.menu').findFirst();
+  const existing = await strapi.documents('api::menu.menu').findFirst({
+    locale: DEFAULT_MENU_LOCALE,
+  });
   if (existing) return;
 
   await strapi.documents('api::menu.menu').create({
     data: { mainMenu: [] },
     status: 'published',
+    locale: DEFAULT_MENU_LOCALE,
   });
   strapi.log.info('Menu single type seeded with empty mainMenu.');
 }
@@ -172,7 +184,10 @@ function collectUrlTitleFromMenu(
  * Заголовок подставляется из меню.
  */
 async function syncPagesFromMainMenu(strapi: Core.Strapi) {
-  const menuDoc = await strapi.documents('api::menu.menu').findFirst({ status: 'published' });
+  const menuDoc = await strapi.documents('api::menu.menu').findFirst({
+    status: 'published',
+    locale: DEFAULT_MENU_LOCALE,
+  });
   const mainMenu = (menuDoc as { mainMenu?: Array<{ title?: string; url?: string | null; links?: Array<{ title: string; url: string; sublinks?: Array<{ title: string; url: string }> }> }> })?.mainMenu ?? [];
   const toCreate = collectUrlTitleFromMenu(mainMenu);
 
