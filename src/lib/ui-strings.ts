@@ -154,6 +154,11 @@ export const uiStrings = {
     be: "Усе навіны",
     en: "All news",
   } as Record<Locale, string>,
+  readMore: {
+    ru: "Читать далее",
+    be: "Чытаць далей",
+    en: "Read more",
+  } as Record<Locale, string>,
   noPhoto: {
     ru: "Нет фото",
     be: "Няма фота",

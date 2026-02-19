@@ -9,6 +9,7 @@ import { formatDate, getStrapiMedia } from "@/lib/utils";
 import { Events } from "@/components/blocks/Events";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
+import { uiStrings } from "@/lib/ui-strings";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 
@@ -104,7 +105,7 @@ export default async function NewsPage({ params }: Props) {
                   </CardContent>
                   <CardFooter className="justify-center">
                     <Button variant="link" className="p-0 h-auto font-semibold text-blue-600" asChild>
-                      <Link href={`/${locale}/news/${item.slug}`}>Читать далее</Link>
+                      <Link href={`/${locale}/news/${item.slug}`}>{uiStrings.readMore[locale]}</Link>
                     </Button>
                   </CardFooter>
                 </Card>
