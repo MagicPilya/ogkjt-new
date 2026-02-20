@@ -142,7 +142,7 @@ export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
           );
         }
         if (block.type === "heading" && block.level) {
-          const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
+          const safeLevel = block.level >= 1 && block.level <= 6 ? block.level : 3;
           const headingClasses: Record<number, string> = {
             1: "font-bold text-3xl md:text-4xl mt-8 mb-3 text-slate-900 dark:text-slate-100",
             2: "font-bold text-2xl md:text-3xl mt-6 mb-2 text-slate-900 dark:text-slate-100",
@@ -151,27 +151,29 @@ export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
             5: "font-medium text-lg mt-2 mb-1 text-slate-700 dark:text-slate-300",
             6: "font-medium text-lg mt-2 mb-1 text-slate-700 dark:text-slate-300",
           };
-          const cls = headingClasses[block.level] ?? "font-semibold mt-4 mb-2";
-          return (
-            <Tag key={index} className={cls}>
-              {block.children?.map((c: any) => c.text).join("")}
-            </Tag>
-          );
+          const cls = headingClasses[safeLevel] ?? "font-semibold mt-4 mb-2";
+          const headingText = block.children?.map((c: any) => c.text).join("");
+          if (safeLevel === 1) return <h1 key={index} className={cls}>{headingText}</h1>;
+          if (safeLevel === 2) return <h2 key={index} className={cls}>{headingText}</h2>;
+          if (safeLevel === 3) return <h3 key={index} className={cls}>{headingText}</h3>;
+          if (safeLevel === 4) return <h4 key={index} className={cls}>{headingText}</h4>;
+          if (safeLevel === 5) return <h5 key={index} className={cls}>{headingText}</h5>;
+          return <h6 key={index} className={cls}>{headingText}</h6>;
         }
         if (block.type === "list") {
-          const ListTag = block.format === "ordered" ? "ol" : "ul";
           const listClass =
             block.format === "ordered"
               ? "list-decimal list-outside pl-6 my-4 space-y-1"
               : "list-disc list-outside pl-6 my-4 space-y-1";
-          return (
-            <ListTag key={index} className={listClass}>
-              {block.children?.map((item: any, itemIndex: number) => (
-                <li key={itemIndex}>
-                  {renderInlineNodes(item.children)}
-                </li>
-              ))}
-            </ListTag>
+          const items = block.children?.map((item: any, itemIndex: number) => (
+            <li key={itemIndex}>
+              {renderInlineNodes(item.children)}
+            </li>
+          ));
+          return block.format === "ordered" ? (
+            <ol key={index} className={listClass}>{items}</ol>
+          ) : (
+            <ul key={index} className={listClass}>{items}</ul>
           );
         }
         if (block.type === "quote") {

@@ -106,23 +106,26 @@ export default async function EventDetailPage({ params }: Props) {
                 );
               }
               if (block.type === "heading") {
-                const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
-                return (
-                  <Tag key={index}>
-                    {block.children.map((child: any) => child.text).join("")}
-                  </Tag>
-                );
+                const level = Number(block.level);
+                const safeLevel = Number.isInteger(level) && level >= 1 && level <= 6 ? level : 3;
+                const headingText = block.children.map((child: any) => child.text).join("");
+                if (safeLevel === 1) return <h1 key={index}>{headingText}</h1>;
+                if (safeLevel === 2) return <h2 key={index}>{headingText}</h2>;
+                if (safeLevel === 3) return <h3 key={index}>{headingText}</h3>;
+                if (safeLevel === 4) return <h4 key={index}>{headingText}</h4>;
+                if (safeLevel === 5) return <h5 key={index}>{headingText}</h5>;
+                return <h6 key={index}>{headingText}</h6>;
               }
               if (block.type === "list") {
-                const ListTag = block.format === "ordered" ? "ol" : "ul";
-                return (
-                  <ListTag key={index}>
-                    {block.children.map((item: any, itemIndex: number) => (
-                      <li key={itemIndex}>
-                        {item.children.map((child: any) => child.text).join("")}
-                      </li>
-                    ))}
-                  </ListTag>
+                const items = block.children.map((item: any, itemIndex: number) => (
+                  <li key={itemIndex}>
+                    {item.children.map((child: any) => child.text).join("")}
+                  </li>
+                ));
+                return block.format === "ordered" ? (
+                  <ol key={index}>{items}</ol>
+                ) : (
+                  <ul key={index}>{items}</ul>
                 );
               }
               return null;
