@@ -54,8 +54,8 @@ jobs:
           Copy-Item .\.next\static .\deploy\.next\ -Recurse -Force
           Copy-Item .\public .\deploy\ -Recurse -Force
           Get-Date -Format "yyyy-MM-ddTHH:mm:ssK" | Set-Content .\deploy\tmp\restart.txt
-          if (Test-Path .\web-release.zip) { Remove-Item .\web-release.zip -Force }
-          Compress-Archive -Path .\deploy\* -DestinationPath .\web-release.zip -CompressionLevel Optimal
+          if (Test-Path .\web-release.tar.gz) { Remove-Item .\web-release.tar.gz -Force }
+          tar -czf .\web-release.tar.gz -C .\deploy .
 
       - name: Upload and deploy via SSH
         shell: powershell
@@ -87,7 +87,7 @@ jobs:
           icacls $keyPath /inheritance:r | Out-Null
           icacls $keyPath /grant:r "$env:USERNAME`:R" | Out-Null
 
-          $remoteArchive = "/home/$userName/tmp/web-release.zip"
+          $remoteArchive = "/home/$userName/tmp/web-release.tar.gz"
           $remoteAppDir = "/home/$userName/apps/ogkjt-new"
 
           $sshExe = (Get-Command ssh -ErrorAction SilentlyContinue).Source
@@ -107,8 +107,8 @@ jobs:
           & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "mkdir -p /home/$userName/tmp $remoteAppDir $remoteAppDir/tmp"
           if ($LASTEXITCODE -ne 0) { throw "SSH pre-check failed" }
 
-          & $scpExe -i $keyPath -P $port -o StrictHostKeyChecking=accept-new .\web-release.zip "$userName@$hostName`:$remoteArchive"
+          & $scpExe -i $keyPath -P $port -o StrictHostKeyChecking=accept-new .\web-release.tar.gz "$userName@$hostName`:$remoteArchive"
           if ($LASTEXITCODE -ne 0) { throw "SCP upload failed" }
 
-          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "cd $remoteAppDir && rm -rf .next public && unzip -oq $remoteArchive -d $remoteAppDir && touch $remoteAppDir/tmp/restart.txt && rm -f $remoteArchive"
+          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "cd $remoteAppDir && rm -rf .next public && tar -xzf $remoteArchive -C $remoteAppDir && touch $remoteAppDir/tmp/restart.txt && rm -f $remoteArchive"
           if ($LASTEXITCODE -ne 0) { throw "Remote deploy command failed" }
