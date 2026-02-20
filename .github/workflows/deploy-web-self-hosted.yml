@@ -53,6 +53,7 @@ jobs:
           Copy-Item .\.next\standalone\* .\deploy\ -Recurse -Force
           Copy-Item .\.next\static .\deploy\.next\ -Recurse -Force
           Copy-Item .\public .\deploy\ -Recurse -Force
+          Copy-Item .\package-lock.json .\deploy\package-lock.json -Force
           Get-Date -Format "yyyy-MM-ddTHH:mm:ssK" | Set-Content .\deploy\tmp\restart.txt
           if (Test-Path .\web-release.tar.gz) { Remove-Item .\web-release.tar.gz -Force }
           tar -czf .\web-release.tar.gz -C .\deploy .
@@ -63,12 +64,14 @@ jobs:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
           CPANEL_USER: ${{ secrets.CPANEL_USER }}
           CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
+          CPANEL_NODE_MAJOR: ${{ secrets.CPANEL_NODE_MAJOR }}
           CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
           CPANEL_SSH_KEY_B64: ${{ secrets.CPANEL_SSH_KEY_B64 }}
         run: |
           $hostName = $env:CPANEL_HOST
           $userName = $env:CPANEL_USER
           $port = if ([string]::IsNullOrWhiteSpace($env:CPANEL_PORT)) { "22" } else { $env:CPANEL_PORT }
+          $nodeMajor = if ([string]::IsNullOrWhiteSpace($env:CPANEL_NODE_MAJOR)) { "24" } else { $env:CPANEL_NODE_MAJOR }
 
           $keyPath = Join-Path $env:RUNNER_TEMP "cpanel_deploy_key"
           if (-not [string]::IsNullOrWhiteSpace($env:CPANEL_SSH_KEY_B64)) {
@@ -123,13 +126,16 @@ jobs:
             "tar -xzf `"$remoteArchive`" -C `"`$rel`"",
             "if [ -d .next ]; then mv .next .next_old_`$(date +%s) || true; fi",
             "if [ -d public ]; then mv public public_old_`$(date +%s) || true; fi",
-            "if [ -d node_modules ]; then mv node_modules node_modules_old_`$(date +%s) || true; fi",
             "if [ -d `"`$rel/.next`" ]; then mv `"`$rel/.next`" .next; fi",
             "if [ -d `"`$rel/public`" ]; then mv `"`$rel/public`" public; fi",
-            "if [ -d `"`$rel/node_modules`" ]; then mv `"`$rel/node_modules`" node_modules; fi",
             "cp -f `"`$rel/server.js`" ./server.js 2>/dev/null || true",
             "cp -f `"`$rel/package.json`" ./package.json 2>/dev/null || true",
-            "cp -f `"`$rel/package-lock.json`" ./package-lock.json 2>/dev/null || true",
+            "cp -f `"`$rel/package-lock.json`" ./package-lock.json",
+            "source /home/$userName/nodevenv/apps/ogkjt-web/$nodeMajor/bin/activate",
+            "LOCK_HASH_FILE=/home/$userName/apps/ogkjt-web/.last-lock-hash",
+            "NEW_HASH=`$(sha256sum package-lock.json | awk '{print `$1}')",
+            "OLD_HASH=`$(cat `"$LOCK_HASH_FILE`" 2>/dev/null || true)",
+            "if [ `"$NEW_HASH`" != `"$OLD_HASH`" ]; then npm ci --omit=dev --no-audit --no-fund && echo `"$NEW_HASH`" > `"$LOCK_HASH_FILE`"; else echo `"Dependencies unchanged, skip npm ci`"; fi",
             "mkdir -p tmp",
             "touch tmp/restart.txt",
             "rm -f `"$remoteArchive`"",
