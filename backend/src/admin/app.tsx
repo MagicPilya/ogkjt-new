@@ -1,4 +1,5 @@
 import type { StrapiApp } from '@strapi/strapi/admin';
+import type { ComponentType } from 'react';
 
 export default {
   config: {
@@ -53,7 +54,7 @@ export default {
       },
       components: {
         Input: async () =>
-          import('./components/MenuLinkSelectInput').then((mod) => ({ default: mod.default })),
+          import('./components/MenuLinkSelectInput').then((mod) => ({ default: mod.default as ComponentType })),
       },
     });
   },
