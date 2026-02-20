@@ -1,11 +1,16 @@
-const { spawn } = require("child_process");
+/**
+ * Passenger-friendly entry: run Strapi in the same process so the app listens
+ * on process.env.PORT (or 1337). Do not spawn a child process.
+ */
+const path = require("path");
+const { createStrapi } = require("@strapi/core");
 
-const child = spawn(process.execPath, ["./node_modules/@strapi/strapi/bin/strapi.js", "start"], {
-  cwd: __dirname,
-  env: process.env,
-  stdio: "inherit",
-});
+const appDir = __dirname;
+const distDir = path.join(appDir, "dist");
 
-child.on("exit", (code) => {
-  process.exit(code ?? 0);
-});
+createStrapi({ appDir, distDir })
+  .start()
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
