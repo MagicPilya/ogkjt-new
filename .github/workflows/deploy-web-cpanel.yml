@@ -13,6 +13,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate required cPanel secrets (fail-fast)
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+        run: |
+          set -e
+          [ -n "$CPANEL_HOST" ] || { echo "Missing secret: CPANEL_HOST"; exit 1; }
+          [ -n "$CPANEL_USER" ] || { echo "Missing secret: CPANEL_USER"; exit 1; }
+          [ -n "$CPANEL_SSH_KEY" ] || { echo "Missing secret: CPANEL_SSH_KEY"; exit 1; }
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
