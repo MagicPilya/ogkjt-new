@@ -119,19 +119,19 @@ jobs:
             "ARCHIVE='$remoteArchive'",
             "cd `"$remoteAppDir`"",
             "rel=_incoming_`$(date +%s)",
-            "mkdir -p `"$rel`"",
-            "tar -xzf `"$remoteArchive`" -C `"$rel`"",
+            "mkdir -p `"`$rel`"",
+            "tar -xzf `"$remoteArchive`" -C `"`$rel`"",
             "if [ -d .next ]; then mv .next .next_old_`$(date +%s) || true; fi",
             "if [ -d public ]; then mv public public_old_`$(date +%s) || true; fi",
-            "if [ -d `"$rel/.next`" ]; then mv `"$rel/.next`" .next; fi",
-            "if [ -d `"$rel/public`" ]; then mv `"$rel/public`" public; fi",
-            "cp -f `"$rel/server.js`" ./server.js 2>/dev/null || true",
-            "cp -f `"$rel/package.json`" ./package.json 2>/dev/null || true",
-            "cp -f `"$rel/package-lock.json`" ./package-lock.json 2>/dev/null || true",
+            "if [ -d `"`$rel/.next`" ]; then mv `"`$rel/.next`" .next; fi",
+            "if [ -d `"`$rel/public`" ]; then mv `"`$rel/public`" public; fi",
+            "cp -f `"`$rel/server.js`" ./server.js 2>/dev/null || true",
+            "cp -f `"`$rel/package.json`" ./package.json 2>/dev/null || true",
+            "cp -f `"`$rel/package-lock.json`" ./package-lock.json 2>/dev/null || true",
             "mkdir -p tmp",
             "touch tmp/restart.txt",
             "rm -f `"$remoteArchive`"",
-            "rm -rf `"$rel`""
+            "rm -rf `"`$rel`""
           )
           $lfScript = [string]::Join("`n", $scriptLines) + "`n"
           $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
