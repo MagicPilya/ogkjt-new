@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Validate required secrets (fail-fast)
-        shell: pwsh
+        shell: powershell
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
           CPANEL_USER: ${{ secrets.CPANEL_USER }}
@@ -34,15 +34,15 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        shell: pwsh
+        shell: powershell
         run: npm ci
 
       - name: Build Next.js (webpack)
-        shell: pwsh
+        shell: powershell
         run: npm run build -- --webpack
 
       - name: Prepare lightweight deploy package
-        shell: pwsh
+        shell: powershell
         run: |
           Remove-Item -Recurse -Force .\deploy -ErrorAction SilentlyContinue
           New-Item -ItemType Directory .\deploy\.next -Force | Out-Null
@@ -55,7 +55,7 @@ jobs:
           Compress-Archive -Path .\deploy\* -DestinationPath .\web-release.zip -CompressionLevel Optimal
 
       - name: Upload and deploy via SSH
-        shell: pwsh
+        shell: powershell
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
           CPANEL_USER: ${{ secrets.CPANEL_USER }}
