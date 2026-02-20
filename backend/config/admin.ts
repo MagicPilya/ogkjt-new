@@ -1,4 +1,6 @@
 export default ({ env }: { env: any }) => ({
+  // Явный путь к админке (важно за прокси/nginx)
+  url: '/admin',
   auth: {
     secret: env('ADMIN_JWT_SECRET'),
   },
