@@ -1,10 +1,9 @@
 const { spawn } = require("child_process");
 
-const child = spawn("npm", ["run", "start"], {
+const child = spawn(process.execPath, ["./node_modules/@strapi/strapi/bin/strapi.js", "start"], {
   cwd: __dirname,
   env: process.env,
   stdio: "inherit",
-  shell: true,
 });
 
 child.on("exit", (code) => {
