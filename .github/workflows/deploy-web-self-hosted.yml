@@ -88,7 +88,7 @@ jobs:
           icacls $keyPath /grant:r "$env:USERNAME`:R" | Out-Null
 
           $remoteArchive = "/home/$userName/tmp/web-release.tar.gz"
-          $remoteAppDir = "/home/$userName/apps/ogkjt-new"
+          $remoteAppDir = "/home/$userName/apps/ogkjt-web"
           $remoteScript = "/home/$userName/tmp/deploy-web.sh"
 
           $sshExe = (Get-Command ssh -ErrorAction SilentlyContinue).Source

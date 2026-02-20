@@ -103,7 +103,7 @@ jobs:
             throw "ssh/scp not found. Install OpenSSH Client or Git for Windows on the runner."
           }
 
-          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "mkdir -p /home/$userName/tmp /home/$userName/apps/ogkjt-new/backend/tmp"
+          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "mkdir -p /home/$userName/tmp /home/$userName/apps/ogkjt-api/tmp"
           if ($LASTEXITCODE -ne 0) { throw "SSH pre-check failed" }
 
           & $scpExe -i $keyPath -P $port -o StrictHostKeyChecking=accept-new .\api-release.tar.gz "$userName@$hostName`:$remoteArchive"
@@ -113,13 +113,13 @@ jobs:
           $scriptLines = @(
             "#!/usr/bin/env bash",
             "set -e",
-            "cd /home/$userName/apps/ogkjt-new",
+            "cd /home/$userName/apps/ogkjt-api",
             "rel=_incoming_api_`$(date +%s)",
             "mkdir -p `"`$rel`"",
             "tar -xzf `"$remoteArchive`" -C `"`$rel`"",
-            "cp -a `"`$rel/backend/.`" /home/$userName/apps/ogkjt-new/backend/",
-            "mkdir -p /home/$userName/apps/ogkjt-new/backend/tmp",
-            "touch /home/$userName/apps/ogkjt-new/backend/tmp/restart.txt",
+            "cp -a `"`$rel/backend/.`" /home/$userName/apps/ogkjt-api/",
+            "mkdir -p /home/$userName/apps/ogkjt-api/tmp",
+            "touch /home/$userName/apps/ogkjt-api/tmp/restart.txt",
             "rm -f `"$remoteArchive`"",
             "rm -rf `"`$rel`""
           )
