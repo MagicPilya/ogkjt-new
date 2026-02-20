@@ -25,26 +25,51 @@ jobs:
       - name: Build Next.js (webpack)
         run: npm run build -- --webpack
 
-      - name: Prepare deploy directory
+      - name: Prepare deploy directory (standalone)
         run: |
           rm -rf deploy
-          mkdir -p deploy/tmp
-          cp -R .next deploy/.next
+          mkdir -p deploy/.next deploy/tmp
+          cp -R .next/standalone/* deploy/
+          cp -R .next/static deploy/.next/static
           cp -R public deploy/public
-          cp package.json deploy/package.json
-          cp package-lock.json deploy/package-lock.json
-          cp next.config.ts deploy/next.config.ts
-          cp app.js deploy/app.js
           date -u +"%Y-%m-%dT%H:%M:%SZ" > deploy/tmp/restart.txt
 
-      - name: Upload via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Pack web release
+        run: |
+          tar -czf web-release.tar.gz -C deploy .
+
+      - name: Upload release archive to server
+        uses: appleboy/scp-action@v0.1.7
         with:
-          server: ${{ secrets.FTPS_HOST }}
-          username: ${{ secrets.FTPS_USER }}
-          password: ${{ secrets.FTPS_PASSWORD }}
-          port: ${{ secrets.FTPS_PORT || 21 }}
-          protocol: ftps
-          local-dir: ./deploy/
-          server-dir: /apps/ogkjt-new/
-          dangerous-clean-slate: false
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          passphrase: ${{ secrets.CPANEL_SSH_PASSPHRASE }}
+          port: ${{ secrets.CPANEL_PORT || 22 }}
+          timeout: 120s
+          command_timeout: 20m
+          source: "web-release.tar.gz"
+          target: "/home/${{ secrets.CPANEL_USER }}/tmp"
+          overwrite: true
+
+      - name: Deploy release on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          passphrase: ${{ secrets.CPANEL_SSH_PASSPHRASE }}
+          port: ${{ secrets.CPANEL_PORT || 22 }}
+          timeout: 120s
+          command_timeout: 20m
+          script: |
+            set -e
+            APP_DIR="/home/${{ secrets.CPANEL_USER }}/apps/ogkjt-new"
+            ARCHIVE="/home/${{ secrets.CPANEL_USER }}/tmp/web-release.tar.gz"
+
+            mkdir -p "$APP_DIR" "$APP_DIR/tmp"
+            rm -rf "$APP_DIR/.next"
+            tar -xzf "$ARCHIVE" -C "$APP_DIR"
+
+            touch "$APP_DIR/tmp/restart.txt"
+            rm -f "$ARCHIVE"
