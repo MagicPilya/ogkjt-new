@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 export const metadata: Metadata = {
   title: "Оршанский колледж - филиал БелГУТа",
@@ -24,7 +21,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950`} suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950" suppressHydrationWarning>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
