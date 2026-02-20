@@ -75,11 +75,25 @@ jobs:
           $remoteArchive = "/home/$userName/tmp/web-release.zip"
           $remoteAppDir = "/home/$userName/apps/ogkjt-new"
 
-          ssh -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "mkdir -p /home/$userName/tmp $remoteAppDir $remoteAppDir/tmp"
+          $sshExe = (Get-Command ssh -ErrorAction SilentlyContinue).Source
+          $scpExe = (Get-Command scp -ErrorAction SilentlyContinue).Source
+          if (-not $sshExe) {
+            $gitSsh = Join-Path ${env:ProgramFiles} "Git\usr\bin\ssh.exe"
+            if (Test-Path $gitSsh) { $sshExe = $gitSsh }
+          }
+          if (-not $scpExe) {
+            $gitScp = Join-Path ${env:ProgramFiles} "Git\usr\bin\scp.exe"
+            if (Test-Path $gitScp) { $scpExe = $gitScp }
+          }
+          if (-not $sshExe -or -not $scpExe) {
+            throw "ssh/scp not found. Install OpenSSH Client or Git for Windows on the runner."
+          }
+
+          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "mkdir -p /home/$userName/tmp $remoteAppDir $remoteAppDir/tmp"
           if ($LASTEXITCODE -ne 0) { throw "SSH pre-check failed" }
 
-          scp -i $keyPath -P $port -o StrictHostKeyChecking=accept-new .\web-release.zip "$userName@$hostName`:$remoteArchive"
+          & $scpExe -i $keyPath -P $port -o StrictHostKeyChecking=accept-new .\web-release.zip "$userName@$hostName`:$remoteArchive"
           if ($LASTEXITCODE -ne 0) { throw "SCP upload failed" }
 
-          ssh -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "cd $remoteAppDir && rm -rf .next public && unzip -oq $remoteArchive -d $remoteAppDir && touch $remoteAppDir/tmp/restart.txt && rm -f $remoteArchive"
+          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "cd $remoteAppDir && rm -rf .next public && unzip -oq $remoteArchive -d $remoteAppDir && touch $remoteAppDir/tmp/restart.txt && rm -f $remoteArchive"
           if ($LASTEXITCODE -ne 0) { throw "Remote deploy command failed" }
