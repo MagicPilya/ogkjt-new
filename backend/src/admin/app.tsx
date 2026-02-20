@@ -54,7 +54,7 @@ export default {
       },
       components: {
         Input: async () =>
-          import('./components/MenuLinkSelectInput').then((mod) => ({ default: mod.default as ComponentType })),
+          import('./components/MenuLinkSelectInput').then((mod) => ({ default: mod.default as unknown as ComponentType })),
       },
     });
   },
