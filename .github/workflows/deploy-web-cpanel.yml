@@ -1,0 +1,70 @@
+name: Deploy Web to cPanel
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js (webpack)
+        run: npm run build -- --webpack
+
+      - name: Pack web release
+        run: |
+          tar -czf web-release.tar.gz \
+            .next \
+            public \
+            package.json \
+            package-lock.json \
+            next.config.ts \
+            app.js
+
+      - name: Upload release archive to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_PORT || 22 }}
+          source: "web-release.tar.gz"
+          target: "/home/${{ secrets.CPANEL_USER }}/tmp"
+          overwrite: true
+
+      - name: Deploy release on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_PORT || 22 }}
+          script: |
+            set -e
+            APP_DIR="/home/${{ secrets.CPANEL_USER }}/apps/ogkjt-new"
+            ARCHIVE="/home/${{ secrets.CPANEL_USER }}/tmp/web-release.tar.gz"
+
+            mkdir -p "$APP_DIR" "$APP_DIR/tmp"
+            rm -rf "$APP_DIR/.next"
+            tar -xzf "$ARCHIVE" -C "$APP_DIR"
+
+            source "/home/${{ secrets.CPANEL_USER }}/nodevenv/apps/ogkjt-new/24/bin/activate"
+            cd "$APP_DIR"
+            npm ci --omit=dev --no-audit --no-fund
+
+            touch "$APP_DIR/tmp/restart.txt"
+            rm -f "$ARCHIVE"
