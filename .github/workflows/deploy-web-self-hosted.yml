@@ -1,0 +1,85 @@
+name: Deploy Web to cPanel (Self-Hosted)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy-web:
+    # Runner must be inside FortiClient VPN and allowed by hoster.by ACL.
+    runs-on: [self-hosted, windows]
+
+    steps:
+      - name: Validate required secrets (fail-fast)
+        shell: pwsh
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
+          CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CPANEL_HOST)) { throw "Missing secret: CPANEL_HOST" }
+          if ([string]::IsNullOrWhiteSpace($env:CPANEL_USER)) { throw "Missing secret: CPANEL_USER" }
+          if ([string]::IsNullOrWhiteSpace($env:CPANEL_SSH_KEY)) { throw "Missing secret: CPANEL_SSH_KEY" }
+          if ([string]::IsNullOrWhiteSpace($env:CPANEL_PORT)) { echo "CPANEL_PORT is empty, defaulting to 22" }
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        shell: pwsh
+        run: npm ci
+
+      - name: Build Next.js (webpack)
+        shell: pwsh
+        run: npm run build -- --webpack
+
+      - name: Prepare lightweight deploy package
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force .\deploy -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory .\deploy\.next -Force | Out-Null
+          New-Item -ItemType Directory .\deploy\tmp -Force | Out-Null
+          Copy-Item .\.next\standalone\* .\deploy\ -Recurse -Force
+          Copy-Item .\.next\static .\deploy\.next\ -Recurse -Force
+          Copy-Item .\public .\deploy\ -Recurse -Force
+          Get-Date -Format "yyyy-MM-ddTHH:mm:ssK" | Set-Content .\deploy\tmp\restart.txt
+          if (Test-Path .\web-release.zip) { Remove-Item .\web-release.zip -Force }
+          Compress-Archive -Path .\deploy\* -DestinationPath .\web-release.zip -CompressionLevel Optimal
+
+      - name: Upload and deploy via SSH
+        shell: pwsh
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
+          CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+        run: |
+          $hostName = $env:CPANEL_HOST
+          $userName = $env:CPANEL_USER
+          $port = if ([string]::IsNullOrWhiteSpace($env:CPANEL_PORT)) { "22" } else { $env:CPANEL_PORT }
+
+          $keyPath = Join-Path $env:RUNNER_TEMP "cpanel_deploy_key"
+          $keyBody = $env:CPANEL_SSH_KEY -replace "`r", ""
+          Set-Content -Path $keyPath -Value $keyBody -NoNewline
+          icacls $keyPath /inheritance:r | Out-Null
+          icacls $keyPath /grant:r "$env:USERNAME`:R" | Out-Null
+
+          $remoteArchive = "/home/$userName/tmp/web-release.zip"
+          $remoteAppDir = "/home/$userName/apps/ogkjt-new"
+
+          ssh -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "mkdir -p /home/$userName/tmp $remoteAppDir $remoteAppDir/tmp"
+          if ($LASTEXITCODE -ne 0) { throw "SSH pre-check failed" }
+
+          scp -i $keyPath -P $port -o StrictHostKeyChecking=accept-new .\web-release.zip "$userName@$hostName`:$remoteArchive"
+          if ($LASTEXITCODE -ne 0) { throw "SCP upload failed" }
+
+          ssh -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "cd $remoteAppDir && rm -rf .next public && unzip -oq $remoteArchive -d $remoteAppDir && touch $remoteAppDir/tmp/restart.txt && rm -f $remoteArchive"
+          if ($LASTEXITCODE -ne 0) { throw "Remote deploy command failed" }
