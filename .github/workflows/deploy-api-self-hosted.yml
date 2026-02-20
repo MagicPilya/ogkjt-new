@@ -54,10 +54,17 @@ jobs:
       - name: Pack API release
         shell: powershell
         run: |
-          if (!(Test-Path .\backend\build)) { throw "backend/build is missing after Strapi build" }
+          $adminBuildPath = $null
+          if (Test-Path .\backend\build) {
+            $adminBuildPath = ".\backend\build"
+          } elseif (Test-Path .\backend\dist\build) {
+            $adminBuildPath = ".\backend\dist\build"
+          } else {
+            throw "Strapi admin build is missing: neither backend/build nor backend/dist/build exists"
+          }
           Remove-Item -Recurse -Force .\api-deploy -ErrorAction SilentlyContinue
           New-Item -ItemType Directory .\api-deploy\backend -Force | Out-Null
-          Copy-Item .\backend\build .\api-deploy\backend\ -Recurse -Force
+          Copy-Item $adminBuildPath .\api-deploy\backend\build -Recurse -Force
           Copy-Item .\backend\config .\api-deploy\backend\ -Recurse -Force
           Copy-Item .\backend\database .\api-deploy\backend\ -Recurse -Force
           Copy-Item .\backend\dist .\api-deploy\backend\ -Recurse -Force -ErrorAction SilentlyContinue
