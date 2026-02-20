@@ -54,14 +54,20 @@ jobs:
       - name: Pack API release
         shell: powershell
         run: |
+          if (!(Test-Path .\backend\build)) { throw "backend/build is missing after Strapi build" }
+          Remove-Item -Recurse -Force .\api-deploy -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory .\api-deploy\backend -Force | Out-Null
+          Copy-Item .\backend\build .\api-deploy\backend\ -Recurse -Force
+          Copy-Item .\backend\config .\api-deploy\backend\ -Recurse -Force
+          Copy-Item .\backend\database .\api-deploy\backend\ -Recurse -Force
+          Copy-Item .\backend\dist .\api-deploy\backend\ -Recurse -Force -ErrorAction SilentlyContinue
+          Copy-Item .\backend\public .\api-deploy\backend\ -Recurse -Force
+          Copy-Item .\backend\src .\api-deploy\backend\ -Recurse -Force
+          Copy-Item .\backend\package.json .\api-deploy\backend\package.json -Force
+          Copy-Item .\backend\package-lock.json .\api-deploy\backend\package-lock.json -Force
+          Copy-Item .\backend\strapi-start.js .\api-deploy\backend\strapi-start.js -Force
           if (Test-Path .\api-release.tar.gz) { Remove-Item .\api-release.tar.gz -Force }
-          tar -czf .\api-release.tar.gz `
-            --exclude='backend/node_modules' `
-            --exclude='backend/.tmp' `
-            --exclude='backend/.cache' `
-            --exclude='backend/.git' `
-            --exclude='backend/tmp' `
-            backend
+          tar -czf .\api-release.tar.gz -C .\api-deploy backend
 
       - name: Upload and deploy API via SSH
         shell: powershell
