@@ -1,0 +1,134 @@
+name: Deploy API to cPanel (Self-Hosted)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy-api:
+    # Runner must be inside FortiClient VPN and allowed by hoster.by ACL.
+    runs-on: [self-hosted, windows]
+
+    steps:
+      - name: Validate required secrets (fail-fast)
+        shell: powershell
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
+          CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+          CPANEL_SSH_KEY_B64: ${{ secrets.CPANEL_SSH_KEY_B64 }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CPANEL_HOST)) { throw "Missing secret: CPANEL_HOST" }
+          if ([string]::IsNullOrWhiteSpace($env:CPANEL_USER)) { throw "Missing secret: CPANEL_USER" }
+          if ([string]::IsNullOrWhiteSpace($env:CPANEL_SSH_KEY) -and [string]::IsNullOrWhiteSpace($env:CPANEL_SSH_KEY_B64)) {
+            throw "Missing secret: set CPANEL_SSH_KEY or CPANEL_SSH_KEY_B64"
+          }
+          if ([string]::IsNullOrWhiteSpace($env:CPANEL_PORT)) { echo "CPANEL_PORT is empty, defaulting to 22" }
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        shell: powershell
+        run: npm --prefix backend ci
+
+      - name: Build Strapi admin
+        shell: powershell
+        run: npm --prefix backend run build
+
+      - name: Pack API release
+        shell: powershell
+        run: |
+          if (Test-Path .\api-release.tar.gz) { Remove-Item .\api-release.tar.gz -Force }
+          tar -czf .\api-release.tar.gz `
+            --exclude='backend/node_modules' `
+            --exclude='backend/.tmp' `
+            --exclude='backend/.cache' `
+            --exclude='backend/.git' `
+            --exclude='backend/tmp' `
+            backend
+
+      - name: Upload and deploy API via SSH
+        shell: powershell
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
+          CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+          CPANEL_SSH_KEY_B64: ${{ secrets.CPANEL_SSH_KEY_B64 }}
+        run: |
+          $hostName = $env:CPANEL_HOST
+          $userName = $env:CPANEL_USER
+          $port = if ([string]::IsNullOrWhiteSpace($env:CPANEL_PORT)) { "22" } else { $env:CPANEL_PORT }
+
+          $keyPath = Join-Path $env:RUNNER_TEMP "cpanel_deploy_key"
+          if (-not [string]::IsNullOrWhiteSpace($env:CPANEL_SSH_KEY_B64)) {
+            [System.IO.File]::WriteAllBytes($keyPath, [System.Convert]::FromBase64String($env:CPANEL_SSH_KEY_B64))
+          } else {
+            $keyBody = $env:CPANEL_SSH_KEY.Trim()
+            $keyBody = $keyBody -replace "\\n", "`n"
+            $keyBody = $keyBody -replace "`r", ""
+            if (($keyBody -notmatch "-----BEGIN OPENSSH PRIVATE KEY-----") -and ($keyBody -notmatch "-----BEGIN RSA PRIVATE KEY-----")) {
+              throw "CPANEL_SSH_KEY must be an OpenSSH/RSA private key (not .ppk/public key)."
+            }
+            $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+            [System.IO.File]::WriteAllText($keyPath, $keyBody, $utf8NoBom)
+          }
+          icacls $keyPath /inheritance:r | Out-Null
+          icacls $keyPath /grant:r "$env:USERNAME`:R" | Out-Null
+
+          $remoteArchive = "/home/$userName/tmp/api-release.tar.gz"
+          $remoteScript = "/home/$userName/tmp/deploy-api.sh"
+
+          $sshExe = (Get-Command ssh -ErrorAction SilentlyContinue).Source
+          $scpExe = (Get-Command scp -ErrorAction SilentlyContinue).Source
+          if (-not $sshExe) {
+            $gitSsh = Join-Path ${env:ProgramFiles} "Git\usr\bin\ssh.exe"
+            if (Test-Path $gitSsh) { $sshExe = $gitSsh }
+          }
+          if (-not $scpExe) {
+            $gitScp = Join-Path ${env:ProgramFiles} "Git\usr\bin\scp.exe"
+            if (Test-Path $gitScp) { $scpExe = $gitScp }
+          }
+          if (-not $sshExe -or -not $scpExe) {
+            throw "ssh/scp not found. Install OpenSSH Client or Git for Windows on the runner."
+          }
+
+          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "mkdir -p /home/$userName/tmp /home/$userName/apps/ogkjt-new/backend/tmp"
+          if ($LASTEXITCODE -ne 0) { throw "SSH pre-check failed" }
+
+          & $scpExe -i $keyPath -P $port -o StrictHostKeyChecking=accept-new .\api-release.tar.gz "$userName@$hostName`:$remoteArchive"
+          if ($LASTEXITCODE -ne 0) { throw "SCP upload failed" }
+
+          $localScriptPath = Join-Path $env:RUNNER_TEMP "deploy-api.sh"
+          $scriptLines = @(
+            "#!/usr/bin/env bash",
+            "set -e",
+            "cd /home/$userName/apps/ogkjt-new",
+            "rel=_incoming_api_`$(date +%s)",
+            "mkdir -p `"`$rel`"",
+            "tar -xzf `"$remoteArchive`" -C `"`$rel`"",
+            "cp -a `"`$rel/backend/.`" /home/$userName/apps/ogkjt-new/backend/",
+            "mkdir -p /home/$userName/apps/ogkjt-new/backend/tmp",
+            "touch /home/$userName/apps/ogkjt-new/backend/tmp/restart.txt",
+            "rm -f `"$remoteArchive`"",
+            "rm -rf `"`$rel`""
+          )
+          $lfScript = [string]::Join("`n", $scriptLines) + "`n"
+          $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText($localScriptPath, $lfScript, $utf8NoBom)
+
+          & $scpExe -i $keyPath -P $port -o StrictHostKeyChecking=accept-new $localScriptPath "$userName@$hostName`:$remoteScript"
+          if ($LASTEXITCODE -ne 0) { throw "SCP script upload failed" }
+
+          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "chmod +x $remoteScript && bash $remoteScript && rm -f $remoteScript"
+          if ($LASTEXITCODE -ne 0) { throw "Remote deploy command failed" }
