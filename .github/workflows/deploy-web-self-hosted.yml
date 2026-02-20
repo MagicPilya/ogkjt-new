@@ -110,30 +110,6 @@ jobs:
           & $scpExe -i $keyPath -P $port -o StrictHostKeyChecking=accept-new .\web-release.tar.gz "$userName@$hostName`:$remoteArchive"
           if ($LASTEXITCODE -ne 0) { throw "SCP upload failed" }
 
-          $remoteDeployScript = @'
-            set -e
-            cd __APP_DIR__
-            rel="_incoming_$(date +%s)"
-            mkdir -p "$rel"
-            tar -xzf __ARCHIVE__ -C "$rel"
-
-            if [ -d ".next" ]; then mv .next ".next_old_$(date +%s)" || true; fi
-            if [ -d "public" ]; then mv public "public_old_$(date +%s)" || true; fi
-
-            if [ -d "$rel/.next" ]; then mv "$rel/.next" .next; fi
-            if [ -d "$rel/public" ]; then mv "$rel/public" public; fi
-
-            cp -f "$rel/server.js" ./server.js 2>/dev/null || true
-            cp -f "$rel/package.json" ./package.json 2>/dev/null || true
-            cp -f "$rel/package-lock.json" ./package-lock.json 2>/dev/null || true
-
-            mkdir -p tmp
-            touch tmp/restart.txt
-
-            rm -f __ARCHIVE__
-            rm -rf "$rel"
-          '@
-          $remoteDeployScript = $remoteDeployScript.Replace("__APP_DIR__", $remoteAppDir).Replace("__ARCHIVE__", $remoteArchive)
-
-          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" $remoteDeployScript
+          $remoteDeployScript = "set -e; cd $remoteAppDir; rel=_incoming_`$(date +%s); mkdir -p `"$rel`"; tar -xzf $remoteArchive -C `"$rel`"; if [ -d .next ]; then mv .next .next_old_`$(date +%s) || true; fi; if [ -d public ]; then mv public public_old_`$(date +%s) || true; fi; if [ -d `"$rel/.next`" ]; then mv `"$rel/.next`" .next; fi; if [ -d `"$rel/public`" ]; then mv `"$rel/public`" public; fi; cp -f `"$rel/server.js`" ./server.js 2>/dev/null || true; cp -f `"$rel/package.json`" ./package.json 2>/dev/null || true; cp -f `"$rel/package-lock.json`" ./package-lock.json 2>/dev/null || true; mkdir -p tmp; touch tmp/restart.txt; rm -f $remoteArchive; rm -rf `"$rel`""
+          & $sshExe -i $keyPath -p $port -o StrictHostKeyChecking=accept-new "$userName@$hostName" "$remoteDeployScript"
           if ($LASTEXITCODE -ne 0) { throw "Remote deploy command failed" }
