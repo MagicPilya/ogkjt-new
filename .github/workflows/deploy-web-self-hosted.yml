@@ -50,7 +50,11 @@ jobs:
           Remove-Item -Recurse -Force .\deploy -ErrorAction SilentlyContinue
           New-Item -ItemType Directory .\deploy\.next -Force | Out-Null
           New-Item -ItemType Directory .\deploy\tmp -Force | Out-Null
-          Copy-Item .\.next\standalone\* .\deploy\ -Recurse -Force
+          # CloudLinux Node.js Selector expects node_modules as a symlink in app root.
+          # Exclude standalone/node_modules from deploy artifact.
+          if (Test-Path .\deploy\node_modules) { Remove-Item -Recurse -Force .\deploy\node_modules }
+          robocopy .\.next\standalone .\deploy /E /XD node_modules | Out-Null
+          if ($LASTEXITCODE -ge 8) { throw "robocopy failed with exit code $LASTEXITCODE" }
           Copy-Item .\.next\static .\deploy\.next\ -Recurse -Force
           Copy-Item .\public .\deploy\ -Recurse -Force
           Copy-Item .\package-lock.json .\deploy\package-lock.json -Force
@@ -71,7 +75,7 @@ jobs:
           $hostName = $env:CPANEL_HOST
           $userName = $env:CPANEL_USER
           $port = if ([string]::IsNullOrWhiteSpace($env:CPANEL_PORT)) { "22" } else { $env:CPANEL_PORT }
-          $nodeMajor = if ([string]::IsNullOrWhiteSpace($env:CPANEL_NODE_MAJOR)) { "24" } else { $env:CPANEL_NODE_MAJOR }
+          $nodeMajor = if ([string]::IsNullOrWhiteSpace($env:CPANEL_NODE_MAJOR)) { "20" } else { $env:CPANEL_NODE_MAJOR }
 
           $keyPath = Join-Path $env:RUNNER_TEMP "cpanel_deploy_key"
           if (-not [string]::IsNullOrWhiteSpace($env:CPANEL_SSH_KEY_B64)) {

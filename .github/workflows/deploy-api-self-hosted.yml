@@ -89,7 +89,7 @@ jobs:
           $hostName = $env:CPANEL_HOST
           $userName = $env:CPANEL_USER
           $port = if ([string]::IsNullOrWhiteSpace($env:CPANEL_PORT)) { "22" } else { $env:CPANEL_PORT }
-          $nodeMajor = if ([string]::IsNullOrWhiteSpace($env:CPANEL_NODE_MAJOR)) { "24" } else { $env:CPANEL_NODE_MAJOR }
+          $nodeMajor = if ([string]::IsNullOrWhiteSpace($env:CPANEL_NODE_MAJOR)) { "20" } else { $env:CPANEL_NODE_MAJOR }
 
           $keyPath = Join-Path $env:RUNNER_TEMP "cpanel_deploy_key"
           if (-not [string]::IsNullOrWhiteSpace($env:CPANEL_SSH_KEY_B64)) {
