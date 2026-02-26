@@ -3,7 +3,7 @@ import { Calendar, ArrowLeft, Languages } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getArticleBySlug } from "@/lib/strapi";
+import { getArticleBySlugOrDocumentId } from "@/lib/strapi";
 import { getArticleForLocale } from "@/lib/translateArticle";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!slug || slug === "null") {
     return { title: "404" };
   }
-  const result = await getArticleForLocale(getArticleBySlug, slug, locale);
+  const result = await getArticleForLocale(getArticleBySlugOrDocumentId, slug, locale);
 
   if (!result) {
     return { title: "Новость не найдена" };
@@ -39,7 +39,7 @@ export default async function NewsDetailPage({ params }: Props) {
   const { slug, locale } = await params;
   if (!slug || slug === "null") notFound();
 
-  const result = await getArticleForLocale(getArticleBySlug, slug, locale);
+  const result = await getArticleForLocale(getArticleBySlugOrDocumentId, slug, locale);
 
   if (!result) notFound();
 

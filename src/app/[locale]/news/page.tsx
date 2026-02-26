@@ -72,7 +72,7 @@ export default async function NewsPage({ params }: Props) {
         <div className="lg:col-span-8 xl:col-span-9">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {articles.map((item) => {
-              if (!item.slug) return null;
+              const articlePath = item.slug || item.documentId;
               const imageUrl = getStrapiMedia(item.cover?.url || null);
               return (
                 <Card key={item.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow text-center">
@@ -96,7 +96,7 @@ export default async function NewsPage({ params }: Props) {
                       {item.date ? formatDate(item.date, locale) : "Без даты"}
                     </div>
                     <CardTitle className="line-clamp-2 hover:text-blue-600 transition-colors">
-                      <Link href={`/${locale}/news/${item.slug}`}>{item.title}</Link>
+                      <Link href={`/${locale}/news/${articlePath}`}>{item.title}</Link>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex-1">
@@ -106,7 +106,7 @@ export default async function NewsPage({ params }: Props) {
                   </CardContent>
                   <CardFooter className="justify-center">
                     <Button variant="link" className="p-0 h-auto font-semibold text-blue-600" asChild>
-                      <Link href={`/${locale}/news/${item.slug}`}>{uiStrings.readMore[locale]}</Link>
+                      <Link href={`/${locale}/news/${articlePath}`}>{uiStrings.readMore[locale]}</Link>
                     </Button>
                   </CardFooter>
                 </Card>

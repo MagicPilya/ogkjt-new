@@ -27,7 +27,7 @@ export async function NewsGrid({ locale }: { locale?: Locale }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
         {articles.map((item) => {
-          if (!item.slug) return null;
+          const articlePath = item.slug || item.documentId;
           const imageUrl = getStrapiMedia(item.cover?.url || null);
           const displayDate = item.date || item.publishedAt || item.createdAt;
 
@@ -53,7 +53,7 @@ export async function NewsGrid({ locale }: { locale?: Locale }) {
                   {formatDate(displayDate, loc)}
                 </div>
                 <CardTitle className="line-clamp-2 hover:text-blue-600 transition-colors text-lg">
-                  <Link href={`/${loc}/news/${item.slug}`}>
+                  <Link href={`/${loc}/news/${articlePath}`}>
                     {item.title}
                   </Link>
                 </CardTitle>

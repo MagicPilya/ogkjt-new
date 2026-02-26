@@ -474,6 +474,29 @@ export async function getArticleBySlug(slug: string, locale?: Locale) {
 }
 
 /**
+ * Get single article by slug or documentId.
+ * Нужен как fallback, если у записи временно отсутствует slug.
+ */
+export async function getArticleBySlugOrDocumentId(identifier: string, locale?: Locale) {
+  const params: Record<string, string> = {
+    status: "published",
+    "populate": "*",
+    "filters[$or][0][slug][$eq]": identifier,
+    "filters[$or][1][documentId][$eq]": identifier,
+  };
+  if (locale) params.locale = locale;
+  const data = await fetchAPI<StrapiResponse<Article[]>>("/articles", params, {
+    cache: "no-store",
+  });
+
+  if (!data || !Array.isArray(data.data)) {
+    return null;
+  }
+
+  return data.data[0] || null;
+}
+
+/**
  * Get upcoming events.
  * Показывает только предстоящие события (без прошедших).
  */
