@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   Carousel,
   CarouselContent,
@@ -40,13 +39,12 @@ export function MediaSlider({ items, className, height = "400px" }: MediaSliderP
     return (
       <figure className={className}>
         <span className="block relative w-full overflow-hidden rounded-xl bg-slate-100" style={{ height }}>
-          <Image
+          <img
             src={entries[0].url!}
             alt={entries[0].alt || "Изображение"}
-            fill
-            className="object-contain"
-            sizes="(max-width: 1024px) 100vw, 1024px"
-            quality={75}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-contain"
           />
         </span>
       </figure>
@@ -59,13 +57,12 @@ export function MediaSlider({ items, className, height = "400px" }: MediaSliderP
         {entries.map((entry, index) => (
           <CarouselItem key={index}>
             <figure className="relative w-full overflow-hidden rounded-xl bg-slate-100" style={{ height }}>
-              <Image
+              <img
                 src={entry.url!}
                 alt={entry.alt || `Слайд ${index + 1}`}
-                fill
-                className="object-contain"
-                sizes="(max-width: 1024px) 100vw, 1024px"
-                quality={75}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-contain"
               />
             </figure>
           </CarouselItem>
