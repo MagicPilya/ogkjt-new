@@ -47,6 +47,7 @@ export interface StrapiImage {
   width: number;
   height: number;
   name?: string | null;
+  formats?: Partial<Record<"thumbnail" | "small" | "medium" | "large", { url?: string }>>;
 }
 
 /** Медиа-файл (документ для скачивания) */

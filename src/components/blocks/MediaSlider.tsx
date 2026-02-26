@@ -8,7 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { getStrapiMedia } from "@/lib/utils";
+import { getStrapiMedia, getStrapiMediaWithFormats } from "@/lib/utils";
 import type { StrapiImage, StrapiFile } from "@/lib/strapi";
 
 export type MediaItem = StrapiImage | StrapiFile | { url?: string; alternativeText?: string | null };
@@ -26,7 +26,10 @@ export function MediaSlider({ items, className, height = "400px" }: MediaSliderP
 
   const entries = items
     .map((item) => {
-      const url = getStrapiMedia(item?.url ?? (item as { url?: string })?.url ?? null);
+      const maybeImage = item as StrapiImage;
+      const url = maybeImage.formats
+        ? getStrapiMediaWithFormats(maybeImage, ["large", "medium", "small"])
+        : getStrapiMedia(item?.url ?? (item as { url?: string })?.url ?? null);
       const alt = (item as StrapiImage).alternativeText ?? (item as StrapiFile).name ?? "";
       return { url, alt };
     })
@@ -42,8 +45,8 @@ export function MediaSlider({ items, className, height = "400px" }: MediaSliderP
             alt={entries[0].alt || "Изображение"}
             fill
             className="object-contain"
-            unoptimized
             sizes="(max-width: 1024px) 100vw, 1024px"
+            quality={75}
           />
         </span>
       </figure>
@@ -61,8 +64,8 @@ export function MediaSlider({ items, className, height = "400px" }: MediaSliderP
                 alt={entry.alt || `Слайд ${index + 1}`}
                 fill
                 className="object-contain"
-                unoptimized
                 sizes="(max-width: 1024px) 100vw, 1024px"
+                quality={75}
               />
             </figure>
           </CarouselItem>

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getArticleBySlugOrDocumentId } from "@/lib/strapi";
 import { getArticleForLocale } from "@/lib/translateArticle";
-import { formatDate, getStrapiMedia } from "@/lib/utils";
+import { formatDate, getStrapiMediaWithFormats } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { MediaSlider, type MediaItem } from "@/components/blocks/MediaSlider";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
@@ -44,7 +44,7 @@ export default async function NewsDetailPage({ params }: Props) {
   if (!result) notFound();
 
   const { article: item, isTranslated } = result;
-  const imageUrl = getStrapiMedia(item.cover?.url || null);
+  const imageUrl = getStrapiMediaWithFormats(item.cover, ["large", "medium", "small"]);
   const mediaList: MediaItem[] = Array.isArray(item.media)
     ? item.media
     : ((item as { Media?: MediaItem[] }).Media ?? []);

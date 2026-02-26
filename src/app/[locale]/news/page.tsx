@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { getPageByPath, getArticles } from "@/lib/strapi";
 import { getArticlesForLocale } from "@/lib/translateArticle";
-import { formatDate, getStrapiMedia } from "@/lib/utils";
+import { formatDate, getStrapiMediaWithFormats } from "@/lib/utils";
 import { Events } from "@/components/blocks/Events";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
@@ -73,7 +73,7 @@ export default async function NewsPage({ params }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {articles.map((item) => {
               const articlePath = item.slug || item.documentId;
-              const imageUrl = getStrapiMedia(item.cover?.url || null);
+              const imageUrl = getStrapiMediaWithFormats(item.cover, ["small", "thumbnail"]);
               return (
                 <Card key={item.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow text-center">
                   <div className="relative h-48 w-full overflow-hidden bg-slate-100">

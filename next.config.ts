@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '178.172.137.227', // Strapi на сервере
+      },
+      {
+        protocol: 'https',
         hostname: 'images.unsplash.com',
       },
       {

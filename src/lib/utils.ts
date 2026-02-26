@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { STRAPI_URL } from "./config";
+import type { StrapiImage } from "./strapi";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -70,6 +71,25 @@ export function getStrapiMedia(
   }
 
   return `${getStrapiMediaBase()}${url}`;
+}
+
+/**
+ * Возвращает URL изображения Strapi в предпочтительном размере.
+ * Это помогает не тянуть оригиналы там, где достаточно уменьшенной версии.
+ */
+export function getStrapiMediaWithFormats(
+  image: StrapiImage | null | undefined,
+  preferredFormats: Array<"thumbnail" | "small" | "medium" | "large"> = ["small", "thumbnail"]
+) {
+  if (!image) return null;
+
+  for (const formatName of preferredFormats) {
+    const formatUrl = image.formats?.[formatName]?.url;
+    const mediaUrl = getStrapiMedia(formatUrl ?? null);
+    if (mediaUrl) return mediaUrl;
+  }
+
+  return getStrapiMedia(image.url ?? null);
 }
 
 /** Коды локалей для Intl (ru, be, en). */

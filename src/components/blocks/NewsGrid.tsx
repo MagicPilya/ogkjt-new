@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar } from "lucide-react";
 import { getArticles } from "@/lib/strapi";
 import { getArticlesForLocale } from "@/lib/translateArticle";
-import { formatDate, getStrapiMedia } from "@/lib/utils";
+import { formatDate, getStrapiMediaWithFormats } from "@/lib/utils";
 import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 
@@ -28,7 +28,7 @@ export async function NewsGrid({ locale }: { locale?: Locale }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
         {articles.map((item) => {
           const articlePath = item.slug || item.documentId;
-          const imageUrl = getStrapiMedia(item.cover?.url || null);
+          const imageUrl = getStrapiMediaWithFormats(item.cover, ["small", "thumbnail"]);
           const displayDate = item.date || item.publishedAt || item.createdAt;
 
           return (
