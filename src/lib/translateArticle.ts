@@ -153,7 +153,9 @@ type GetArticlesFn = (
 ) => Promise<{ data: Article[]; meta: { pagination: { page: number; pageSize: number; pageCount: number; total: number } } }>;
 
 /**
- * Возвращает список статей для ленты. Для be/en всегда загружаем с ru и переводим title/announcement.
+ * Возвращает список статей для ленты.
+ * 1) Сначала пытается взять контент в целевой локали из Strapi.
+ * 2) Если локализованного контента нет — берёт defaultLocale и переводит title/announcement.
  */
 export async function getArticlesForLocale(
   getArticles: GetArticlesFn,
@@ -162,13 +164,17 @@ export async function getArticlesForLocale(
   sectionUrl: string | null,
   locale: Locale
 ): Promise<ArticlesListResult> {
-  const ruRes = await getArticles(page, pageSize, sectionUrl, defaultLocale);
+  const localizedRes = await getArticles(page, pageSize, sectionUrl, locale);
+  if (localizedRes.data.length > 0) {
+    return { ...localizedRes, isTranslated: false };
+  }
+  const ruRes = locale === defaultLocale
+    ? localizedRes
+    : await getArticles(page, pageSize, sectionUrl, defaultLocale);
   if (ruRes.data.length === 0) {
     return { data: [], meta: ruRes.meta, isTranslated: false };
   }
-  if (locale === defaultLocale) {
-    return { ...ruRes, isTranslated: false };
-  }
+  if (locale === defaultLocale) return { ...ruRes, isTranslated: false };
   const titles = ruRes.data.map((a) => a.title);
   const announcements = ruRes.data.map((a) => a.announcement);
   const [translatedTitles, translatedAnnouncements] = await Promise.all([

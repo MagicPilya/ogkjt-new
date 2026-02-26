@@ -15,10 +15,12 @@ export function DocumentCards({ data, locale = "ru" }: DocumentCardsProps) {
 
   const fullTime = data.fullTimeItems ?? [];
   const partTime = data.partTimeItems ?? [];
-  if (fullTime.length === 0 && partTime.length === 0) return null;
+  const fullTimeBase = data.fullTimeBase?.trim();
+  const partTimeBase = data.partTimeBase?.trim();
 
   const fullTimeTitle = uiStrings.admissionDocumentsFullTime[locale];
   const partTimeTitle = uiStrings.admissionDocumentsPartTime[locale];
+  const baseLabel = uiStrings.admissionDocumentsBase[locale];
 
   return (
     <section className="mt-14 mb-10" aria-label={fullTimeTitle}>
@@ -33,6 +35,11 @@ export function DocumentCards({ data, locale = "ru" }: DocumentCardsProps) {
                 {fullTimeTitle}
               </h2>
             </div>
+            {fullTimeBase ? (
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                {baseLabel}: {fullTimeBase}
+              </p>
+            ) : null}
           </CardHeader>
           <CardContent className="pt-6 flex-1">
             {fullTime.length === 0 ? (
@@ -61,6 +68,11 @@ export function DocumentCards({ data, locale = "ru" }: DocumentCardsProps) {
                 {partTimeTitle}
               </h2>
             </div>
+            {partTimeBase ? (
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                {baseLabel}: {partTimeBase}
+              </p>
+            ) : null}
           </CardHeader>
           <CardContent className="pt-6 flex-1">
             {partTime.length === 0 ? (

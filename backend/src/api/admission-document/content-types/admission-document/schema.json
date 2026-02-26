@@ -10,11 +10,21 @@
   "options": { "draftAndPublish": true },
   "pluginOptions": { "i18n": { "localized": true } },
   "attributes": {
+    "fullTimeBase": {
+      "type": "string",
+      "description": "Доп. информация для очной формы (например: на базе 9/11 классов)",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
     "fullTimeItems": {
       "type": "component",
       "repeatable": true,
       "component": "elements.document-name-item",
       "description": "Список документов для очной формы",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "partTimeBase": {
+      "type": "string",
+      "description": "Доп. информация для заочной формы (например: на базе 11 классов)",
       "pluginOptions": { "i18n": { "localized": true } }
     },
     "partTimeItems": {

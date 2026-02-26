@@ -162,6 +162,10 @@ export interface AdmissionDocumentNameItem {
 export interface AdmissionDocuments {
   id?: number;
   documentId?: string;
+  /** Доп. информация для очной формы (например: "на базе 9/11 классов") */
+  fullTimeBase?: string | null;
+  /** Доп. информация для заочной формы (например: "на базе 11 классов") */
+  partTimeBase?: string | null;
   fullTimeItems?: AdmissionDocumentNameItem[] | null;
   partTimeItems?: AdmissionDocumentNameItem[] | null;
 }
@@ -323,11 +327,19 @@ export async function getSpecialties(locale?: Locale): Promise<Specialties | nul
 export async function getAdmissionDocuments(locale?: Locale): Promise<AdmissionDocuments | null> {
   const params: Record<string, string> = { status: "published", "populate": "*" };
   if (locale) params.locale = locale;
-  const data = await fetchAPI<{ data: AdmissionDocuments }>(
+  let data = await fetchAPI<{ data: AdmissionDocuments }>(
     "/admission-document",
     params,
     { cache: "no-store" }
   );
+  if ((!data?.data) && locale && locale !== defaultLocale) {
+    const fallbackParams: Record<string, string> = { status: "published", "populate": "*", locale: defaultLocale };
+    data = await fetchAPI<{ data: AdmissionDocuments }>(
+      "/admission-document",
+      fallbackParams,
+      { cache: "no-store" }
+    );
+  }
   if (!data?.data) return null;
   return data.data;
 }
@@ -493,40 +505,34 @@ export async function getArticleBySlug(slug: string, locale?: Locale) {
 
 /**
  * Get upcoming events.
- * События для всех локалей одни и те же — всегда запрашиваем defaultLocale.
- * Если будущих событий нет — возвращаем последние 3 по дате (fallback).
+ * Показывает только предстоящие события (без прошедших).
  */
-export async function getEvents(limit = 3, _locale?: Locale) {
-  const now = new Date().toISOString();
+export async function getEvents(limit = 3, locale?: Locale) {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
   const params: Record<string, string> = {
     status: "published",
     "populate": "*",
     "sort": "date:asc",
-    "filters[date][$gte]": now,
+    "filters[date][$gte]": startOfToday.toISOString(),
     "pagination[pageSize]": String(limit),
   };
-  params.locale = defaultLocale;
-  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
+  if (locale) params.locale = locale;
+  let data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
     cache: "no-store",
   });
 
-  if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
-    return data;
+  // Если в выбранной локали событий нет, пробуем defaultLocale.
+  if ((!data?.data || data.data.length === 0) && locale && locale !== defaultLocale) {
+    const fallbackParams: Record<string, string> = {
+      ...params,
+      locale: defaultLocale,
+    };
+    data = await fetchAPI<StrapiResponse<Event[]>>("/events", fallbackParams, {
+      cache: "no-store",
+    });
   }
-
-  // Fallback: нет будущих событий — показываем последние по дате
-  const fallbackParams: Record<string, string> = {
-    status: "published",
-    "populate": "*",
-    "sort": "date:desc",
-    "pagination[pageSize]": String(limit),
-  };
-  fallbackParams.locale = defaultLocale;
-  const fallback = await fetchAPI<StrapiResponse<Event[]>>("/events", fallbackParams, {
-    cache: "no-store",
-  });
-
-  if (!fallback || !Array.isArray(fallback.data)) {
+  if (!data || !Array.isArray(data.data)) {
     return {
       data: [],
       meta: {
@@ -539,15 +545,14 @@ export async function getEvents(limit = 3, _locale?: Locale) {
       },
     };
   }
-  return fallback;
+  return data;
 }
 
 /**
  * Get events in a date range (for calendar).
- * События для всех локалей одни и те же — всегда defaultLocale.
- * При пустом ответе возвращаем пустой массив (календарь покажет «нет событий»).
+ * Для выбранной локали; если локали нет — fallback на defaultLocale.
  */
-export async function getEventsInRange(start: Date, end: Date, _locale?: Locale) {
+export async function getEventsInRange(start: Date, end: Date, locale?: Locale) {
   const params: Record<string, string> = {
     status: "published",
     "populate": "*",
@@ -556,10 +561,20 @@ export async function getEventsInRange(start: Date, end: Date, _locale?: Locale)
     "filters[date][$lte]": end.toISOString(),
     "pagination[pageSize]": "100",
   };
-  params.locale = defaultLocale;
-  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
+  if (locale) params.locale = locale;
+  let data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
     cache: "no-store",
   });
+
+  if ((!data?.data || data.data.length === 0) && locale && locale !== defaultLocale) {
+    const fallbackParams: Record<string, string> = {
+      ...params,
+      locale: defaultLocale,
+    };
+    data = await fetchAPI<StrapiResponse<Event[]>>("/events", fallbackParams, {
+      cache: "no-store",
+    });
+  }
 
   if (!data || !Array.isArray(data.data)) {
     return { data: [] };

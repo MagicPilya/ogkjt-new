@@ -15,6 +15,7 @@ const PUBLIC_PERMISSION_ACTIONS = [
   'api::menu.menu.find',
   'api::administration.administration.find',
   'api::specialty.specialty.find',
+  'api::admission-document.admission-document.find',
 ] as const;
 
 /** Миграция: старые значения sectionUrl (URL) → новые (подписи для админки). */

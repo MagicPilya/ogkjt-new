@@ -362,4 +362,9 @@ export const uiStrings = {
     be: "Завочная форма",
     en: "Part-time",
   } as Record<Locale, string>,
+  admissionDocumentsBase: {
+    ru: "База",
+    be: "База",
+    en: "Base",
+  } as Record<Locale, string>,
 } as const;
