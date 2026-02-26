@@ -409,7 +409,7 @@ export async function getArticles(
   page = 1,
   pageSize = 10,
   sectionUrl?: string | null,
-  locale?: Locale
+  _locale?: Locale
 ) {
   const params: Record<string, string> = {
     status: "published",
@@ -418,7 +418,8 @@ export async function getArticles(
     "pagination[page]": String(page),
     "pagination[pageSize]": String(pageSize),
   };
-  if (locale) params.locale = locale;
+  // Источник новостей всегда ru; be/en формируются авто-переводом на фронте.
+  params.locale = defaultLocale;
   if (sectionUrl) {
     const sectionValue = toSectionValueForFilter(sectionUrl);
     const isMainNews = sectionValue === "НОВОСТИ КОЛЛЕДЖА";
@@ -446,37 +447,6 @@ export async function getArticles(
         },
       },
     };
-  }
-
-  if (data.data.length > 0) {
-    return data;
-  }
-
-  // Fallback: при пустом ответе с locale пробуем без locale (контент может быть только в default)
-  if (locale && locale !== defaultLocale) {
-    const paramsNoLocale: Record<string, string> = {
-      status: "published",
-      "populate": "*",
-      "sort": "createdAt:desc",
-      "pagination[page]": String(page),
-      "pagination[pageSize]": String(pageSize),
-    };
-    if (sectionUrl) {
-      const sectionValue = toSectionValueForFilter(sectionUrl);
-      const isMainNews = sectionValue === "НОВОСТИ КОЛЛЕДЖА";
-      if (isMainNews) {
-        paramsNoLocale["filters[$or][0][sectionUrl][$eq]"] = sectionValue;
-        paramsNoLocale["filters[$or][1][sectionUrl][$null]"] = "true";
-      } else {
-        paramsNoLocale["filters[sectionUrl][$eq]"] = sectionValue;
-      }
-    }
-    const fallbackData = await fetchAPI<StrapiResponse<Article[]>>("/articles", paramsNoLocale, {
-      cache: "no-store",
-    });
-    if (fallbackData?.data && Array.isArray(fallbackData.data) && fallbackData.data.length > 0) {
-      return fallbackData;
-    }
   }
 
   return data;
@@ -507,7 +477,7 @@ export async function getArticleBySlug(slug: string, locale?: Locale) {
  * Get upcoming events.
  * Показывает только предстоящие события (без прошедших).
  */
-export async function getEvents(limit = 3, locale?: Locale) {
+export async function getEvents(limit = 3, _locale?: Locale) {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
   const params: Record<string, string> = {
@@ -517,21 +487,10 @@ export async function getEvents(limit = 3, locale?: Locale) {
     "filters[date][$gte]": startOfToday.toISOString(),
     "pagination[pageSize]": String(limit),
   };
-  if (locale) params.locale = locale;
-  let data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
+  params.locale = defaultLocale;
+  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
     cache: "no-store",
   });
-
-  // Если в выбранной локали событий нет, пробуем defaultLocale.
-  if ((!data?.data || data.data.length === 0) && locale && locale !== defaultLocale) {
-    const fallbackParams: Record<string, string> = {
-      ...params,
-      locale: defaultLocale,
-    };
-    data = await fetchAPI<StrapiResponse<Event[]>>("/events", fallbackParams, {
-      cache: "no-store",
-    });
-  }
   if (!data || !Array.isArray(data.data)) {
     return {
       data: [],
@@ -552,7 +511,7 @@ export async function getEvents(limit = 3, locale?: Locale) {
  * Get events in a date range (for calendar).
  * Для выбранной локали; если локали нет — fallback на defaultLocale.
  */
-export async function getEventsInRange(start: Date, end: Date, locale?: Locale) {
+export async function getEventsInRange(start: Date, end: Date, _locale?: Locale) {
   const params: Record<string, string> = {
     status: "published",
     "populate": "*",
@@ -561,20 +520,10 @@ export async function getEventsInRange(start: Date, end: Date, locale?: Locale) 
     "filters[date][$lte]": end.toISOString(),
     "pagination[pageSize]": "100",
   };
-  if (locale) params.locale = locale;
-  let data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
+  params.locale = defaultLocale;
+  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
     cache: "no-store",
   });
-
-  if ((!data?.data || data.data.length === 0) && locale && locale !== defaultLocale) {
-    const fallbackParams: Record<string, string> = {
-      ...params,
-      locale: defaultLocale,
-    };
-    data = await fetchAPI<StrapiResponse<Event[]>>("/events", fallbackParams, {
-      cache: "no-store",
-    });
-  }
 
   if (!data || !Array.isArray(data.data)) {
     return { data: [] };

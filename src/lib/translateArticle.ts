@@ -153,9 +153,8 @@ type GetArticlesFn = (
 ) => Promise<{ data: Article[]; meta: { pagination: { page: number; pageSize: number; pageCount: number; total: number } } }>;
 
 /**
- * Возвращает список статей для ленты.
- * 1) Сначала пытается взять контент в целевой локали из Strapi.
- * 2) Если локализованного контента нет — берёт defaultLocale и переводит title/announcement.
+ * Возвращает список статей для ленты. Источник всегда defaultLocale (ru),
+ * для be/en выполняется авто-перевод title/announcement.
  */
 export async function getArticlesForLocale(
   getArticles: GetArticlesFn,
@@ -164,13 +163,7 @@ export async function getArticlesForLocale(
   sectionUrl: string | null,
   locale: Locale
 ): Promise<ArticlesListResult> {
-  const localizedRes = await getArticles(page, pageSize, sectionUrl, locale);
-  if (localizedRes.data.length > 0) {
-    return { ...localizedRes, isTranslated: false };
-  }
-  const ruRes = locale === defaultLocale
-    ? localizedRes
-    : await getArticles(page, pageSize, sectionUrl, defaultLocale);
+  const ruRes = await getArticles(page, pageSize, sectionUrl, defaultLocale);
   if (ruRes.data.length === 0) {
     return { data: [], meta: ruRes.meta, isTranslated: false };
   }
