@@ -152,18 +152,18 @@ export interface Specialties {
   items?: SpecialtyItem[] | null;
 }
 
-/** Один документ из блока «Документы приёмной комиссии» */
-export interface AdmissionDocumentItem {
+/** Один пункт списка документов (только название) */
+export interface AdmissionDocumentNameItem {
   id?: number;
-  title: string;
-  file: StrapiFile | null;
+  name: string;
 }
 
-/** Single type «Документы приёмной комиссии» — список документов для страницы Абитуриентам → Документы */
+/** Single type «Документы приёмной комиссии» — две карточки: очная и заочная форма, каждая со списком названий документов. */
 export interface AdmissionDocuments {
   id?: number;
   documentId?: string;
-  items?: AdmissionDocumentItem[] | null;
+  fullTimeItems?: AdmissionDocumentNameItem[] | null;
+  partTimeItems?: AdmissionDocumentNameItem[] | null;
 }
 
 /** Пункт 3-го уровня меню (без вложенности). */
@@ -317,7 +317,7 @@ export async function getSpecialties(locale?: Locale): Promise<Specialties | nul
 }
 
 /**
- * Данные блока «Документы приёмной комиссии» (single type): список документов с названием и файлом.
+ * Данные блока «Документы приёмной комиссии» (single type): две карточки — очная и заочная форма со списками названий документов.
  * Используется на странице /applicants/documents.
  */
 export async function getAdmissionDocuments(locale?: Locale): Promise<AdmissionDocuments | null> {
@@ -436,6 +436,37 @@ export async function getArticles(
     };
   }
 
+  if (data.data.length > 0) {
+    return data;
+  }
+
+  // Fallback: при пустом ответе с locale пробуем без locale (контент может быть только в default)
+  if (locale && locale !== defaultLocale) {
+    const paramsNoLocale: Record<string, string> = {
+      status: "published",
+      "populate": "*",
+      "sort": "createdAt:desc",
+      "pagination[page]": String(page),
+      "pagination[pageSize]": String(pageSize),
+    };
+    if (sectionUrl) {
+      const sectionValue = toSectionValueForFilter(sectionUrl);
+      const isMainNews = sectionValue === "НОВОСТИ КОЛЛЕДЖА";
+      if (isMainNews) {
+        paramsNoLocale["filters[$or][0][sectionUrl][$eq]"] = sectionValue;
+        paramsNoLocale["filters[$or][1][sectionUrl][$null]"] = "true";
+      } else {
+        paramsNoLocale["filters[sectionUrl][$eq]"] = sectionValue;
+      }
+    }
+    const fallbackData = await fetchAPI<StrapiResponse<Article[]>>("/articles", paramsNoLocale, {
+      cache: "no-store",
+    });
+    if (fallbackData?.data && Array.isArray(fallbackData.data) && fallbackData.data.length > 0) {
+      return fallbackData;
+    }
+  }
+
   return data;
 }
 
@@ -463,6 +494,7 @@ export async function getArticleBySlug(slug: string, locale?: Locale) {
 /**
  * Get upcoming events.
  * События для всех локалей одни и те же — всегда запрашиваем defaultLocale.
+ * Если будущих событий нет — возвращаем последние 3 по дате (fallback).
  */
 export async function getEvents(limit = 3, _locale?: Locale) {
   const now = new Date().toISOString();
@@ -478,7 +510,23 @@ export async function getEvents(limit = 3, _locale?: Locale) {
     cache: "no-store",
   });
 
-  if (!data || !Array.isArray(data.data)) {
+  if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+    return data;
+  }
+
+  // Fallback: нет будущих событий — показываем последние по дате
+  const fallbackParams: Record<string, string> = {
+    status: "published",
+    "populate": "*",
+    "sort": "date:desc",
+    "pagination[pageSize]": String(limit),
+  };
+  fallbackParams.locale = defaultLocale;
+  const fallback = await fetchAPI<StrapiResponse<Event[]>>("/events", fallbackParams, {
+    cache: "no-store",
+  });
+
+  if (!fallback || !Array.isArray(fallback.data)) {
     return {
       data: [],
       meta: {
@@ -491,13 +539,13 @@ export async function getEvents(limit = 3, _locale?: Locale) {
       },
     };
   }
-
-  return data;
+  return fallback;
 }
 
 /**
  * Get events in a date range (for calendar).
  * События для всех локалей одни и те же — всегда defaultLocale.
+ * При пустом ответе возвращаем пустой массив (календарь покажет «нет событий»).
  */
 export async function getEventsInRange(start: Date, end: Date, _locale?: Locale) {
   const params: Record<string, string> = {

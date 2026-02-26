@@ -5,16 +5,23 @@
     "singularName": "admission-document",
     "pluralName": "admission-documents",
     "displayName": "Документы приёмной комиссии",
-    "description": "Список документов для страницы «Абитуриентам → Документы»: карточки с названием и файлом для скачивания."
+    "description": "Две карточки: Очная форма и Заочная форма — каждая со списком названий документов (без файлов)."
   },
   "options": { "draftAndPublish": true },
   "pluginOptions": { "i18n": { "localized": true } },
   "attributes": {
-    "items": {
+    "fullTimeItems": {
       "type": "component",
       "repeatable": true,
-      "component": "elements.document-item",
-      "description": "Список документов",
+      "component": "elements.document-name-item",
+      "description": "Список документов для очной формы",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "partTimeItems": {
+      "type": "component",
+      "repeatable": true,
+      "component": "elements.document-name-item",
+      "description": "Список документов для заочной формы",
       "pluginOptions": { "i18n": { "localized": true } }
     }
   }

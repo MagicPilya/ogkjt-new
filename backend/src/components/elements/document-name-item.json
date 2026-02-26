@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_elements_document_name_items",
+  "info": {
+    "displayName": "Название документа",
+    "icon": "file-text",
+    "description": "Один пункт списка документов (только название, без файла)"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "description": "Название документа"
+    }
+  }
+}

@@ -9,7 +9,7 @@ import { factories } from '@strapi/strapi';
 const uid = 'api::admission-document.admission-document' as any;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi populate types
-const populate = { items: { populate: ['file'] } } as any;
+const populate = { fullTimeItems: true, partTimeItems: true } as any;
 
 export default factories.createCoreController(uid, ({ strapi }) => ({
   async find(ctx) {

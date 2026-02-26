@@ -78,8 +78,8 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
         <SpecialtyCards items={specialties.items} locale={locale} />
       )}
 
-      {isDocumentsPage && admissionDocuments?.items && admissionDocuments.items.length > 0 && (
-        <DocumentCards items={admissionDocuments.items} locale={locale} />
+      {isDocumentsPage && admissionDocuments && (
+        <DocumentCards data={admissionDocuments} locale={locale} />
       )}
 
       {pageData?.files && pageData.files.length > 0 && (

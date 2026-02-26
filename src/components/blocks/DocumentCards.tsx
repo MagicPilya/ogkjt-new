@@ -1,57 +1,83 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
-import type { AdmissionDocumentItem } from "@/lib/strapi";
-import { getStrapiMedia } from "@/lib/utils";
+import { FileText } from "lucide-react";
+import type { AdmissionDocuments } from "@/lib/strapi";
 import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 
 interface DocumentCardsProps {
-  items: AdmissionDocumentItem[] | null | undefined;
+  data: AdmissionDocuments | null | undefined;
   locale?: Locale;
 }
 
-/** Карточки документов для страницы «Документы приёмной комиссии». */
-export function DocumentCards({ items, locale = "ru" }: DocumentCardsProps) {
-  if (!items || items.length === 0) return null;
+/** Две карточки документов приёмной комиссии: Очная форма и Заочная форма — каждая со списком названий документов. */
+export function DocumentCards({ data, locale = "ru" }: DocumentCardsProps) {
+  if (!data) return null;
+
+  const fullTime = data.fullTimeItems ?? [];
+  const partTime = data.partTimeItems ?? [];
+  if (fullTime.length === 0 && partTime.length === 0) return null;
+
+  const fullTimeTitle = uiStrings.admissionDocumentsFullTime[locale];
+  const partTimeTitle = uiStrings.admissionDocumentsPartTime[locale];
 
   return (
-    <section className="mt-14 mb-10" aria-label={uiStrings.downloadFile[locale]}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((item, index) => {
-          const file = item.file;
-          const fileUrl = file?.url ? getStrapiMedia(file.url) : null;
-          const label = item.title || file?.name || uiStrings.downloadFile[locale];
+    <section className="mt-14 mb-10" aria-label={fullTimeTitle}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <Card className="overflow-hidden flex flex-col border-2 border-blue-100 dark:border-blue-900/50 hover:shadow-lg transition-shadow">
+          <CardHeader className="bg-blue-50/80 dark:bg-blue-950/30 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white">
+                <FileText className="h-6 w-6" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                {fullTimeTitle}
+              </h2>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 flex-1">
+            {fullTime.length === 0 ? (
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                Список документов будет добавлен.
+              </p>
+            ) : (
+              <ul className="list-disc list-outside pl-6 space-y-2">
+                {fullTime.map((item, index) => (
+                  <li key={item.id ?? index} className="text-slate-700 dark:text-slate-300">
+                    {item.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
 
-          return (
-            <Card
-              key={item.id ?? index}
-              className="overflow-hidden flex flex-col hover:shadow-md transition-shadow"
-            >
-              <CardHeader className="pb-2">
-                <p className="font-semibold text-lg text-slate-900 dark:text-slate-100 leading-tight line-clamp-2">
-                  {item.title}
-                </p>
-              </CardHeader>
-              <CardContent className="pt-0 flex-1 flex items-end">
-                {fileUrl ? (
-                  <Button asChild variant="outline" className="w-full touch-manipulation min-h-[44px]">
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                      className="inline-flex items-center gap-2"
-                    >
-                      <FileDown className="h-4 w-4 shrink-0" />
-                      {uiStrings.download[locale]}
-                    </a>
-                  </Button>
-                ) : null}
-              </CardContent>
-            </Card>
-          );
-        })}
+        <Card className="overflow-hidden flex flex-col border-2 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
+          <CardHeader className="bg-slate-50/80 dark:bg-slate-900/30 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-600 text-white">
+                <FileText className="h-6 w-6" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                {partTimeTitle}
+              </h2>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 flex-1">
+            {partTime.length === 0 ? (
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                Список документов будет добавлен.
+              </p>
+            ) : (
+              <ul className="list-disc list-outside pl-6 space-y-2">
+                {partTime.map((item, index) => (
+                  <li key={item.id ?? index} className="text-slate-700 dark:text-slate-300">
+                    {item.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </section>
   );

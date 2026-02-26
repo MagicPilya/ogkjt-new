@@ -350,4 +350,16 @@ export const uiStrings = {
     be: "Прафесія рабочага",
     en: "Worker profession",
   } as Record<Locale, string>,
+
+  /** Документы приёмной комиссии — заголовки карточек */
+  admissionDocumentsFullTime: {
+    ru: "Очная форма",
+    be: "Дзённая форма",
+    en: "Full-time",
+  } as Record<Locale, string>,
+  admissionDocumentsPartTime: {
+    ru: "Заочная форма",
+    be: "Завочная форма",
+    en: "Part-time",
+  } as Record<Locale, string>,
 } as const;
