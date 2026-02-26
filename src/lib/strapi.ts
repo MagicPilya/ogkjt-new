@@ -414,7 +414,8 @@ export async function getArticles(
   const params: Record<string, string> = {
     status: "published",
     "populate": "*",
-    "sort": "createdAt:desc",
+    "sort[0]": "date:desc",
+    "sort[1]": "createdAt:desc",
     "pagination[page]": String(page),
     "pagination[pageSize]": String(pageSize),
   };
