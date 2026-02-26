@@ -29,6 +29,14 @@
       "type": "blocks",
       "pluginOptions": { "i18n": { "localized": true } }
     },
+    "files": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["files"],
+      "pluginOptions": { "i18n": { "localized": true } },
+      "description": "Вложения к странице (документы для скачивания)"
+    },
     "articleFeedSection": {
       "type": "enumeration",
       "enum": ["Не показывать", "НОВОСТИ КОЛЛЕДЖА", "НОВОСТИ ОБЩЕЖИТИЯ", "О колледже", "Абитуриентам", "Обучающимся", "Воспитательная работа", "Одно окно", "Электронные обращения"],

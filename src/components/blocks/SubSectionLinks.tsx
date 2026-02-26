@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, LayoutList, Layers } from "lucide-react";
 import type { SubSectionLink } from "@/lib/menu-sections";
 import { cn } from "@/lib/utils";
+import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 
 type Variant = "cards" | "list" | "pills" | "minimal";
@@ -21,25 +22,26 @@ interface SubSectionLinksProps {
 /** Блок ссылок на подразделы — несколько вариантов отображения для страниц разделов с подразделами */
 export function SubSectionLinks({
   links,
-  title = "Подразделы",
+  title,
   variant = "cards",
   titleVariant = "default",
   className,
   locale,
 }: SubSectionLinksProps) {
+  const displayTitle = title ?? (locale ? uiStrings.subSectionsTitle[locale] : "Подразделы");
   if (!links.length) return null;
   const href = (url: string) => (locale ? `/${locale}${url}` : url);
 
   return (
     <section className={cn(variant === "minimal" ? "py-2" : "py-8", className)}>
-      {title ? (
+      {displayTitle ? (
         titleVariant === "subtle" ? (
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
-            {title}
+            {displayTitle}
           </h2>
         ) : (
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
-            {title}
+            {displayTitle}
           </h2>
         )
       ) : null}

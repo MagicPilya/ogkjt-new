@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_elements_document_items",
+  "info": {
+    "displayName": "Документ для приёмной комиссии",
+    "icon": "file-text",
+    "description": "Один документ: название и файл для скачивания"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "description": "Название документа"
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["files"],
+      "description": "Файл для скачивания"
+    }
+  }
+}

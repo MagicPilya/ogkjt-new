@@ -207,20 +207,17 @@ export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
             caption?: string | null;
             width?: number;
             height?: number;
+            data?: { attributes?: { url?: string; alternativeText?: string; width?: number; height?: number; caption?: string } };
           };
-          const url = media.url ?? (block.image as any)?.data?.attributes?.url;
-          const src = getStrapiMedia(url ?? null);
+          const src = getStrapiMedia(media?.url ?? media?.data?.attributes?.url ?? (block.image as any));
           if (!src) return null;
           const alt =
             media.alternativeText ??
-            (block.image as any)?.data?.attributes?.alternativeText ??
+            media?.data?.attributes?.alternativeText ??
             "";
-          const width =
-            media.width ?? (block.image as any)?.data?.attributes?.width ?? 800;
-          const height =
-            media.height ?? (block.image as any)?.data?.attributes?.height ?? 600;
-          const caption =
-            media.caption ?? (block.image as any)?.data?.attributes?.caption;
+          const width = media.width ?? media?.data?.attributes?.width ?? 800;
+          const height = media.height ?? media?.data?.attributes?.height ?? 600;
+          const caption = media.caption ?? media?.data?.attributes?.caption;
           return (
             <figure
               key={index}

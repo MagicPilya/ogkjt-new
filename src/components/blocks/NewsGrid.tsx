@@ -18,7 +18,7 @@ export async function NewsGrid({ locale }: { locale?: Locale }) {
         <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           {uiStrings.newsSectionTitle[loc]}
         </h2>
-        <Button variant="ghost" className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2" asChild>
+        <Button variant="ghost" className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 touch-manipulation min-h-[44px]" asChild>
           <Link href={`/${loc}/news`}>
             {uiStrings.allNews[loc]} <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
@@ -27,6 +27,7 @@ export async function NewsGrid({ locale }: { locale?: Locale }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
         {articles.map((item) => {
+          if (!item.slug) return null;
           const imageUrl = getStrapiMedia(item.cover?.url || null);
           const displayDate = item.date || item.publishedAt || item.createdAt;
 
@@ -68,7 +69,7 @@ export async function NewsGrid({ locale }: { locale?: Locale }) {
       </div>
 
       <div className="mt-8 text-center sm:hidden">
-        <Button variant="outline" className="w-full" asChild>
+        <Button variant="outline" className="w-full min-h-[44px] touch-manipulation" asChild>
           <Link href={`/${loc}/news`}>{uiStrings.allNews[loc]}</Link>
         </Button>
       </div>

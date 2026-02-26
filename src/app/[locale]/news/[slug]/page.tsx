@@ -7,6 +7,7 @@ import { getArticleBySlug } from "@/lib/strapi";
 import { getArticleForLocale } from "@/lib/translateArticle";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
+import { MediaSlider } from "@/components/blocks/MediaSlider";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
 import { uiStrings } from "@/lib/ui-strings";
 
@@ -19,6 +20,9 @@ export const revalidate = 0;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale } = await params;
+  if (!slug || slug === "null") {
+    return { title: "404" };
+  }
   const result = await getArticleForLocale(getArticleBySlug, slug, locale);
 
   if (!result) {
@@ -33,12 +37,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NewsDetailPage({ params }: Props) {
   const { slug, locale } = await params;
+  if (!slug || slug === "null") notFound();
+
   const result = await getArticleForLocale(getArticleBySlug, slug, locale);
 
   if (!result) notFound();
 
   const { article: item, isTranslated } = result;
   const imageUrl = getStrapiMedia(item.cover?.url || null);
+  const mediaList = Array.isArray(item.media) ? item.media : (item as { Media?: unknown[] }).Media ?? [];
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -83,6 +90,12 @@ export default async function NewsDetailPage({ params }: Props) {
             />
           )}
         </div>
+
+        {mediaList.length > 0 && (
+          <div className="mb-10">
+            <MediaSlider items={mediaList} height="400px" />
+          </div>
+        )}
 
         <div className="prose prose-slate dark:prose-invert max-w-none lg:prose-lg">
           <p className="lead text-xl text-slate-600 dark:text-slate-300 mb-6">

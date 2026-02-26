@@ -25,7 +25,6 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
             { id: 3, title: "Символика", url: "/about/symbols" },
             { id: 4, title: "Профилактика коррупции", url: "/about/corruption" },
             { id: 5, title: "Платные услуги", url: "/about/services" },
-            { id: 6, title: "История колледжа", url: "/about/history" },
         ]
     },
     {
@@ -46,8 +45,7 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
         links: [
             { id: 11, title: "Дневное отделение", url: "/students/day" },
             { id: 12, title: "Заочное отделение", url: "/students/correspondence" },
-            { id: 13, title: "Общежитие — Общая информация", url: "/students/dormitory" },
-            { id: 14, title: "Общежитие — Новости", url: "/students/dormitory/news" },
+            { id: 13, title: "Общежитие", url: "/students/dormitory" },
         ]
     },
     {
@@ -55,7 +53,7 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
         title: "Воспитательная работа",
         url: "/ideology",
         links: [
-            { id: 15, title: "СППС", url: "/ideology/spps" },
+            { id: 15, title: "Социально-педагогическая и психологическая служба", url: "/ideology/spps" },
             { id: 16, title: "Молодёжная политика", url: "/ideology/youth-policy" },
             { id: 17, title: "В помощь куратору", url: "/ideology/curator" },
         ]
@@ -90,7 +88,6 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
         { id: 3, title: "Сімволіка", url: "/about/symbols" },
         { id: 4, title: "Прафілактыка карупцыі", url: "/about/corruption" },
         { id: 5, title: "Платныя паслугі", url: "/about/services" },
-        { id: 6, title: "Гісторыя каледжа", url: "/about/history" },
       ]
     },
     {
@@ -111,8 +108,7 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
       links: [
         { id: 11, title: "Дзённае аддзяленне", url: "/students/day" },
         { id: 12, title: "Завочнае аддзяленне", url: "/students/correspondence" },
-        { id: 13, title: "Інтэрнат - Агульная інфармацыя", url: "/students/dormitory" },
-        { id: 14, title: "Інтэрнат - Навіны", url: "/students/dormitory/news" },
+        { id: 13, title: "Інтэрнат", url: "/students/dormitory" },
       ]
     },
     {
@@ -120,7 +116,7 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
       title: "Выхаваўчая работа",
       url: "/ideology",
       links: [
-        { id: 15, title: "СППС", url: "/ideology/spps" },
+        { id: 15, title: "Сацыяльна-педагагічная і псіхалагічная служба", url: "/ideology/spps" },
         { id: 16, title: "Моладзевая палітыка", url: "/ideology/youth-policy" },
         { id: 17, title: "У дапамогу куратару", url: "/ideology/curator" },
       ]
@@ -155,7 +151,6 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
         { id: 3, title: "Symbols", url: "/about/symbols" },
         { id: 4, title: "Anti-corruption", url: "/about/corruption" },
         { id: 5, title: "Paid services", url: "/about/services" },
-        { id: 6, title: "College history", url: "/about/history" },
       ]
     },
     {
@@ -176,8 +171,7 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
       links: [
         { id: 11, title: "Full-time department", url: "/students/day" },
         { id: 12, title: "Part-time department", url: "/students/correspondence" },
-        { id: 13, title: "Dormitory - General info", url: "/students/dormitory" },
-        { id: 14, title: "Dormitory - News", url: "/students/dormitory/news" },
+        { id: 13, title: "Dormitory", url: "/students/dormitory" },
       ]
     },
     {
@@ -185,7 +179,7 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
       title: "Educational work",
       url: "/ideology",
       links: [
-        { id: 15, title: "SPPS", url: "/ideology/spps" },
+        { id: 15, title: "Social, pedagogical and psychological service", url: "/ideology/spps" },
         { id: 16, title: "Youth policy", url: "/ideology/youth-policy" },
         { id: 17, title: "For curators", url: "/ideology/curator" },
       ]

@@ -1,0 +1,21 @@
+{
+  "kind": "singleType",
+  "collectionName": "admission_documents",
+  "info": {
+    "singularName": "admission-document",
+    "pluralName": "admission-documents",
+    "displayName": "Документы приёмной комиссии",
+    "description": "Список документов для страницы «Абитуриентам → Документы»: карточки с названием и файлом для скачивания."
+  },
+  "options": { "draftAndPublish": true },
+  "pluginOptions": { "i18n": { "localized": true } },
+  "attributes": {
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "elements.document-item",
+      "description": "Список документов",
+      "pluginOptions": { "i18n": { "localized": true } }
+    }
+  }
+}

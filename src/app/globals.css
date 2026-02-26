@@ -164,4 +164,24 @@
   .container {
     margin-inline: auto;
   }
+  /* Мобильные тапы: убираем задержку 300ms и псевдо-hover на touch */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  /* Hover только на устройствах с мышью — на тач-устройствах первый тап не «съедается» hover */
+  @media (hover: hover) {
+    .hero-section a:hover,
+    .hero-section button:hover {
+      opacity: 0.95;
+    }
+  }
+  .footer-touch-targets a,
+  .hero-touch-targets a,
+  .hero-touch-targets button {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }

@@ -3,14 +3,17 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
-import { getMenu, getPageByPath, getArticles, getAdministration, getSpecialties } from "@/lib/strapi";
+import { getMenu, getPageByPath, getArticles, getAdministration, getSpecialties, getAdmissionDocuments } from "@/lib/strapi";
 import { getSectionByPath, getTitleForPath, normalizeMenu } from "@/lib/menu-sections";
 import { SubSectionLinks } from "@/components/blocks/SubSectionLinks";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { Events } from "@/components/blocks/Events";
 import { AdministrationCards } from "@/components/blocks/AdministrationCards";
 import { SpecialtyCards } from "@/components/blocks/SpecialtyCards";
+import { DocumentCards } from "@/components/blocks/DocumentCards";
+import { PageFiles } from "@/components/blocks/PageFiles";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
+import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
@@ -32,8 +35,10 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
   const pageData = await getPageByPath(path, locale);
   const isAdministrationPage = path === "about/administration";
   const isSpecialtiesPage = path === "applicants/specialties";
+  const isDocumentsPage = path === "applicants/documents";
   const administration = isAdministrationPage ? await getAdministration(locale) : null;
   const specialties = isSpecialtiesPage ? await getSpecialties(locale) : null;
+  const admissionDocuments = isDocumentsPage ? await getAdmissionDocuments(locale) : null;
   const feedSection = pageData?.articleFeedSection;
   const showArticleFeed = !!feedSection && feedSection !== "Не показывать";
   const { data: articles } = showArticleFeed
@@ -70,7 +75,15 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
       )}
 
       {isSpecialtiesPage && specialties?.items && specialties.items.length > 0 && (
-        <SpecialtyCards items={specialties.items} />
+        <SpecialtyCards items={specialties.items} locale={locale} />
+      )}
+
+      {isDocumentsPage && admissionDocuments?.items && admissionDocuments.items.length > 0 && (
+        <DocumentCards items={admissionDocuments.items} locale={locale} />
+      )}
+
+      {pageData?.files && pageData.files.length > 0 && (
+        <PageFiles files={pageData.files} locale={locale} className="mt-10" />
       )}
 
       {showArticleFeed && (
@@ -78,6 +91,7 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
         <div className="lg:col-span-8 xl:col-span-9">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {articles.map((item) => {
+              if (!item.slug) return null;
               const imageUrl = getStrapiMedia(item.cover?.url || null);
               return (
                 <Card key={item.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow text-center">
@@ -114,7 +128,7 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
                   <CardFooter className="justify-center">
                     <Button variant="link" className="p-0 h-auto font-semibold text-blue-600" asChild>
                       <Link href={newsHref(item.slug)}>
-                        Читать далее
+                        {uiStrings.readMore[locale ?? "ru"]}
                       </Link>
                     </Button>
                   </CardFooter>
@@ -133,7 +147,7 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
       {isRootSection && section.links && section.links.length > 0 && (
         <SubSectionLinks
           links={section.links}
-          title="Подразделы"
+          title={uiStrings.subSectionsTitle[locale ?? "ru"]}
           variant="cards"
           titleVariant="subtle"
           className="mt-12"

@@ -1,16 +1,24 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { SpecialtyItem } from "@/lib/strapi";
+import { uiStrings } from "@/lib/ui-strings";
+import type { Locale } from "@/lib/i18n";
 
 interface SpecialtyCardsProps {
   items: SpecialtyItem[] | null | undefined;
+  locale?: Locale;
 }
 
 /** Сетка карточек специальностей (название, шифр, специализации, квалификация, профессии рабочего). */
-export function SpecialtyCards({ items }: SpecialtyCardsProps) {
+export function SpecialtyCards({ items, locale = "ru" }: SpecialtyCardsProps) {
   if (!items || items.length === 0) return null;
 
+  const codeLabel = uiStrings.specialtyCode[locale];
+  const specLabel = uiStrings.specialtySpecialization[locale];
+  const qualLabel = uiStrings.specialtyQualification[locale];
+  const workerLabel = uiStrings.specialtyWorkerProfession[locale];
+
   return (
-    <section className="mt-14 mb-10" aria-label="Специальности">
+    <section className="mt-14 mb-10" aria-label={specLabel}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item, index) => {
           const specializations = item.specializations ?? [];
@@ -25,14 +33,14 @@ export function SpecialtyCards({ items }: SpecialtyCardsProps) {
                   {item.name}
                 </p>
                 <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                  Шифр: {item.code}
+                  {codeLabel}: {item.code}
                 </p>
               </CardHeader>
               <CardContent className="pt-0 flex-1 space-y-3">
                 {specializations.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
-                      Специализация
+                      {specLabel}
                     </p>
                     <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-0.5">
                       {specializations.map((s, i) => (
@@ -46,7 +54,7 @@ export function SpecialtyCards({ items }: SpecialtyCardsProps) {
                 {item.qualification?.trim() && (
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
-                      Квалификация специалиста
+                      {qualLabel}
                     </p>
                     <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-line">
                       {item.qualification.trim()}
@@ -56,7 +64,7 @@ export function SpecialtyCards({ items }: SpecialtyCardsProps) {
                 {workerProfessions.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
-                      Профессия рабочего
+                      {workerLabel}
                     </p>
                     <ul className="text-sm text-slate-600 dark:text-slate-400 list-disc list-inside space-y-0.5">
                       {workerProfessions.map((w, i) => (

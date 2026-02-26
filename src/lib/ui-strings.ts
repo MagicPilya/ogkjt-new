@@ -215,9 +215,9 @@ export const uiStrings = {
     en: "Quality education. Guaranteed employment. A confident future.",
   } as Record<Locale, string>,
   heroApplyDocuments: {
-    ru: "Подать документы",
-    be: "Падаць дакументы",
-    en: "Apply now",
+    ru: "Документы для поступления",
+    be: "Дакументы для паступлення",
+    en: "Documents for admission",
   } as Record<Locale, string>,
   heroSpecialties: {
     ru: "Наши специальности",
@@ -320,5 +320,34 @@ export const uiStrings = {
     ru: "Скачать",
     be: "Спампаваць",
     en: "Download",
+  } as Record<Locale, string>,
+
+  /** Подразделы (блок внизу страницы раздела) */
+  subSectionsTitle: {
+    ru: "Подразделы",
+    be: "Падраздзелы",
+    en: "Subsections",
+  } as Record<Locale, string>,
+
+  /** Поля карточек специальностей */
+  specialtyCode: {
+    ru: "Шифр",
+    be: "Шыфр",
+    en: "Code",
+  } as Record<Locale, string>,
+  specialtySpecialization: {
+    ru: "Специализация",
+    be: "Спецыялізацыя",
+    en: "Specialization",
+  } as Record<Locale, string>,
+  specialtyQualification: {
+    ru: "Квалификация специалиста",
+    be: "Кваліфікацыя спецыяліста",
+    en: "Specialist qualification",
+  } as Record<Locale, string>,
+  specialtyWorkerProfession: {
+    ru: "Профессия рабочего",
+    be: "Прафесія рабочага",
+    en: "Worker profession",
   } as Record<Locale, string>,
 } as const;

@@ -34,7 +34,24 @@ function getStrapiMediaBase(): string {
   return base.replace(/^http:\/\//i, "https://");
 }
 
-export function getStrapiMedia(url: string | null) {
+/**
+ * Извлекает URL из медиа-значения Strapi (строка или объект v4/v5).
+ */
+function extractMediaUrl(
+  value: string | null | undefined | { url?: string; data?: { attributes?: { url?: string } } }
+): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value || null;
+  const url = value.url ?? value.data?.attributes?.url;
+  return (url && typeof url === "string") ? url : null;
+}
+
+export function getStrapiMedia(
+  urlOrMedia: string | null | undefined | { url?: string; data?: { attributes?: { url?: string } } }
+) {
+  const url = typeof urlOrMedia === "string" || urlOrMedia == null
+    ? urlOrMedia ?? null
+    : extractMediaUrl(urlOrMedia);
   if (url == null) {
     return null;
   }

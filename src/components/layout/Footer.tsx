@@ -125,12 +125,12 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
             </div>
           </div>
 
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center footer-touch-targets">
             <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerNavigation[locale]}</h3>
             <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
               {navigation.map((item) => (
                 <li key={item.id}>
-                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600">
+                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600 inline-flex min-h-[44px] items-center touch-manipulation">
                     {item.title}
                   </Link>
                 </li>
@@ -138,12 +138,12 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
             </ul>
           </div>
 
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center footer-touch-targets">
             <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerResources[locale]}</h3>
             <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
               {resources.map((resource, index) => (
                 <li key={`${resource.url}-${index}`}>
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 inline-flex min-h-[44px] items-center touch-manipulation">
                     {resource.title}
                   </a>
                 </li>

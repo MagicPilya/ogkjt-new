@@ -42,7 +42,7 @@ export function Hero({
   }
 
   return (
-    <section className="relative h-[80vh] min-h-[600px] flex items-center justify-center overflow-hidden">
+    <section className="relative h-[80vh] min-h-[600px] flex items-center justify-center overflow-hidden hero-section">
       {/* Background Image with Overlay */}
       <div
         className="hero-bg absolute inset-0 z-0"
@@ -64,6 +64,7 @@ export function Hero({
           {highlightedText ? (
             <>
               {prefixText}
+              <br className="md:hidden" />
               <br className="hidden md:block" />
               <span className="text-blue-400">{highlightedText}</span>
               {suffixText}
@@ -75,11 +76,11 @@ export function Hero({
         <p className="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto leading-relaxed">
           {uiStrings.heroSubtitle[locale]}
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg h-14 px-8 shadow-lg shadow-blue-900/20" asChild>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center hero-touch-targets">
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg min-h-[44px] min-w-[44px] px-8 shadow-lg shadow-blue-900/20 touch-manipulation" asChild>
             <Link href={`${base}/applicants/documents`}>{uiStrings.heroApplyDocuments[locale]}</Link>
           </Button>
-          <Button size="lg" variant="outline" className="text-lg h-14 px-8 bg-transparent hover:bg-white/10 border-white/30 text-white hover:text-white backdrop-blur-sm" asChild>
+          <Button size="lg" variant="outline" className="text-lg min-h-[44px] min-w-[44px] px-8 bg-transparent hover:bg-white/10 border-white/30 text-white hover:text-white backdrop-blur-sm touch-manipulation" asChild>
             <Link href={`${base}/applicants/specialties`}>{uiStrings.heroSpecialties[locale]}</Link>
           </Button>
         </div>

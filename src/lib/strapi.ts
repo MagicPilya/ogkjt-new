@@ -49,6 +49,19 @@ export interface StrapiImage {
   name?: string | null;
 }
 
+/** Медиа-файл (документ для скачивания) */
+export interface StrapiFile {
+  id: number;
+  documentId: string;
+  url: string;
+  name?: string | null;
+  alternativeText?: string | null;
+  caption?: string | null;
+  ext?: string;
+  mime?: string;
+  size?: number;
+}
+
 export interface Event {
   id: number;
   documentId: string;
@@ -71,6 +84,8 @@ export interface Article {
   content: any[]; // Blocks content
   date: string;
   cover: StrapiImage | null;
+  /** Дополнительные медиа (галерея) — отображаются слайдером на странице новости */
+  media?: (StrapiImage | StrapiFile)[] | null;
   sectionUrl?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -84,6 +99,8 @@ export interface Page {
   title: string;
   metaDescription?: string | null;
   content: any[];
+  /** Вложения к странице (документы для скачивания) */
+  files?: StrapiFile[] | null;
   /** Раздел ленты новостей на странице или "Не показывать" */
   articleFeedSection?: string | null;
   createdAt?: string;
@@ -133,6 +150,20 @@ export interface Specialties {
   id?: number;
   documentId?: string;
   items?: SpecialtyItem[] | null;
+}
+
+/** Один документ из блока «Документы приёмной комиссии» */
+export interface AdmissionDocumentItem {
+  id?: number;
+  title: string;
+  file: StrapiFile | null;
+}
+
+/** Single type «Документы приёмной комиссии» — список документов для страницы Абитуриентам → Документы */
+export interface AdmissionDocuments {
+  id?: number;
+  documentId?: string;
+  items?: AdmissionDocumentItem[] | null;
 }
 
 /** Пункт 3-го уровня меню (без вложенности). */
@@ -278,6 +309,22 @@ export async function getSpecialties(locale?: Locale): Promise<Specialties | nul
   if (locale) params.locale = locale;
   const data = await fetchAPI<{ data: Specialties }>(
     "/specialty",
+    params,
+    { cache: "no-store" }
+  );
+  if (!data?.data) return null;
+  return data.data;
+}
+
+/**
+ * Данные блока «Документы приёмной комиссии» (single type): список документов с названием и файлом.
+ * Используется на странице /applicants/documents.
+ */
+export async function getAdmissionDocuments(locale?: Locale): Promise<AdmissionDocuments | null> {
+  const params: Record<string, string> = { status: "published", "populate": "*" };
+  if (locale) params.locale = locale;
+  const data = await fetchAPI<{ data: AdmissionDocuments }>(
+    "/admission-document",
     params,
     { cache: "no-store" }
   );
