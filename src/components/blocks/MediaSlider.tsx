@@ -11,7 +11,7 @@ import {
 import { getStrapiMedia } from "@/lib/utils";
 import type { StrapiImage, StrapiFile } from "@/lib/strapi";
 
-type MediaItem = StrapiImage | StrapiFile | { url?: string; alternativeText?: string | null };
+export type MediaItem = StrapiImage | StrapiFile | { url?: string; alternativeText?: string | null };
 
 interface MediaSliderProps {
   items: MediaItem[] | null | undefined;

@@ -6,7 +6,7 @@
 
 import { factories } from '@strapi/strapi';
 
-const uid = 'api::admission-document.admission-document';
+const uid = 'api::admission-document.admission-document' as any;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi populate types
 const populate = { items: { populate: ['file'] } } as any;

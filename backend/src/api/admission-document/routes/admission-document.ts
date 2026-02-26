@@ -4,4 +4,4 @@
 
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreRouter('api::admission-document.admission-document');
+export default factories.createCoreRouter('api::admission-document.admission-document' as any);

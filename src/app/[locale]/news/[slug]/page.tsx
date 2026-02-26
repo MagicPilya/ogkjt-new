@@ -7,7 +7,7 @@ import { getArticleBySlug } from "@/lib/strapi";
 import { getArticleForLocale } from "@/lib/translateArticle";
 import { formatDate, getStrapiMedia } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
-import { MediaSlider } from "@/components/blocks/MediaSlider";
+import { MediaSlider, type MediaItem } from "@/components/blocks/MediaSlider";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
 import { uiStrings } from "@/lib/ui-strings";
 
@@ -45,7 +45,9 @@ export default async function NewsDetailPage({ params }: Props) {
 
   const { article: item, isTranslated } = result;
   const imageUrl = getStrapiMedia(item.cover?.url || null);
-  const mediaList = Array.isArray(item.media) ? item.media : (item as { Media?: unknown[] }).Media ?? [];
+  const mediaList: MediaItem[] = Array.isArray(item.media)
+    ? item.media
+    : ((item as { Media?: MediaItem[] }).Media ?? []);
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
