@@ -189,6 +189,35 @@
     flex-direction: row;
   }
 }
+
+/* На мобильных (телефоны) в режиме слабовидящих Hero не ломается: компактная высота и размеры */
+@media (max-width: 47.999rem) {
+  [data-a11y="low-vision"] .hero-section {
+    min-height: min(85vh, 520px);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  [data-a11y="low-vision"] .hero-section h1 {
+    font-size: clamp(1.125rem, 4.5vw, 1.5rem) !important;
+    line-height: 1.3 !important;
+    margin-bottom: 0.5rem !important;
+  }
+  [data-a11y="low-vision"] .hero-section .hero-section-subtitle {
+    font-size: 0.875rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  [data-a11y="low-vision"] .hero-touch-targets {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  [data-a11y="low-vision"] .hero-touch-targets a,
+  [data-a11y="low-vision"] .hero-touch-targets button {
+    font-size: 0.875rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    min-height: 44px;
+  }
+}
 [data-a11y="low-vision"] .hero-bg {
   background-image: none !important;
   background-color: oklch(0.25 0 0);
@@ -207,6 +236,35 @@
 @media (min-width: 80rem) {
   [data-a11y="low-vision"] {
     font-size: 122.5%;
+  }
+}
+
+/* На 2K (2560px и шире) чуть увеличиваем масштаб интерфейса */
+@media (min-width: 160rem) {
+  :root {
+    font-size: 112.5%;
+  }
+}
+
+/* В режиме слабовидящих на 1280, 1920 и 2K меню не разбивать на 3 строки — уменьшаем шрифт меню */
+@media (min-width: 80rem) {
+  [data-a11y="low-vision"] .header-desktop-nav {
+    font-size: 0.92em;
+  }
+}
+@media (min-width: 96rem) {
+  [data-a11y="low-vision"] .header-desktop-nav {
+    font-size: 0.88em;
+  }
+}
+@media (min-width: 120rem) {
+  [data-a11y="low-vision"] .header-desktop-nav {
+    font-size: 0.8em;
+  }
+}
+@media (min-width: 160rem) {
+  [data-a11y="low-vision"] .header-desktop-nav {
+    font-size: 0.72em;
   }
 }
 
