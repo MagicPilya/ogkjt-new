@@ -14,6 +14,11 @@ interface Option {
   label: string;
 }
 
+const ANNUAL_THEME_FALLBACK_OPTION: Option = {
+  value: '/year-theme',
+  label: 'Тематический год',
+};
+
 interface MenuLinkSelectInputProps {
   name: string;
   value: string | null | undefined;
@@ -56,6 +61,9 @@ function flattenMenuToOptions(mainMenu: MenuSection[] | null | undefined): Optio
         }
       }
     }
+  }
+  if (!options.some((opt) => opt.value === ANNUAL_THEME_FALLBACK_OPTION.value)) {
+    options.push(ANNUAL_THEME_FALLBACK_OPTION);
   }
   return options;
 }

@@ -16,7 +16,13 @@ const PUBLIC_PERMISSION_ACTIONS = [
   'api::administration.administration.find',
   'api::specialty.specialty.find',
   'api::admission-document.admission-document.find',
+  'api::annual-symbol.annual-symbol.find',
 ] as const;
+
+const ANNUAL_THEME_FALLBACK_PAGE = {
+  pageUrl: '/year-theme',
+  title: 'Тематический год',
+} as const;
 
 /** Миграция: старые значения sectionUrl (URL) → новые (подписи для админки). */
 const SECTION_URL_TO_STRAPI: Record<string, string> = {
@@ -48,6 +54,7 @@ function getTitleForUrl(
       }
     }
   }
+  if (withSlash === ANNUAL_THEME_FALLBACK_PAGE.pageUrl) return ANNUAL_THEME_FALLBACK_PAGE.title;
   return null;
 }
 
@@ -188,6 +195,9 @@ function collectUrlTitleFromMenu(
         }
       }
     }
+  }
+  if (!items.some((item) => item.pageUrl === ANNUAL_THEME_FALLBACK_PAGE.pageUrl)) {
+    items.push({ pageUrl: ANNUAL_THEME_FALLBACK_PAGE.pageUrl, title: ANNUAL_THEME_FALLBACK_PAGE.title });
   }
   return items;
 }
