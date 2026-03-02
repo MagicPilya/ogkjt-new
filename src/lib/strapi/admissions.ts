@@ -2,10 +2,14 @@ import { defaultLocale, type Locale } from "../i18n";
 import { fetchAPI } from "./fetch-api";
 import type { Administration, AdmissionDocuments, Specialties } from "./types";
 
+const STATIC_REVALIDATE_SECONDS = 300;
+
 export async function getAdministration(locale?: Locale): Promise<Administration | null> {
   const params: Record<string, string> = { status: "published", populate: "*" };
   if (locale) params.locale = locale;
-  const data = await fetchAPI<{ data: Administration }>("/administration", params, { cache: "no-store" });
+  const data = await fetchAPI<{ data: Administration }>("/administration", params, {
+    next: { revalidate: STATIC_REVALIDATE_SECONDS },
+  });
   if (!data?.data) return null;
   return data.data;
 }
@@ -13,7 +17,9 @@ export async function getAdministration(locale?: Locale): Promise<Administration
 export async function getSpecialties(locale?: Locale): Promise<Specialties | null> {
   const params: Record<string, string> = { status: "published", populate: "*" };
   if (locale) params.locale = locale;
-  const data = await fetchAPI<{ data: Specialties }>("/specialty", params, { cache: "no-store" });
+  const data = await fetchAPI<{ data: Specialties }>("/specialty", params, {
+    next: { revalidate: STATIC_REVALIDATE_SECONDS },
+  });
   if (!data?.data) return null;
   return data.data;
 }
@@ -21,7 +27,9 @@ export async function getSpecialties(locale?: Locale): Promise<Specialties | nul
 export async function getAdmissionDocuments(locale?: Locale): Promise<AdmissionDocuments | null> {
   const params: Record<string, string> = { status: "published", populate: "*" };
   if (locale) params.locale = locale;
-  let data = await fetchAPI<{ data: AdmissionDocuments }>("/admission-document", params, { cache: "no-store" });
+  let data = await fetchAPI<{ data: AdmissionDocuments }>("/admission-document", params, {
+    next: { revalidate: STATIC_REVALIDATE_SECONDS },
+  });
 
   if (!data?.data && locale && locale !== defaultLocale) {
     const fallbackParams: Record<string, string> = {
@@ -29,7 +37,9 @@ export async function getAdmissionDocuments(locale?: Locale): Promise<AdmissionD
       populate: "*",
       locale: defaultLocale,
     };
-    data = await fetchAPI<{ data: AdmissionDocuments }>("/admission-document", fallbackParams, { cache: "no-store" });
+    data = await fetchAPI<{ data: AdmissionDocuments }>("/admission-document", fallbackParams, {
+      next: { revalidate: STATIC_REVALIDATE_SECONDS },
+    });
   }
 
   if (!data?.data) return null;

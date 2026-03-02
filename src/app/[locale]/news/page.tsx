@@ -9,9 +9,6 @@ import { translationDisclaimer, type Locale } from "@/lib/i18n";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 interface Props {
   params: Promise<{ locale: Locale }>;
 }

@@ -21,20 +21,6 @@ interface FileViewerProps {
   trigger: React.ReactNode;
 }
 
-// Типы файлов, которые можно просматривать в браузере
-const VIEWABLE_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"];
-const VIEWABLE_PDF_TYPES = ["application/pdf"];
-
-// Типы файлов Office, которые нельзя просматривать напрямую
-const OFFICE_TYPES = [
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // XLSX
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PPTX
-  "application/msword", // DOC
-  "application/vnd.ms-excel", // XLS
-  "application/vnd.ms-powerpoint", // PPT
-];
-
 function getFileType(file: StrapiImage): "image" | "pdf" | "office" | "other" {
   // Пытаемся определить тип по расширению, если mime type недоступен
   const url = file.url.toLowerCase();
@@ -50,21 +36,17 @@ function getFileType(file: StrapiImage): "image" | "pdf" | "office" | "other" {
   if (["docx", "xlsx", "pptx", "doc", "xls", "ppt"].includes(ext)) {
     return "office";
   }
-  
-  // Если есть mime type в данных (хотя в StrapiImage его может не быть)
-  // Можно расширить интерфейс StrapiImage, если нужно
-  
   return "other";
 }
 
-function getFileIcon(type: "image" | "pdf" | "office" | "other") {
+function renderFileIcon(type: "image" | "pdf" | "office" | "other", className: string) {
   switch (type) {
     case "image":
-      return ImageIcon;
+      return <ImageIcon className={className} />;
     case "pdf":
-      return FileText;
+      return <FileText className={className} />;
     default:
-      return File;
+      return <File className={className} />;
   }
 }
 
@@ -73,7 +55,6 @@ export function FileViewer({ file, locale = "ru", trigger }: FileViewerProps) {
   const fileType = getFileType(file);
   const fileUrl = getStrapiMedia(file.url) || file.url;
   const canView = fileType === "image" || fileType === "pdf";
-  const FileIcon = getFileIcon(fileType);
   const t = uiStrings;
 
   const handleDownload = () => {
@@ -96,7 +77,7 @@ export function FileViewer({ file, locale = "ru", trigger }: FileViewerProps) {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
           <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
             <DialogTitle className="flex items-center gap-2 truncate">
-              <FileIcon className="h-5 w-5 shrink-0" />
+              {renderFileIcon(fileType, "h-5 w-5 shrink-0")}
               <span className="min-w-0 truncate">
                 {file.alternativeText || file.name || t.attachedFile[locale]}
               </span>
@@ -126,7 +107,7 @@ export function FileViewer({ file, locale = "ru", trigger }: FileViewerProps) {
 
             {!canView && (
               <div className="text-center py-8">
-                <FileIcon className="h-16 w-16 mx-auto mb-4 text-slate-400" />
+                {renderFileIcon(fileType, "h-16 w-16 mx-auto mb-4 text-slate-400")}
                 <p className="text-lg font-semibold mb-2">
                   {fileType === "office"
                     ? t.officeCannotPreview[locale]

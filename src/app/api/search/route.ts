@@ -26,7 +26,7 @@ async function fetchStrapi<T>(
   const query = new URLSearchParams(params).toString();
   const res = await fetch(`${base}/api${path}${query ? `?${query}` : ""}`, {
     headers: { "Content-Type": "application/json" },
-    next: { revalidate: 0 },
+    next: { revalidate: SEARCH_REVALIDATE_SECONDS },
   });
   if (!res.ok) return { data: [] };
   const json = await res.json();
@@ -44,7 +44,7 @@ async function fetchStrapiSingle<T>(
   const query = new URLSearchParams(params).toString();
   const res = await fetch(`${base}/api${path}${query ? `?${query}` : ""}`, {
     headers: { "Content-Type": "application/json" },
-    next: { revalidate: 0 },
+    next: { revalidate: SEARCH_REVALIDATE_SECONDS },
   });
   if (!res.ok) return null;
   const json = await res.json();
@@ -56,6 +56,7 @@ const MAX_RESULTS_PER_TYPE = 10;
 /** Символов контекста до и после совпадения в сниппете */
 const SNIPPET_CONTEXT = 55;
 const SNIPPET_MAX_LENGTH = 180;
+const SEARCH_REVALIDATE_SECONDS = 30;
 
 type ArticleRow = {
   id: number;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -25,13 +25,25 @@ function shouldTrackLinkClick(event: MouseEvent): HTMLAnchorElement | null {
 export function RouteChangeIndicator() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setIsLoading(false);
+  const [pendingFromRoute, setPendingFromRoute] = useState<string | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
+  const currentRoute = useMemo(() => {
+    const search = searchParams.toString();
+    return `${pathname}${search ? `?${search}` : ""}`;
   }, [pathname, searchParams]);
+  const isLoading = pendingFromRoute !== null && currentRoute === pendingFromRoute;
 
   useEffect(() => {
+    const scheduleReset = () => {
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+      }
+      // Фолбэк: если навигация отменена/сорвалась, индикатор не должен зависать.
+      resetTimerRef.current = window.setTimeout(() => {
+        setPendingFromRoute(null);
+      }, 5000);
+    };
+
     const onClick = (event: MouseEvent) => {
       const link = shouldTrackLinkClick(event);
       if (!link) return;
@@ -42,11 +54,16 @@ export function RouteChangeIndicator() {
       if (nextUrl.origin !== currentUrl.origin) return;
       if (nextUrl.pathname === currentUrl.pathname && nextUrl.search === currentUrl.search) return;
 
-      setIsLoading(true);
+      const current = `${currentUrl.pathname}${currentUrl.search}`;
+      setPendingFromRoute(current);
+      scheduleReset();
     };
 
     const onPopState = () => {
-      setIsLoading(true);
+      const currentUrl = new URL(window.location.href);
+      const current = `${currentUrl.pathname}${currentUrl.search}`;
+      setPendingFromRoute(current);
+      scheduleReset();
     };
 
     document.addEventListener("click", onClick, true);
@@ -54,6 +71,9 @@ export function RouteChangeIndicator() {
     return () => {
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("popstate", onPopState);
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+      }
     };
   }, []);
 

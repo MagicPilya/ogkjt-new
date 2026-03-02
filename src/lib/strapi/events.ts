@@ -2,6 +2,8 @@ import { defaultLocale, type Locale } from "../i18n";
 import { fetchAPI } from "./fetch-api";
 import type { Event, StrapiResponse } from "./types";
 
+const EVENTS_REVALIDATE_SECONDS = 30;
+
 export async function getEvents(limit = 3, locale?: Locale) {
   void locale;
   const startOfToday = new Date();
@@ -14,7 +16,9 @@ export async function getEvents(limit = 3, locale?: Locale) {
     "pagination[pageSize]": String(limit),
   };
   params.locale = defaultLocale;
-  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, { cache: "no-store" });
+  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
+    next: { revalidate: EVENTS_REVALIDATE_SECONDS },
+  });
   if (!data || !Array.isArray(data.data)) {
     return {
       data: [],
@@ -42,7 +46,9 @@ export async function getEventsInRange(start: Date, end: Date, locale?: Locale) 
     "pagination[pageSize]": "100",
   };
   params.locale = defaultLocale;
-  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, { cache: "no-store" });
+  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
+    next: { revalidate: EVENTS_REVALIDATE_SECONDS },
+  });
 
   if (!data || !Array.isArray(data.data)) {
     return { data: [] };
@@ -58,7 +64,9 @@ export async function getEventById(id: number | string, locale?: Locale) {
     populate: "*",
   };
   params.locale = defaultLocale;
-  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, { cache: "no-store" });
+  const data = await fetchAPI<StrapiResponse<Event[]>>("/events", params, {
+    next: { revalidate: EVENTS_REVALIDATE_SECONDS },
+  });
 
   if (!data || !Array.isArray(data.data)) {
     return null;

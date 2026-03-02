@@ -86,7 +86,7 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
   return (
     <footer className="bg-slate-50 border-t dark:bg-slate-950">
       <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-x-12 gap-y-10 text-center">
           <div className="col-span-1 md:col-span-1 flex flex-col items-center justify-center w-full">
             <Logo
               variant="footer"
@@ -126,11 +126,11 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
           </div>
 
           <div className="flex flex-col items-center footer-touch-targets">
-            <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerNavigation[locale]}</h3>
-            <ul className="space-y-0.5 text-sm leading-tight text-slate-600 dark:text-slate-400">
+            <h3 className="font-semibold mb-2 text-lg">{uiStrings.footerNavigation[locale]}</h3>
+            <ul className="space-y-0 text-sm leading-none text-slate-600 dark:text-slate-400 [&>li]:py-px">
               {navigation.map((item) => (
                 <li key={item.id}>
-                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600 inline-flex items-center touch-manipulation py-0.5">
+                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600 inline-flex items-center touch-manipulation">
                     {item.title}
                   </Link>
                 </li>
@@ -139,11 +139,11 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
           </div>
 
           <div className="flex flex-col items-center footer-touch-targets">
-            <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerResources[locale]}</h3>
-            <ul className="space-y-0.5 text-sm leading-tight text-slate-600 dark:text-slate-400">
+            <h3 className="font-semibold mb-2 text-lg">{uiStrings.footerResources[locale]}</h3>
+            <ul className="space-y-0 text-sm leading-none text-slate-600 dark:text-slate-400 [&>li]:py-px">
               {resources.map((resource, index) => (
                 <li key={`${resource.url}-${index}`}>
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 inline-flex items-center touch-manipulation py-0.5">
+                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 inline-flex items-center touch-manipulation">
                     {resource.title}
                   </a>
                 </li>
@@ -152,8 +152,8 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
           </div>
 
           <div className="flex flex-col items-center">
-            <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerContacts[locale]}</h3>
-            <ul className="space-y-0.5 text-sm leading-tight text-slate-600 dark:text-slate-400">
+            <h3 className="font-semibold mb-2 text-lg">{uiStrings.footerContacts[locale]}</h3>
+            <ul className="space-y-0 text-sm leading-none text-slate-600 dark:text-slate-400 [&>li]:py-px [&>li_a]:mt-0.5">
               <li>{address}</li>
               <li>
                 <span className="block text-xs text-slate-400">{uiStrings.receptionLabel[locale]}</span>

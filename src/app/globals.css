@@ -147,6 +147,7 @@
   line-height: 1.6;
   overflow-x: clip;
 }
+
 [data-a11y="low-vision"] body {
   overflow-x: clip;
 }
@@ -190,20 +191,38 @@
   }
 }
 
-/* На мобильных (телефоны) в режиме слабовидящих Hero не ломается: компактная высота и размеры */
+/* На очень узких экранах (до ~375px) обычный режим чуть компактнее */
+@media (max-width: 23.5rem) {
+  html:not([data-a11y="low-vision"]) .hero-section h1 {
+    font-size: clamp(1.55rem, 7.6vw, 1.9rem) !important;
+    line-height: 1.15 !important;
+  }
+  html:not([data-a11y="low-vision"]) .hero-section .hero-section-subtitle {
+    font-size: 0.92rem !important;
+  }
+  html:not([data-a11y="low-vision"]) .hero-touch-targets a,
+  html:not([data-a11y="low-vision"]) .hero-touch-targets button {
+    font-size: 0.88rem !important;
+  }
+}
+
+/* На мобильных (телефоны) режим слабовидящих крупнее обычного, но без переполнения */
 @media (max-width: 47.999rem) {
+  [data-a11y="low-vision"] {
+    font-size: 108%;
+  }
   [data-a11y="low-vision"] .hero-section {
-    min-height: min(85vh, 520px);
+    min-height: min(86vh, 600px);
     padding-top: 1rem;
     padding-bottom: 1rem;
   }
   [data-a11y="low-vision"] .hero-section h1 {
-    font-size: clamp(1.125rem, 4.5vw, 1.5rem) !important;
-    line-height: 1.3 !important;
-    margin-bottom: 0.5rem !important;
+    font-size: clamp(1.95rem, 8vw, 2.35rem) !important;
+    line-height: 1.15 !important;
+    margin-bottom: 0.75rem !important;
   }
   [data-a11y="low-vision"] .hero-section .hero-section-subtitle {
-    font-size: 0.875rem !important;
+    font-size: 1rem !important;
     margin-bottom: 0.75rem !important;
   }
   [data-a11y="low-vision"] .hero-touch-targets {
@@ -212,9 +231,9 @@
   }
   [data-a11y="low-vision"] .hero-touch-targets a,
   [data-a11y="low-vision"] .hero-touch-targets button {
-    font-size: 0.875rem !important;
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
+    font-size: 0.95rem !important;
+    padding-left: 0.8rem !important;
+    padding-right: 0.8rem !important;
     min-height: 44px;
   }
 }

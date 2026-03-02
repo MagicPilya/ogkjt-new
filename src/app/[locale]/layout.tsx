@@ -8,10 +8,6 @@ import { RouteChangeIndicator } from "@/components/layout/RouteChangeIndicator";
 import { isValidLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
-/** Все страницы с локалью рендерятся на сервере при каждом запросе, чтобы контент из Strapi всегда соответствовал выбранному языку. */
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 export default async function LocaleLayout({
   children,
   params,
