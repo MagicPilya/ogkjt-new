@@ -125,12 +125,12 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
             </div>
           </div>
 
-          <div className="flex flex-col items-center footer-touch-targets">
+          <div className="flex flex-col items-center">
             <h3 className="font-semibold mb-2 text-lg">{uiStrings.footerNavigation[locale]}</h3>
             <ul className="space-y-0 text-sm leading-none text-slate-600 dark:text-slate-400 [&>li]:py-px">
               {navigation.map((item) => (
                 <li key={item.id}>
-                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600 inline-flex items-center touch-manipulation">
+                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600 inline-flex min-h-[26px] items-center touch-manipulation">
                     {item.title}
                   </Link>
                 </li>
@@ -138,12 +138,12 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
             </ul>
           </div>
 
-          <div className="flex flex-col items-center footer-touch-targets">
+          <div className="flex flex-col items-center">
             <h3 className="font-semibold mb-2 text-lg">{uiStrings.footerResources[locale]}</h3>
             <ul className="space-y-0 text-sm leading-none text-slate-600 dark:text-slate-400 [&>li]:py-px">
               {resources.map((resource, index) => (
                 <li key={`${resource.url}-${index}`}>
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 inline-flex items-center touch-manipulation">
+                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 inline-flex min-h-[26px] items-center touch-manipulation">
                     {resource.title}
                   </a>
                 </li>
@@ -153,20 +153,20 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
 
           <div className="flex flex-col items-center">
             <h3 className="font-semibold mb-2 text-lg">{uiStrings.footerContacts[locale]}</h3>
-            <ul className="space-y-0 text-sm leading-none text-slate-600 dark:text-slate-400 [&>li]:py-px [&>li_a]:mt-0.5">
+            <ul className="space-y-1 text-sm leading-tight text-slate-600 dark:text-slate-400">
               <li>{address}</li>
               <li>
                 <span className="block text-xs text-slate-400">{uiStrings.receptionLabel[locale]}</span>
-                <a href={`tel:${phoneReception}`} className="hover:text-blue-600">{phoneReception}</a>
+                <a href={`tel:${phoneReception}`} className="hover:text-blue-600 inline-flex min-h-[30px] items-center">{phoneReception}</a>
               </li>
               {phoneDirector && (
                 <li>
                   <span className="block text-xs text-slate-400">{uiStrings.directorLabel[locale]}</span>
-                  <a href={`tel:${phoneDirector}`} className="hover:text-blue-600">{phoneDirector}</a>
+                  <a href={`tel:${phoneDirector}`} className="hover:text-blue-600 inline-flex min-h-[30px] items-center">{phoneDirector}</a>
                 </li>
               )}
               <li>
-                <a href={`mailto:${email}`} className="hover:text-blue-600">{email}</a>
+                <a href={`mailto:${email}`} className="hover:text-blue-600 inline-flex min-h-[30px] items-center">{email}</a>
               </li>
             </ul>
           </div>
