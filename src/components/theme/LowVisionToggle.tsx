@@ -52,7 +52,7 @@ export function LowVisionToggle({ locale = "ru" }: { locale?: Locale }) {
       className="h-11 min-h-[44px] min-w-[44px] px-3 sm:px-4 text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       <Eye className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-      <span className="hidden sm:inline">{uiStrings.lowVisionLabel[locale]}</span>
+      <span className="hidden md:inline header-tool-label">{uiStrings.lowVisionLabel[locale]}</span>
     </Button>
   );
 }

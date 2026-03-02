@@ -61,8 +61,21 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
   const logoLine2 = settings?.collegeBranchShortName || fallback.branchShort;
   const prefix = (url: string) => (url?.startsWith("/") ? `/${locale}${url}` : `/${locale}/${url}` || `/${locale}`);
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+    const [isLowVision, setIsLowVision] = React.useState(false);
+
+    React.useEffect(() => {
+        const root = document.documentElement;
+        const check = () => setIsLowVision(root.getAttribute("data-a11y") === "low-vision");
+        check();
+        const obs = new MutationObserver(check);
+        obs.observe(root, { attributes: true, attributeFilter: ["data-a11y"] });
+        return () => obs.disconnect();
+    }, []);
 
     const closeMobileMenu = React.useCallback(() => setMobileMenuOpen(false), []);
+
+    const fullNameClasses = isLowVision ? "hidden 2xl:inline-block" : "hidden lg:inline-block";
+    const shortNameClasses = isLowVision ? "2xl:hidden" : "lg:hidden";
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-slate-950 shadow-sm">
@@ -70,8 +83,8 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
             <div className="bg-slate-50 dark:bg-slate-900 border-b py-2">
                 <div className="w-full px-4 md:px-8 flex items-center justify-between text-xs sm:text-sm">
                     <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
-                        <span className="hidden md:inline-block">{fullCollegeName}</span>
-                        <span className="md:hidden">{shortCollegeName}</span>
+                        <span className={fullNameClasses}>{fullCollegeName}</span>
+                        <span className={shortNameClasses}>{shortCollegeName}</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
                         <LocaleSwitcher currentLocale={locale} />
@@ -82,27 +95,27 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                 </div>
             </div>
 
-            {/* Уровень 2: Лого и Главное меню */}
+            {/* Уровень 2: Лого и Главное меню — на 2xl/3xl уменьшаем шрифты и долю ширины, чтобы меню не наезжало */}
             <div className="w-full px-4 md:px-8 relative flex h-24 items-center">
-                <div className="flex items-center gap-8 shrink-0 z-10">
-                    <Link href={prefix("/")} className="flex items-center gap-4 group">
+                <div className="flex items-center gap-4 2xl:gap-2 shrink-0 z-10 w-auto max-w-[45%] 2xl:max-w-[22%] 3xl:max-w-[26%] min-w-0">
+                    <Link href={prefix("/")} className="flex items-center gap-3 2xl:gap-2 group min-w-0">
                         {/* Логотип */}
-                        <div className="h-14 w-14 relative bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl group-hover:bg-blue-700 transition-colors shrink-0">
-                        <TrainFront size={36} />
+                        <div className="h-14 w-14 2xl:h-10 2xl:w-10 3xl:h-11 3xl:w-11 relative bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold group-hover:bg-blue-700 transition-colors shrink-0">
+                        <TrainFront className="h-9 w-9 2xl:h-6 2xl:w-6 3xl:h-7 3xl:w-7" />
                         </div>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-xl leading-tight text-slate-900 dark:text-white group-hover:text-blue-700 transition-colors">
+                        <div className="flex flex-col min-w-0 overflow-hidden">
+                            <span className="font-bold text-xl 2xl:text-sm 3xl:text-base leading-tight text-slate-900 dark:text-white group-hover:text-blue-700 transition-colors truncate">
                                 {logoLine1}
                             </span>
-                            <span className="text-sm text-slate-500 font-medium">{logoLine2}</span>
+                            <span className="text-sm 2xl:text-[0.65rem] 3xl:text-xs text-slate-500 font-medium truncate">{logoLine2}</span>
                         </div>
                     </Link>
                 </div>
 
-                {/* Desktop Navigation - Centered */}
-                <div className="hidden xl:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <NavigationMenu viewport={false} delayDuration={0} skipDelayDuration={0}>
-                        <NavigationMenuList>
+                {/* Desktop Navigation - Centered, только с 2xl; ограничиваем ширину списка чтобы не заходить в зону лого */}
+                <div className="hidden 2xl:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[52%] 3xl:w-[60%] max-w-[800px] 3xl:max-w-[900px] justify-center">
+                    <NavigationMenu viewport={false} delayDuration={0} skipDelayDuration={0} className="w-full">
+                        <NavigationMenuList className="flex-wrap justify-center gap-x-1 gap-y-0.5">
                             {menuItems.map((item) => (
                                 <NavigationMenuItem key={item.id}>
                                     {item.links && item.links.length > 0 ? (
@@ -112,7 +125,7 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                                                     href={prefix(item.url || "#")}
                                                     className={cn(
                                                         navigationMenuTriggerStyle(),
-                                                        "text-base font-medium bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2"
+                                                        "text-lg 2xl:text-xl 3xl:text-lg font-medium bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 group inline-flex h-10 2xl:h-10 3xl:h-9 w-max items-center justify-center rounded-md px-4 2xl:px-4 3xl:px-3 py-2"
                                                     )}
                                                 >
                                                     {item.title}
@@ -168,9 +181,9 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                                         </>
                                     ) : (
                                         <NavigationMenuLink asChild>
-                                            <Link 
-                                                href={prefix(item.url || "#")} 
-                                                className={cn(navigationMenuTriggerStyle(), "text-base font-medium bg-transparent")}
+                                            <Link
+                                                href={prefix(item.url || "#")}
+                                                className={cn(navigationMenuTriggerStyle(), "text-lg 2xl:text-xl 3xl:text-lg font-medium bg-transparent")}
                                             >
                                                 {item.title}
                                             </Link>
@@ -182,8 +195,8 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                     </NavigationMenu>
                 </div>
 
-                {/* Mobile Menu Button */}
-                <div className="xl:hidden shrink-0 ml-auto">
+                {/* Mobile Menu Button — до 2xl показываем бургер */}
+                <div className="2xl:hidden shrink-0 ml-auto">
                     <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon" suppressHydrationWarning>

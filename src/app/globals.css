@@ -1,9 +1,27 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/*
+  Breakpoints (ширины экрана) для адаптивной вёрстки и тестирования:
+  — До 480px: узкие телефоны (верстать без префикса или max-xs:)
+  — xs: 480px (30rem)
+  — sm: 640px (40rem)
+  — md: 768px (48rem)
+  — lg: 1024px (64rem)
+  — xl: 1280px (80rem)
+  — 2xl: 1536px (96rem)
+  — 3xl: 1920px (120rem) — добавлен
+  — 4xl: 2560px (160rem) — добавлен
+  Использование: px-4 xs:px-6 sm:px-8 md:px-10 lg:max-w-4xl 3xl:max-w-6xl
+*/
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Дополнительные breakpoints по ширине экрана (для адаптивной вёрстки) */
+  --breakpoint-xs: 30rem;   /* 480px — крупные телефоны, мелкие планшеты */
+  --breakpoint-3xl: 120rem; /* 1920px — Full HD и шире */
+  --breakpoint-4xl: 160rem; /* 2560px — 2K и ультраширокие */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -151,6 +169,26 @@
   animation-iteration-count: 1 !important;
   transition-duration: 0.05s !important;
 }
+
+/* В режиме слабовидящих подписи кнопок в шапке показываем только с lg (1024px) */
+[data-a11y="low-vision"] .header-tool-label {
+  display: none !important;
+}
+@media (min-width: 64rem) {
+  [data-a11y="low-vision"] .header-tool-label {
+    display: inline !important;
+  }
+}
+
+/* В режиме слабовидящих кнопки Hero в колонку до md, чтобы не уезжали */
+[data-a11y="low-vision"] .hero-touch-targets {
+  flex-direction: column;
+}
+@media (min-width: 48rem) {
+  [data-a11y="low-vision"] .hero-touch-targets {
+    flex-direction: row;
+  }
+}
 [data-a11y="low-vision"] .hero-bg {
   background-image: none !important;
   background-color: oklch(0.25 0 0);
@@ -158,6 +196,36 @@
 [data-a11y="low-vision"] .hero-section h1,
 [data-a11y="low-vision"] .hero-section p {
   overflow-wrap: anywhere;
+}
+
+/* В режиме слабовидящих на 1024 и 1280 шрифт немного увеличиваем, а не уменьшаем */
+@media (min-width: 64rem) {
+  [data-a11y="low-vision"] {
+    font-size: 120%;
+  }
+}
+@media (min-width: 80rem) {
+  [data-a11y="low-vision"] {
+    font-size: 122.5%;
+  }
+}
+
+/* На 1024 (lg) в режиме слабовидящих чуть уменьшаем заголовок Hero и складываем кнопки под ним,
+   чтобы всё помещалось по высоте и ширине */
+@media (min-width: 64rem) and (max-width: 79.999rem) {
+  [data-a11y="low-vision"] .hero-section {
+    min-height: min(80vh, 560px);
+  }
+  [data-a11y="low-vision"] .hero-section h1 {
+    font-size: clamp(2.25rem, 3.3vw, 2.7rem);
+    line-height: 1.25;
+    margin-bottom: 1rem;
+  }
+  [data-a11y="low-vision"] .hero-touch-targets {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
 }
 
 @layer base {

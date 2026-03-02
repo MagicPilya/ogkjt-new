@@ -127,10 +127,10 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
 
           <div className="flex flex-col items-center footer-touch-targets">
             <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerNavigation[locale]}</h3>
-            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <ul className="space-y-0.5 text-sm leading-tight text-slate-600 dark:text-slate-400">
               {navigation.map((item) => (
                 <li key={item.id}>
-                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600 inline-flex min-h-[44px] items-center touch-manipulation">
+                  <Link href={prefix(item.url || "/")} className="hover:text-blue-600 inline-flex items-center touch-manipulation py-0.5">
                     {item.title}
                   </Link>
                 </li>
@@ -140,10 +140,10 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
 
           <div className="flex flex-col items-center footer-touch-targets">
             <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerResources[locale]}</h3>
-            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <ul className="space-y-0.5 text-sm leading-tight text-slate-600 dark:text-slate-400">
               {resources.map((resource, index) => (
                 <li key={`${resource.url}-${index}`}>
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 inline-flex min-h-[44px] items-center touch-manipulation">
+                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 inline-flex items-center touch-manipulation py-0.5">
                     {resource.title}
                   </a>
                 </li>
@@ -153,7 +153,7 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
 
           <div className="flex flex-col items-center">
             <h3 className="font-semibold mb-4 text-lg">{uiStrings.footerContacts[locale]}</h3>
-            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <ul className="space-y-0.5 text-sm leading-tight text-slate-600 dark:text-slate-400">
               <li>{address}</li>
               <li>
                 <span className="block text-xs text-slate-400">{uiStrings.receptionLabel[locale]}</span>

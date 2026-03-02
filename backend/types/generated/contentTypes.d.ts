@@ -472,6 +472,127 @@ export interface ApiAdministrationAdministration
   };
 }
 
+export interface ApiAdmissionDocumentAdmissionDocument
+  extends Struct.SingleTypeSchema {
+  collectionName: 'admission_documents';
+  info: {
+    description: '\u0414\u0432\u0435 \u043A\u0430\u0440\u0442\u043E\u0447\u043A\u0438: \u041E\u0447\u043D\u0430\u044F \u0444\u043E\u0440\u043C\u0430 \u0438 \u0417\u0430\u043E\u0447\u043D\u0430\u044F \u0444\u043E\u0440\u043C\u0430 \u2014 \u043A\u0430\u0436\u0434\u0430\u044F \u0441\u043E \u0441\u043F\u0438\u0441\u043A\u043E\u043C \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0439 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u043E\u0432 (\u0431\u0435\u0437 \u0444\u0430\u0439\u043B\u043E\u0432).';
+    displayName: '\u0414\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u044B \u043F\u0440\u0438\u0451\u043C\u043D\u043E\u0439 \u043A\u043E\u043C\u0438\u0441\u0441\u0438\u0438';
+    pluralName: 'admission-documents';
+    singularName: 'admission-document';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: true;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    fullTimeBase: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    fullTimeItems: Schema.Attribute.Component<
+      'elements.document-name-item',
+      true
+    > &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    locale: Schema.Attribute.String;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::admission-document.admission-document'
+    >;
+    partTimeBase: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    partTimeItems: Schema.Attribute.Component<
+      'elements.document-name-item',
+      true
+    > &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiAnnualSymbolAnnualSymbol extends Struct.SingleTypeSchema {
+  collectionName: 'annual_symbols';
+  info: {
+    description: '\u0421\u0438\u043C\u0432\u043E\u043B \u0438 \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u0442\u0435\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0433\u043E \u0433\u043E\u0434\u0430 \u0434\u043B\u044F \u0433\u043B\u0430\u0432\u043D\u043E\u0439 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u044B \u0438 \u043C\u0435\u043D\u044E.';
+    displayName: '\u0415\u0436\u0435\u0433\u043E\u0434\u043D\u044B\u0435 \u0441\u0438\u043C\u0432\u043E\u043B\u044B';
+    pluralName: 'annual-symbols';
+    singularName: 'annual-symbol';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: true;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    locale: Schema.Attribute.String;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::annual-symbol.annual-symbol'
+    >;
+    logo: Schema.Attribute.Media<'images'> &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    pageUrl: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'/year-theme'>;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
   collectionName: 'articles';
   info: {
@@ -772,6 +893,12 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    files: Schema.Attribute.Media<'files', true> &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
     locale: Schema.Attribute.String;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::page.page'>;
     metaDescription: Schema.Attribute.Text &
@@ -1351,6 +1478,8 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::administration.administration': ApiAdministrationAdministration;
+      'api::admission-document.admission-document': ApiAdmissionDocumentAdmissionDocument;
+      'api::annual-symbol.annual-symbol': ApiAnnualSymbolAnnualSymbol;
       'api::article.article': ApiArticleArticle;
       'api::event.event': ApiEventEvent;
       'api::global.global': ApiGlobalGlobal;

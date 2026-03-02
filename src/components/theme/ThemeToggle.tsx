@@ -22,11 +22,11 @@ export function ThemeToggle({ locale = "ru" }: { locale?: Locale }) {
       }
     >
       {theme === "dark" ? (
-        <Sun className="h-4 w-4 sm:mr-2" />
+        <Sun className="h-4 w-4 md:mr-2" />
       ) : (
-        <Moon className="h-4 w-4 sm:mr-2" />
+        <Moon className="h-4 w-4 md:mr-2" />
       )}
-      <span className="hidden sm:inline">
+      <span className="hidden md:inline header-tool-label">
         {theme === "dark" ? uiStrings.lightTheme[locale] : uiStrings.darkTheme[locale]}
       </span>
     </Button>

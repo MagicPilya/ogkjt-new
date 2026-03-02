@@ -57,7 +57,7 @@ export function Hero({
 
       {/* Content */}
       <div className="container mx-auto relative z-10 text-center text-white animate-in fade-in zoom-in duration-1000 px-4 sm:px-6">
-        <span className="hidden md:inline-block py-1 px-4 md:px-5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-200 text-sm font-medium mb-6 backdrop-blur-sm">
+        <span className="hidden sm:inline-block py-1 px-4 sm:px-5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-200 text-sm font-medium mb-6 backdrop-blur-sm">
           {shortName}
         </span>
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight max-w-4xl mx-auto leading-tight mt-4 md:mt-0 break-words [overflow-wrap:anywhere]">
@@ -73,7 +73,7 @@ export function Hero({
             fullName
           )}
         </h1>
-        <p className="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto leading-relaxed break-words [overflow-wrap:anywhere]">
+        <p className="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto leading-relaxed break-words [overflow-wrap:anywhere] hero-section-subtitle">
           {uiStrings.heroSubtitle[locale]}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center hero-touch-targets">
