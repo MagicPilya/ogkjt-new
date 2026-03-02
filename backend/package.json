@@ -12,7 +12,8 @@
     "start": "strapi start",
     "strapi": "strapi",
     "upgrade": "npx @strapi/upgrade latest",
-    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+    "upgrade:dry": "npx @strapi/upgrade latest --dry",
+    "test:smoke": "tsx --test tests/createLocalizedSingleTypeController.test.ts"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "5.31.2",
@@ -30,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   },
   "engines": {
