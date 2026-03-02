@@ -35,10 +35,25 @@ interface HeaderProps {
   initialMenu?: MenuSection[] | null;
   settings?: GlobalSettings | null;
   locale?: Locale;
+  yearThemeMenuItem?: { title: string; url: string } | null;
 }
 
-export function Header({ initialMenu, settings, locale = "ru" }: HeaderProps) {
-  const menuItems = initialMenu ?? [];
+export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem }: HeaderProps) {
+  const menuItems = React.useMemo(() => {
+    const baseItems = [...(initialMenu ?? [])];
+    if (!yearThemeMenuItem) return baseItems;
+    const exists = baseItems.some((item) => item.url === yearThemeMenuItem.url);
+    if (exists) return baseItems;
+    return [
+      ...baseItems,
+      {
+        id: Number.MAX_SAFE_INTEGER,
+        title: yearThemeMenuItem.title,
+        url: yearThemeMenuItem.url,
+        links: [],
+      },
+    ];
+  }, [initialMenu, yearThemeMenuItem]);
   const fallback = collegeNamesFallback[locale];
   const fullCollegeName = settings?.collegeFullName || collegeNamesFallback[locale].full;
   const shortCollegeName = settings?.collegeShortName || collegeNamesFallback[locale].short;

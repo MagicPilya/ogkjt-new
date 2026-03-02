@@ -216,6 +216,15 @@ export interface GlobalSettings {
   }> | null;
 }
 
+export interface AnnualSymbol {
+  id: number;
+  documentId: string;
+  title: string;
+  description?: string | null;
+  pageUrl?: string | null;
+  logo?: StrapiImage | null;
+}
+
 export interface MenuData {
   id: number;
   documentId: string;
@@ -251,6 +260,24 @@ export async function getMenu(locale?: Locale) {
   if (locale) params.locale = locale;
   const data = await fetchAPI<StrapiResponse<MenuData>>(
     "/menu",
+    params,
+    { cache: "no-store" }
+  );
+  if (!data || !data.data) return null;
+  return data.data;
+}
+
+/**
+ * Ежегодные символы (single type): название/описание, ссылка на страницу и логотип года.
+ */
+export async function getAnnualSymbol(locale?: Locale): Promise<AnnualSymbol | null> {
+  const params: Record<string, string> = {
+    status: "published",
+    "populate": "*",
+  };
+  if (locale) params.locale = locale;
+  const data = await fetchAPI<StrapiResponse<AnnualSymbol>>(
+    "/annual-symbol",
     params,
     { cache: "no-store" }
   );

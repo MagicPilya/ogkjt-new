@@ -1,6 +1,7 @@
 import type { Locale } from "./i18n";
 import type { MenuSection, MenuLink, MenuSublink } from "./strapi";
 import { uiStrings } from "./ui-strings";
+import { yearTheme } from "./year-theme";
 
 /**
  * Единый источник структуры меню и подразделов.
@@ -321,6 +322,7 @@ export function getBreadcrumbItems(pathname: string, menu: MenuSection[], locale
       const firstSegment = segments[0];
       if (firstSegment === "news" && i === 1) label = uiStrings.newsItem[locale];
       else if (firstSegment === "events" && i === 1) label = uiStrings.eventItem[locale];
+      else if (firstSegment === yearTheme.path.replace(/^\//, "") && i === 0) label = yearTheme.fallbackTitle[locale];
       else label = slugToTitle(segments[i]);
     }
     items.push({ href, label });
