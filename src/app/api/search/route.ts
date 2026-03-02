@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { STRAPI_URL } from "@/lib/config";
 import { defaultLocale, isValidLocale, type Locale } from "@/lib/i18n";
+import { extractTextFromBlocks } from "@/lib/blocks-text";
 
 export interface SearchResultItem {
   type: "article" | "page" | "administration" | "specialty";
@@ -14,24 +15,6 @@ function normalizeStrapiUrl(url: string): string {
   const trimmed = url.replace(/\/+$/, "");
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `http://${trimmed}`;
-}
-
-/** Извлекает плоский текст из Strapi Blocks для поиска. Пробелы между блоками и узлами сохраняются, чтобы текст оставался читаемым. */
-function extractTextFromBlocks(blocks: unknown): string {
-  if (!blocks || !Array.isArray(blocks)) return "";
-  const parts: string[] = [];
-  for (const block of blocks) {
-    const b = block as { children?: Array<{ text?: string; children?: Array<{ text?: string }> }> };
-    if (b.children) {
-      for (const child of b.children) {
-        if (child.text) parts.push(child.text.trim());
-        if (child.children) {
-          for (const c of child.children) if (c.text) parts.push(c.text.trim());
-        }
-      }
-    }
-  }
-  return parts.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 }
 
 async function fetchStrapi<T>(

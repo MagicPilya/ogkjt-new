@@ -101,7 +101,7 @@ function renderLink(href: string, children: ReactNode): ReactNode {
 }
 
 interface ContentBlocksProps {
-  blocks: Block[] | null | undefined;
+  blocks: unknown[] | null | undefined;
   className?: string;
 }
 
@@ -117,12 +117,13 @@ function isParagraphEmpty(block: Block): boolean {
 /** Рендер блоков контента Strapi (paragraph, heading, list, quote, code, link, image) */
 export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return null;
+  const normalizedBlocks = blocks as Block[];
 
   const paragraphClass = "indent-[1.25em] mb-3 last:mb-0";
 
   return (
     <div className={className}>
-      {blocks.map((block: Block, index: number) => {
+      {normalizedBlocks.map((block: Block, index: number) => {
         if (block.type === "paragraph") {
           if (isParagraphEmpty(block)) {
             return <div key={index} className="h-4 shrink-0" aria-hidden />;

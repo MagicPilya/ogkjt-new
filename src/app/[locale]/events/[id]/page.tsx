@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowLeft, MapPin, FileText } from "lucide-react";
 import Link from "next/link";
@@ -8,6 +7,7 @@ import { getEventById } from "@/lib/strapi";
 import { getEventForLocale } from "@/lib/translateEvent";
 import { formatDate } from "@/lib/utils";
 import { FileViewer } from "@/components/ui/file-viewer";
+import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 
@@ -88,48 +88,7 @@ export default async function EventDetailPage({ params }: Props) {
 
         <div className="prose prose-slate dark:prose-invert max-w-none lg:prose-lg">
           {Array.isArray(event.description) && event.description.length > 0 ? (
-            event.description.map((block: any, index: number) => {
-              if (block.type === "paragraph") {
-                return (
-                  <p key={index}>
-                    {block.children.map((child: any, childIndex: number) => {
-                      if (child.type === "text") {
-                        let text: React.ReactNode = child.text;
-                        if (child.bold) text = <strong key={childIndex}>{text}</strong>;
-                        if (child.italic) text = <em key={childIndex}>{text}</em>;
-                        if (child.underline) text = <u key={childIndex}>{text}</u>;
-                        return <span key={childIndex}>{text}</span>;
-                      }
-                      return null;
-                    })}
-                  </p>
-                );
-              }
-              if (block.type === "heading") {
-                const level = Number(block.level);
-                const safeLevel = Number.isInteger(level) && level >= 1 && level <= 6 ? level : 3;
-                const headingText = block.children.map((child: any) => child.text).join("");
-                if (safeLevel === 1) return <h1 key={index}>{headingText}</h1>;
-                if (safeLevel === 2) return <h2 key={index}>{headingText}</h2>;
-                if (safeLevel === 3) return <h3 key={index}>{headingText}</h3>;
-                if (safeLevel === 4) return <h4 key={index}>{headingText}</h4>;
-                if (safeLevel === 5) return <h5 key={index}>{headingText}</h5>;
-                return <h6 key={index}>{headingText}</h6>;
-              }
-              if (block.type === "list") {
-                const items = block.children.map((item: any, itemIndex: number) => (
-                  <li key={itemIndex}>
-                    {item.children.map((child: any) => child.text).join("")}
-                  </li>
-                ));
-                return block.format === "ordered" ? (
-                  <ol key={index}>{items}</ol>
-                ) : (
-                  <ul key={index}>{items}</ul>
-                );
-              }
-              return null;
-            })
+            <ContentBlocks blocks={event.description} />
           ) : (
             <p className="text-slate-600 dark:text-slate-300">
               {uiStrings.eventDescriptionEmpty[locale]}

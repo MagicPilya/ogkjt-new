@@ -1,15 +1,11 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar, Languages } from "lucide-react";
-import Link from "next/link";
+import { Languages } from "lucide-react";
 import { Metadata } from "next";
 import { getPageByPath, getArticles } from "@/lib/strapi";
 import { getArticlesForLocale } from "@/lib/translateArticle";
-import { formatDate, getStrapiMediaWithFormats } from "@/lib/utils";
 import { Events } from "@/components/blocks/Events";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
+import { ArticleCard } from "@/components/blocks/ArticleCard";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
-import { uiStrings } from "@/lib/ui-strings";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 
@@ -73,43 +69,15 @@ export default async function NewsPage({ params }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {articles.map((item) => {
               const articlePath = item.slug || item.documentId;
-              const imageUrl = getStrapiMediaWithFormats(item.cover, ["small", "thumbnail"]);
               return (
-                <Card key={item.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow text-center">
-                  <div className="relative h-48 w-full overflow-hidden bg-slate-100">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={item.cover?.alternativeText || item.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        Нет фото
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-center justify-center text-sm text-slate-500 mb-2">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {item.date ? formatDate(item.date, locale) : "Без даты"}
-                    </div>
-                    <CardTitle className="line-clamp-2 hover:text-blue-600 transition-colors">
-                      <Link href={`/${locale}/news/${articlePath}`}>{item.title}</Link>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <p className="text-slate-600 dark:text-slate-400 line-clamp-3">
-                      {item.announcement}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="justify-center">
-                    <Button variant="link" className="p-0 h-auto font-semibold text-blue-600" asChild>
-                      <Link href={`/${locale}/news/${articlePath}`}>{uiStrings.readMore[locale]}</Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <ArticleCard
+                  key={item.id}
+                  article={item}
+                  locale={locale}
+                  href={`/${locale}/news/${articlePath}`}
+                  centered
+                  showReadMore
+                />
               );
             })}
           </div>
