@@ -11,6 +11,62 @@ Strapi comes with a full featured [Command Line Interface](https://docs.strapi.i
 
 При добавлении нового single-type с i18n см. примеры в `api::global.global`, `api::menu.menu`, `api::specialty.specialty`, `api::administration.administration` и правило в `.cursor/rules/strapi-i18n-single-types.mdc`.
 
+## Оптимизация изображений
+
+В проекте включена автоматическая оптимизация изображений в upload pipeline Strapi:
+
+- при загрузке новые изображения сжимаются автоматически;
+- включены responsive-версии (`thumbnail`, `small`, `medium`, `large`, `xlarge`, `xsmall`);
+- применяется `autoOrientation`;
+- `svg` и `gif` не конвертируются.
+
+### Как это работает
+
+- Оптимизация происходит в момент upload/replace в Media Library.
+- Старые файлы не меняются автоматически; для них есть отдельный скрипт массовой переоптимизации.
+- Если файл маленький или выгода по размеру ниже порога, оригинал сохраняется без перекодирования.
+
+### Переменные окружения (`.env`)
+
+Доступны настройки:
+
+- `IMAGE_OPTIMIZER_FORMAT` - `webp` или `avif`
+- `IMAGE_OPTIMIZER_MAX_WIDTH` - максимальная ширина (px), без upscaling
+- `IMAGE_OPTIMIZER_WEBP_QUALITY` - качество WebP (0-100)
+- `IMAGE_OPTIMIZER_AVIF_QUALITY` - качество AVIF (0-100)
+- `IMAGE_OPTIMIZER_MIN_SOURCE_BYTES` - минимальный размер исходника для оптимизации
+- `IMAGE_OPTIMIZER_MIN_SAVINGS_PERCENT` - минимальная выгода в процентах, иначе сохраняется исходник
+
+Пример дефолтов есть в `./.env.example`.
+
+### Массовая переоптимизация старых файлов
+
+Скрипт: `npm run media:reoptimize`
+
+- Проверка без изменений (dry-run):
+
+```
+npm run media:reoptimize -- --dry-run
+```
+
+- Ограниченный тестовый прогон:
+
+```
+npm run media:reoptimize -- --dry-run --limit 20
+```
+
+- Применить изменения:
+
+```
+npm run media:reoptimize
+```
+
+В отчёте выводится:
+
+- количество обработанных и оптимизированных файлов;
+- экономия по оригиналам, по форматам и суммарно (в MB и %);
+- число пропусков (tiny/no-gain/missing/unsupported).
+
 ### `develop`
 
 Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
