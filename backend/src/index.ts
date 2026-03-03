@@ -4,7 +4,13 @@ import { migrateArticleSectionUrls } from './bootstrap/migrations';
 import { registerPageTitleAutofill, syncPagesFromMainMenu } from './bootstrap/menu';
 import { setPublicPermissions } from './bootstrap/permissions';
 import { seedGlobalIfEmpty, seedMenuIfEmpty } from './bootstrap/seed';
-import { ensureUploadOptimizationSettings, patchUploadImageOptimizer } from './bootstrap/upload-settings';
+import {
+  ensureUploadOptimizationSettings,
+  patchUploadFolderStructure,
+  patchUploadImageOptimizer,
+  patchWindowsTempUnlinkCrashGuard,
+  patchWindowsUploadTempCleanup,
+} from './bootstrap/upload-settings';
 
 export default {
   register({ strapi }: { strapi: Core.Strapi }) {
@@ -19,6 +25,9 @@ export default {
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     try {
+      patchWindowsTempUnlinkCrashGuard(strapi);
+      await patchWindowsUploadTempCleanup(strapi);
+      patchUploadFolderStructure(strapi);
       patchUploadImageOptimizer(strapi);
       await setPublicPermissions(strapi);
       await seedGlobalIfEmpty(strapi);
