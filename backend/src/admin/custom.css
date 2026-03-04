@@ -1,0 +1,26 @@
+/* Центрирование контента в dropzone Upload (Strapi) */
+
+/* В твоей разметке это верхний контейнер dropzone */
+.dYwZvB > label {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Контейнер с иконкой, текстом и input[type=file] */
+.dYwZvB .gZoliV {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  width: 100%;
+  height: 100%;
+}
+
+/* Текст под иконкой */
+.dYwZvB .cydWiH {
+  width: 100%;
+  text-align: center !important;
+}
+

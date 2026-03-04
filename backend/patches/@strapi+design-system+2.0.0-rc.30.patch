@@ -1,0 +1,26 @@
+diff --git a/node_modules/@strapi/design-system/dist/index.js b/node_modules/@strapi/design-system/dist/index.js
+index d30251e..4bae486 100644
+--- a/node_modules/@strapi/design-system/dist/index.js
++++ b/node_modules/@strapi/design-system/dist/index.js
+@@ -7087,7 +7087,7 @@ const TextButtonWrapper = styled.styled(Flex)`
+   ${focus}
+ `;
+ const TextInput = React__namespace.forwardRef((props, ref) => {
+-  return /* @__PURE__ */ jsxRuntime.jsx(Input$2, { ref, ...props });
++  return /* @__PURE__ */ jsxRuntime.jsx(Input$2, { ref, ...props, value: props.value ?? "" });
+ });
+ TextInput.displayName = "TextInput";
+ const Textarea = React__namespace.forwardRef(
+diff --git a/node_modules/@strapi/design-system/dist/index.mjs b/node_modules/@strapi/design-system/dist/index.mjs
+index 8643fa3..c279a43 100644
+--- a/node_modules/@strapi/design-system/dist/index.mjs
++++ b/node_modules/@strapi/design-system/dist/index.mjs
+@@ -7053,7 +7053,7 @@ const TextButtonWrapper = styled(Flex)`
+   ${focus}
+ `;
+ const TextInput = React.forwardRef((props, ref) => {
+-  return /* @__PURE__ */ jsx(Input$2, { ref, ...props });
++  return /* @__PURE__ */ jsx(Input$2, { ref, ...props, value: props.value ?? "" });
+ });
+ TextInput.displayName = "TextInput";
+ const Textarea = React.forwardRef(

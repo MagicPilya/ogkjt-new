@@ -91,6 +91,8 @@ yarn start
 
 Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
 
+После изменения переводов или конфига в `src/admin/app.tsx` нужно пересобрать админку, иначе на проде останутся старые бандлы и ошибки в консоли (например MISSING_TRANSLATION). На деплое выполни `npm run build` и залей обновлённую папку `build/`.
+
 ```
 npm run build
 # or
