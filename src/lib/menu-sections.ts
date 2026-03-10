@@ -340,41 +340,123 @@ export function normalizeMenu(
   menu: MenuSection[] | null | undefined,
   locale: Locale = "ru"
 ): MenuSection[] | null {
-    // defaultMenu — источник правды для структуры; данные Strapi — только переопределения (title и т.д.)
-    return getDefaultMenu(locale).map((defaultSection, index) => {
-        const strapiItem = menu?.find(
-            (m) =>
-                (m.url && (m.url.replace(/^\//, "") === (defaultSection.url ?? "").replace(/^\//, ""))) ||
-                m.title === defaultSection.title
-        );
-        const rawUrl = strapiItem?.url ?? defaultSection.url ?? "#";
-        const url = rawUrl === "#" ? "#" : rawUrl.startsWith("/") ? rawUrl : "/" + rawUrl;
-        const defaultLinks = defaultSection.links ?? [];
-        const strapiLinks = Array.isArray(strapiItem?.links) ? strapiItem.links : [];
-        const links = defaultLinks.map((defaultLink, linkIndex) => {
-            const strapiLink = strapiLinks[linkIndex] ?? strapiLinks.find(
-                (s) => (s.url && (s.url.replace(/^\//, "") === (defaultLink.url ?? "").replace(/^\//, ""))) || s.title === defaultLink.title
-            );
-            const link = strapiLink ?? defaultLink;
-            const fbLink = defaultLink;
-            const linkUrlRaw = link.url ?? fbLink?.url ?? "#";
-            const linkUrl = linkUrlRaw === "#" ? "#" : linkUrlRaw.startsWith("/") ? linkUrlRaw : "/" + linkUrlRaw;
-            const sublinks =
-                Array.isArray(link.sublinks) && link.sublinks.length > 0
-                    ? link.sublinks
-                    : (fbLink && "sublinks" in fbLink ? (fbLink as MenuLink).sublinks : undefined) ?? ([] as MenuSublink[]);
-            return {
-                id: link.id,
-                title: link.title,
-                url: linkUrl,
-                sublinks,
-            };
-        }) as MenuLink[];
-        return {
-            id: strapiItem?.id ?? defaultSection.id,
-            title: strapiItem?.title ?? defaultSection.title,
-            url,
-            links,
-        };
+  const normalizeUrl = (value: string | null | undefined): string => {
+    if (!value) return "#";
+    if (value === "#") return "#";
+    return value.startsWith("/") ? value : `/${value}`;
+  };
+
+  const isSameNode = (
+    left: { url?: string | null; title?: string | null },
+    right: { url?: string | null; title?: string | null }
+  ) => {
+    const leftUrl = (left.url ?? "").replace(/^\//, "");
+    const rightUrl = (right.url ?? "").replace(/^\//, "");
+    return (leftUrl && leftUrl === rightUrl) || (!!left.title && left.title === right.title);
+  };
+
+  const mergeSublinks = (defaultLink: MenuLink, strapiLink?: MenuLink): MenuSublink[] => {
+    const fallback = Array.isArray(defaultLink.sublinks) ? defaultLink.sublinks : [];
+    const incoming = Array.isArray(strapiLink?.sublinks) ? strapiLink!.sublinks : [];
+    if (!fallback.length) return incoming;
+
+    const merged = fallback.map((fallbackItem) => {
+      const matched = incoming.find((item) => isSameNode(item, fallbackItem));
+      const node = matched ?? fallbackItem;
+      return {
+        id: node.id ?? fallbackItem.id,
+        title: node.title ?? fallbackItem.title,
+        url: normalizeUrl(node.url ?? fallbackItem.url),
+      } as MenuSublink;
     });
+
+    for (const incomingItem of incoming) {
+      if (!merged.some((item) => isSameNode(item, incomingItem))) {
+        merged.push({
+          id: incomingItem.id,
+          title: incomingItem.title,
+          url: normalizeUrl(incomingItem.url),
+        } as MenuSublink);
+      }
+    }
+
+    return merged;
+  };
+
+  const mergeLinks = (defaultSection: MenuSection, strapiSection?: MenuSection): MenuLink[] => {
+    const fallbackLinks = Array.isArray(defaultSection.links) ? defaultSection.links : [];
+    const incomingLinks = Array.isArray(strapiSection?.links) ? strapiSection!.links : [];
+    if (!fallbackLinks.length) {
+      return incomingLinks.map((incoming) => ({
+        id: incoming.id,
+        title: incoming.title,
+        url: normalizeUrl(incoming.url),
+        sublinks: Array.isArray(incoming.sublinks)
+          ? incoming.sublinks.map((sub) => ({ ...sub, url: normalizeUrl(sub.url) }))
+          : [],
+      })) as MenuLink[];
+    }
+
+    const merged = fallbackLinks.map((fallbackLink) => {
+      const matched = incomingLinks.find((item) => isSameNode(item, fallbackLink));
+      const node = matched ?? fallbackLink;
+      return {
+        id: node.id ?? fallbackLink.id,
+        title: node.title ?? fallbackLink.title,
+        url: normalizeUrl(node.url ?? fallbackLink.url),
+        sublinks: mergeSublinks(fallbackLink, matched),
+      } as MenuLink;
+    });
+
+    for (const incomingLink of incomingLinks) {
+      if (!merged.some((item) => isSameNode(item, incomingLink))) {
+        merged.push({
+          id: incomingLink.id,
+          title: incomingLink.title,
+          url: normalizeUrl(incomingLink.url),
+          sublinks: Array.isArray(incomingLink.sublinks)
+            ? incomingLink.sublinks.map((sub) => ({ ...sub, url: normalizeUrl(sub.url) }))
+            : [],
+        } as MenuLink);
+      }
+    }
+
+    return merged;
+  };
+
+  const fallbackSections = getDefaultMenu(locale);
+  const incomingSections = Array.isArray(menu) ? menu : [];
+
+  const mergedSections = fallbackSections.map((fallbackSection) => {
+    const matched = incomingSections.find((item) => isSameNode(item, fallbackSection));
+    const node = matched ?? fallbackSection;
+    return {
+      id: node.id ?? fallbackSection.id,
+      title: node.title ?? fallbackSection.title,
+      url: normalizeUrl(node.url ?? fallbackSection.url),
+      links: mergeLinks(fallbackSection, matched),
+    };
+  });
+
+  for (const incomingSection of incomingSections) {
+    if (!mergedSections.some((section) => isSameNode(section, incomingSection))) {
+      mergedSections.push({
+        id: incomingSection.id,
+        title: incomingSection.title,
+        url: normalizeUrl(incomingSection.url),
+        links: Array.isArray(incomingSection.links)
+          ? incomingSection.links.map((link) => ({
+              id: link.id,
+              title: link.title,
+              url: normalizeUrl(link.url),
+              sublinks: Array.isArray(link.sublinks)
+                ? link.sublinks.map((sub) => ({ ...sub, url: normalizeUrl(sub.url) }))
+                : [],
+            }))
+          : [],
+      } as MenuSection);
+    }
+  }
+
+  return mergedSections;
 }

@@ -3,12 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { getBreadcrumbItems, getDefaultMenu } from "@/lib/menu-sections";
+import { getBreadcrumbItems } from "@/lib/menu-sections";
 import { cn } from "@/lib/utils";
 import { defaultLocale, isValidLocale } from "@/lib/i18n";
 import { uiStrings } from "@/lib/ui-strings";
+import type { MenuSection } from "@/lib/strapi";
 
-export function Breadcrumbs({ className }: { className?: string }) {
+interface BreadcrumbsProps {
+  className?: string;
+  menu: MenuSection[];
+}
+
+export function Breadcrumbs({ className, menu }: BreadcrumbsProps) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
   const locale = segments.length > 0 && isValidLocale(segments[0]) ? segments[0] : defaultLocale;
@@ -16,7 +22,7 @@ export function Breadcrumbs({ className }: { className?: string }) {
 
   if (pathWithoutLocale.startsWith("/events")) return null;
 
-  const items = getBreadcrumbItems(pathWithoutLocale, getDefaultMenu(locale), locale);
+  const items = getBreadcrumbItems(pathWithoutLocale, menu, locale);
   if (items.length === 0) return null;
 
   const prefix = (href: string) => (href === "/" ? `/${locale}` : `/${locale}${href}`);

@@ -7,6 +7,8 @@ import { HtmlLang } from "@/components/layout/HtmlLang";
 import { RouteChangeIndicator } from "@/components/layout/RouteChangeIndicator";
 import { isValidLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+import { normalizeMenu } from "@/lib/menu-sections";
+import { getMenu } from "@/lib/strapi";
 
 export default async function LocaleLayout({
   children,
@@ -17,17 +19,20 @@ export default async function LocaleLayout({
 }>) {
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
+  const typedLocale = locale as Locale;
+  const menuData = await getMenu(typedLocale);
+  const breadcrumbMenu = normalizeMenu(menuData?.mainMenu, typedLocale) ?? [];
 
   return (
     <ThemeProvider>
-      <HtmlLang locale={locale as Locale} />
+      <HtmlLang locale={typedLocale} />
       <RouteChangeIndicator />
-      <HeaderWrapper locale={locale as Locale} />
+      <HeaderWrapper locale={typedLocale} />
       <main className="flex-1">
-        <Breadcrumbs />
+        <Breadcrumbs menu={breadcrumbMenu} />
         {children}
       </main>
-      <FooterWrapper locale={locale as Locale} />
+      <FooterWrapper locale={typedLocale} />
     </ThemeProvider>
   );
 }

@@ -227,7 +227,7 @@ export default {
       },
     });
   },
-  bootstrap(app: StrapiApp) {
+  bootstrap() {
     const oldUploadLabel = 'Перетащите сюда или';
     const newUploadLabel = 'Перетащите файлы сюда или выберите на компьютере';
 
@@ -243,11 +243,29 @@ export default {
       });
     };
 
+    const lockPageTitleInput = () => {
+      const onPageEditScreen = window.location.pathname.includes('/content-manager/collection-types/api::page.page');
+      if (!onPageEditScreen) return;
+
+      const titleInput = document.querySelector<HTMLInputElement>('input[name="title"]');
+      if (!titleInput) return;
+
+      if (!titleInput.disabled) {
+        titleInput.disabled = true;
+      }
+      titleInput.setAttribute('title', 'Поле заполняется автоматически из пункта меню');
+      titleInput.setAttribute('aria-disabled', 'true');
+      titleInput.style.cursor = 'not-allowed';
+      titleInput.style.opacity = '0.8';
+    };
+
     updateUploadDropzoneText();
+    lockPageTitleInput();
 
     // Модалка upload рендерится динамически — подхватываем новые узлы.
     const observer = new MutationObserver(() => {
       updateUploadDropzoneText();
+      lockPageTitleInput();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });

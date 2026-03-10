@@ -1,7 +1,7 @@
 import type { Core } from '@strapi/strapi';
 
 import { migrateArticleSectionUrls } from './bootstrap/migrations';
-import { registerPageTitleAutofill, syncPagesFromMainMenu } from './bootstrap/menu';
+import { registerPageSyncOnMenuChange, registerPageTitleAutofill, syncPagesFromMainMenu } from './bootstrap/menu';
 import { setPublicPermissions } from './bootstrap/permissions';
 import { seedGlobalIfEmpty, seedMenuIfEmpty } from './bootstrap/seed';
 import {
@@ -32,6 +32,7 @@ export default {
       await setPublicPermissions(strapi);
       await seedGlobalIfEmpty(strapi);
       await seedMenuIfEmpty(strapi);
+      registerPageSyncOnMenuChange(strapi);
       await syncPagesFromMainMenu(strapi);
       await migrateArticleSectionUrls(strapi);
       await ensureUploadOptimizationSettings(strapi);

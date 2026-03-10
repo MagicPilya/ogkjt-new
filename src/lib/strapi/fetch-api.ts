@@ -37,14 +37,22 @@ export async function fetchAPI<T>(path: string, urlParamsObject = {}, options = 
     const requestUrl = `${getStrapiURL()}/api${path}${queryString ? `?${queryString}` : ""}`;
 
     const mergedOptions = {
-      cache: "no-store" as RequestCache,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "no-store, no-cache",
-        Pragma: "no-cache",
       },
       ...options,
-    };
+    } as RequestInit & { next?: { revalidate?: number } };
+
+    const hasRevalidate = typeof mergedOptions.next?.revalidate === "number";
+    if (!hasRevalidate && mergedOptions.cache === undefined) {
+      mergedOptions.cache = "no-store";
+      const headerEntries = Object.fromEntries(new Headers(mergedOptions.headers).entries());
+      mergedOptions.headers = {
+        ...headerEntries,
+        "Cache-Control": "no-store, no-cache",
+        Pragma: "no-cache",
+      };
+    }
 
     if (isStrapiDebugLogsEnabled && requestedLocale !== undefined) {
       console.log("[Strapi] Запрос:", path, "| locale =", requestedLocale);

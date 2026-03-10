@@ -54,7 +54,8 @@ export async function loadSectionPageData(path: string, locale?: Locale): Promis
     isDocumentsPage ? getAdmissionDocuments(locale) : Promise.resolve(null),
   ]);
 
-  const title = pageData?.title ?? getTitleForPath(pathname, menu);
+  const menuTitle = getTitleForPath(pathname, menu);
+  const title = menuTitle !== pathname.replace(/^\//, "").trim() ? menuTitle : (pageData?.title ?? menuTitle);
 
   return {
     path,
@@ -78,7 +79,8 @@ export async function loadSectionPageMeta(path: string, locale?: Locale) {
   const menuData = await getMenu(locale);
   const menu = normalizeMenu(menuData?.mainMenu, locale ?? "ru") ?? [];
   const pageData = await getPageByPath(path, locale);
-  const menuTitle = pageData?.title ?? getTitleForPath(pathname, menu);
+  const rawMenuTitle = getTitleForPath(pathname, menu);
+  const menuTitle = rawMenuTitle !== pathname.replace(/^\//, "").trim() ? rawMenuTitle : (pageData?.title ?? rawMenuTitle);
 
   return {
     menuTitle,
