@@ -23,9 +23,7 @@ export async function getMenu(locale?: Locale) {
     "populate[mainMenu][populate][links][populate]": "*",
   };
   if (locale) params.locale = locale;
-  const data = await fetchAPI<StrapiResponse<MenuData>>("/menu", params, {
-    next: { revalidate: STATIC_REVALIDATE_SECONDS },
-  });
+  const data = await fetchAPI<StrapiResponse<MenuData>>("/menu", params);
   if (!data || !data.data) return null;
   return data.data;
 }

@@ -10,6 +10,7 @@ const MENU_POPULATE = {
     },
   },
 };
+const MENU_SYNC_STORE_KEY = 'page-urls-by-locale';
 
 function normalizeUrl(url: string): string {
   return url.startsWith('/') ? url : `/${url}`;
@@ -21,6 +22,27 @@ function getMainMenu(menuDoc: unknown): MenuSection[] {
 
 function resolveLocale(locale: unknown): string {
   return typeof locale === 'string' && locale.trim() ? locale : DEFAULT_MENU_LOCALE;
+}
+
+async function getPreviouslySyncedUrls(strapi: Core.Strapi, locale: string): Promise<string[]> {
+  const store = strapi.store({ type: 'core', name: 'menu-sync' });
+  const raw = (await store.get({ key: MENU_SYNC_STORE_KEY })) as Record<string, unknown> | null;
+  const byLocale = raw ?? {};
+  const value = byLocale[locale];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+async function setPreviouslySyncedUrls(strapi: Core.Strapi, locale: string, urls: string[]) {
+  const store = strapi.store({ type: 'core', name: 'menu-sync' });
+  const raw = (await store.get({ key: MENU_SYNC_STORE_KEY })) as Record<string, unknown> | null;
+  const byLocale = raw ?? {};
+  await store.set({
+    key: MENU_SYNC_STORE_KEY,
+    value: {
+      ...byLocale,
+      [locale]: urls,
+    },
+  });
 }
 
 export function getTitleForUrl(mainMenu: MenuSection[], pageUrl: string): string | null {
@@ -140,9 +162,36 @@ export function collectUrlTitleFromMenu(mainMenu: MenuSection[]): MenuPageItem[]
 }
 
 export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageItem[], locale = DEFAULT_MENU_LOCALE) {
-  if (!toCreate.length) return;
+  const pageUrls = toCreate.map((item) => normalizeUrl(item.pageUrl));
+  const desiredUrlSet = new Set(pageUrls);
+  const previouslySyncedUrls = await getPreviouslySyncedUrls(strapi, locale);
+  const urlsToDelete = previouslySyncedUrls.filter((url) => !desiredUrlSet.has(url));
 
-  const pageUrls = toCreate.map((item) => item.pageUrl);
+  if (urlsToDelete.length > 0) {
+    const stalePages = (await strapi.documents('api::page.page').findMany({
+      filters: { pageUrl: { $in: urlsToDelete } },
+      fields: ['documentId', 'pageUrl'],
+      locale,
+    })) as Array<{ documentId?: string; pageUrl?: string }>;
+
+    await Promise.all(
+      stalePages
+        .filter((page): page is { documentId: string; pageUrl: string } => Boolean(page.documentId && page.pageUrl))
+        .map(async (page) => {
+          await strapi.documents('api::page.page').delete({
+            documentId: page.documentId,
+            locale,
+          });
+          strapi.log.info(`Page removed after menu delete [${locale}]: ${page.pageUrl}`);
+        })
+    );
+  }
+
+  if (!toCreate.length) {
+    await setPreviouslySyncedUrls(strapi, locale, []);
+    return;
+  }
+
   const existingPages = (await strapi.documents('api::page.page').findMany({
     filters: { pageUrl: { $in: pageUrls } },
     fields: ['documentId', 'pageUrl', 'title'],
@@ -189,6 +238,8 @@ export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageIt
       }
     })
   );
+
+  await setPreviouslySyncedUrls(strapi, locale, pageUrls);
 }
 
 export async function syncPagesFromMainMenu(strapi: Core.Strapi, locale = DEFAULT_MENU_LOCALE) {
