@@ -321,6 +321,11 @@ export const uiStrings = {
     be: "Спампаваць",
     en: "Download",
   } as Record<Locale, string>,
+  attachments: {
+    ru: "Вложения",
+    be: "Дадаткі",
+    en: "Attachments",
+  } as Record<Locale, string>,
 
   /** Подразделы (блок внизу страницы раздела) */
   subSectionsTitle: {

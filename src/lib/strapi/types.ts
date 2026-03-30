@@ -73,6 +73,7 @@ export interface Article {
   date: string;
   cover: StrapiImage | null;
   media?: (StrapiImage | StrapiFile)[] | null;
+  files?: StrapiFile[] | null;
   sectionUrl?: string | null;
   createdAt: string;
   updatedAt: string;

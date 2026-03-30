@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowLeft, Languages } from "lucide-react";
+import { Calendar, ArrowLeft, Languages, FileDown } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getArticleBySlugOrDocumentId } from "@/lib/strapi";
 import { getArticleForLocale } from "@/lib/translateArticle";
-import { formatDate, getStrapiMediaWithFormats } from "@/lib/utils";
+import { formatDate, getStrapiMedia, getStrapiMediaWithFormats } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { MediaSlider, type MediaItem } from "@/components/blocks/MediaSlider";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
@@ -45,6 +45,7 @@ export default async function NewsDetailPage({ params }: Props) {
   const mediaList: MediaItem[] = Array.isArray(item.media)
     ? item.media
     : ((item as { Media?: MediaItem[] }).Media ?? []);
+  const attachments = Array.isArray(item.files) ? item.files : [];
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -102,6 +103,35 @@ export default async function NewsDetailPage({ params }: Props) {
           </p>
           <ContentBlocks blocks={item.content ?? undefined} />
         </div>
+
+        {attachments.length > 0 && (
+          <section className="mt-10 border-t border-slate-200 pt-8 dark:border-slate-800" aria-label={uiStrings.attachments[locale]}>
+            <h2 className="mb-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+              {uiStrings.attachments[locale]}
+            </h2>
+            <ul className="space-y-3">
+              {attachments.map((file, index) => {
+                const fileUrl = file?.url ? getStrapiMedia(file.url) : null;
+                if (!fileUrl) return null;
+                const label = file.name || file.alternativeText || `${uiStrings.download[locale]} ${index + 1}`;
+                return (
+                  <li key={file.id ?? index}>
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      className="inline-flex items-center gap-2 text-blue-600 transition hover:underline dark:text-blue-400"
+                    >
+                      <FileDown className="h-4 w-4 shrink-0" />
+                      <span>{label}</span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
       </article>
     </div>
   );

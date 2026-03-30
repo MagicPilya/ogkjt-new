@@ -48,6 +48,14 @@
                 "audios"
             ]
         },
+        "files": {
+            "type": "media",
+            "multiple": true,
+            "required": false,
+            "allowedTypes": [
+                "files"
+            ]
+        },
         "sectionUrl": {
             "type": "enumeration",
             "enum": [

@@ -1,5 +1,6 @@
 import { Languages } from "lucide-react";
 import { Metadata } from "next";
+import Link from "next/link";
 import { getPageByPath, getArticles } from "@/lib/strapi";
 import { getArticlesForLocale } from "@/lib/translateArticle";
 import { Events } from "@/components/blocks/Events";
@@ -8,9 +9,11 @@ import { ArticleCard } from "@/components/blocks/ArticleCard";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
+const NEWS_PAGE_SIZE = 12;
 
 interface Props {
   params: Promise<{ locale: Locale }>;
+  searchParams?: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -22,21 +25,46 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title, description };
 }
 
-export default async function NewsPage({ params }: Props) {
+export default async function NewsPage({ params, searchParams }: Props) {
   const { locale } = await params;
+  const { page: pageParam } = await (searchParams ?? Promise.resolve({ page: undefined }));
+  const parsedPage = Number.parseInt(pageParam ?? "1", 10);
+  const requestedPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const pageData = await getPageByPath("news", locale);
   const title = pageData?.title ?? "Новости колледжа";
   const feedSection =
     pageData?.articleFeedSection && pageData.articleFeedSection !== "Не показывать"
       ? pageData.articleFeedSection
       : "НОВОСТИ КОЛЛЕДЖА";
-  const { data: articles, isTranslated } = await getArticlesForLocale(
+  const { data: articles, meta, isTranslated } = await getArticlesForLocale(
     getArticles,
-    1,
-    50,
+    requestedPage,
+    NEWS_PAGE_SIZE,
     feedSection,
     locale
   );
+  const pagination = meta.pagination;
+  const currentPage = pagination.page;
+  const pageCount = pagination.pageCount;
+  const hasPrev = currentPage > 1;
+  const hasNext = currentPage < pageCount;
+  const labels = {
+    ru: { pagination: "Пагинация новостей", prev: "Назад", next: "Вперед" },
+    be: { pagination: "Пагінацыя навін", prev: "Назад", next: "Наперад" },
+    en: { pagination: "News pagination", prev: "Previous", next: "Next" },
+  }[locale];
+
+  const makePageHref = (page: number) => {
+    if (page <= 1) return `/${locale}/news`;
+    return `/${locale}/news?page=${page}`;
+  };
+
+  const pageWindowStart = Math.max(1, currentPage - 2);
+  const pageWindowEnd = Math.min(pageCount, currentPage + 2);
+  const pageNumbers: number[] = [];
+  for (let p = pageWindowStart; p <= pageWindowEnd; p += 1) {
+    pageNumbers.push(p);
+  }
 
   return (
     <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12">
@@ -78,6 +106,56 @@ export default async function NewsPage({ params }: Props) {
               );
             })}
           </div>
+          {pageCount > 1 && (
+            <nav className="mt-10 flex flex-wrap items-center justify-center gap-2" aria-label={labels.pagination}>
+              {hasPrev ? (
+                <Link
+                  href={makePageHref(currentPage - 1)}
+                  className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  {labels.prev}
+                </Link>
+              ) : (
+                <span className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-400 dark:border-slate-800 dark:text-slate-600">
+                  {labels.prev}
+                </span>
+              )}
+
+              {pageNumbers.map((page) => {
+                const isActive = page === currentPage;
+                return isActive ? (
+                  <span
+                    key={page}
+                    aria-current="page"
+                    className="rounded-md border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-semibold text-white"
+                  >
+                    {page}
+                  </span>
+                ) : (
+                  <Link
+                    key={page}
+                    href={makePageHref(page)}
+                    className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    {page}
+                  </Link>
+                );
+              })}
+
+              {hasNext ? (
+                <Link
+                  href={makePageHref(currentPage + 1)}
+                  className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  {labels.next}
+                </Link>
+              ) : (
+                <span className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-400 dark:border-slate-800 dark:text-slate-600">
+                  {labels.next}
+                </span>
+              )}
+            </nav>
+          )}
         </div>
 
         <div className="lg:col-span-4 xl:col-span-3">
