@@ -2,6 +2,12 @@ import type { Core } from '@strapi/strapi';
 
 import { DEFAULT_MENU_LOCALE } from './constants';
 
+const I18N_LOCALE_DISPLAY_NAMES: Record<string, string> = {
+  ru: 'Русский (ru)',
+  be: 'Беларуский (by)',
+  en: 'English (en)',
+};
+
 export async function seedGlobalIfEmpty(strapi: Core.Strapi) {
   const existing = await strapi.documents('api::global.global').findFirst({
     locale: DEFAULT_MENU_LOCALE,
@@ -51,4 +57,23 @@ export async function seedMenuIfEmpty(strapi: Core.Strapi) {
   });
 
   strapi.log.info('Menu single type seeded with empty mainMenu.');
+}
+
+export async function syncI18nLocaleDisplayNames(strapi: Core.Strapi) {
+  const localeQuery = strapi.db.query('plugin::i18n.locale');
+  const existingLocales = (await localeQuery.findMany({
+    select: ['id', 'code', 'name'],
+  })) as Array<{ id: number; code: string; name?: string }>;
+
+  await Promise.all(
+    existingLocales.map(async (locale) => {
+      const expectedName = I18N_LOCALE_DISPLAY_NAMES[locale.code];
+      if (!expectedName || locale.name === expectedName) return;
+      await localeQuery.update({
+        where: { id: locale.id },
+        data: { name: expectedName },
+      });
+      strapi.log.info(`Updated i18n locale name: ${locale.code} -> ${expectedName}`);
+    })
+  );
 }

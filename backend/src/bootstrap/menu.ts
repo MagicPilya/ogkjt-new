@@ -11,6 +11,7 @@ const MENU_POPULATE = {
   },
 };
 const MENU_SYNC_STORE_KEY = 'page-urls-by-locale';
+const DEFAULT_PAGE_CONTENT = [{ type: 'paragraph', children: [{ type: 'text', text: '' }] }];
 
 function normalizeUrl(url: string): string {
   return url.startsWith('/') ? url : `/${url}`;
@@ -212,7 +213,7 @@ export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageIt
       if (!existing) {
         await strapi.documents('api::page.page').create({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi create typings are narrower than runtime support.
-          data: { pageUrl: normalizedUrl, title, content: [] } as any,
+          data: { pageUrl: normalizedUrl, title, content: DEFAULT_PAGE_CONTENT } as any,
           status: 'published',
           locale,
         });
@@ -272,11 +273,46 @@ export function registerPageSyncOnMenuChange(strapi: Core.Strapi) {
   });
 
   strapi.server.use(async (ctx, next) => {
+    const denyRequest = (message: string) => {
+      ctx.status = 403;
+      ctx.body = {
+        data: null,
+        error: {
+          status: 403,
+          name: 'ForbiddenError',
+          message,
+          details: {},
+        },
+      };
+    };
+
     const queryLocale = typeof ctx.query?.locale === 'string' ? ctx.query.locale : undefined;
     const body = (ctx.request.body ?? {}) as { locale?: unknown; data?: { locale?: unknown } };
     const bodyLocale = typeof body.locale === 'string' ? body.locale : undefined;
     const bodyDataLocale = typeof body.data?.locale === 'string' ? body.data.locale : undefined;
     const locale = resolveLocale(queryLocale ?? bodyLocale ?? bodyDataLocale);
+
+    const isPageCreateRoute = ctx.method === 'POST' && ctx.path === '/content-manager/collection-types/api::page.page';
+    const isPageDeleteRoute = ctx.method === 'DELETE' && ctx.path.startsWith('/content-manager/collection-types/api::page.page/');
+    const isPageBulkDeleteRoute =
+      ctx.method === 'POST' && ctx.path === '/content-manager/collection-types/api::page.page/actions/bulkDelete';
+    const isPageDeleteAllLocalesRoute =
+      ctx.method === 'POST' && ctx.path === '/content-manager/collection-types/api::page.page/actions/delete';
+    if (isPageCreateRoute) {
+      const bodyDocumentId = (ctx.request.body as { documentId?: unknown; data?: { documentId?: unknown } } | undefined)
+        ?.documentId;
+      const bodyDataDocumentId = (ctx.request.body as { documentId?: unknown; data?: { documentId?: unknown } } | undefined)
+        ?.data?.documentId;
+      const isLocalizationCreate = typeof bodyDocumentId === 'string' || typeof bodyDataDocumentId === 'string';
+      if (!isLocalizationCreate) {
+        denyRequest('Создание страниц вручную запрещено. Страницы создаются из меню.');
+        return;
+      }
+    }
+    if (isPageDeleteRoute || isPageBulkDeleteRoute || isPageDeleteAllLocalesRoute) {
+      denyRequest('Удаление страниц вручную запрещено. Удаляйте пункт в меню.');
+      return;
+    }
 
     const isPageCollectionReadRoute =
       ctx.method === 'GET' &&

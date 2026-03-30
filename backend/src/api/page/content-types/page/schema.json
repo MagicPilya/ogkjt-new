@@ -14,7 +14,11 @@
       "type": "customField",
       "customField": "global::menu-link-select",
       "required": true,
-      "pluginOptions": { "i18n": { "localized": true } }
+      "pluginOptions": {
+        "i18n": { "localized": true },
+        "content-manager": { "visible": false },
+        "content-type-builder": { "visible": false }
+      }
     },
     "title": {
       "type": "string",
@@ -41,7 +45,11 @@
       "type": "enumeration",
       "enum": ["Не показывать", "НОВОСТИ КОЛЛЕДЖА", "НОВОСТИ ОБЩЕЖИТИЯ", "О колледже", "Абитуриентам", "Обучающимся", "Воспитательная работа", "Одно окно", "Электронные обращения"],
       "description": "Показывать под контентом страницы блок «Новости»: выберите раздел (откуда брать статьи) или «Не показывать»",
-      "pluginOptions": { "i18n": { "localized": true } }
+      "pluginOptions": {
+        "i18n": { "localized": true },
+        "content-manager": { "visible": false },
+        "content-type-builder": { "visible": false }
+      }
     }
   }
 }

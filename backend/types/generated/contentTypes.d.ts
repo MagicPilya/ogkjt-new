@@ -880,6 +880,12 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
       ]
     > &
       Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: false;
+        };
+        'content-type-builder': {
+          visible: false;
+        };
         i18n: {
           localized: true;
         };
@@ -911,6 +917,12 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.CustomField<'global::menu-link-select'> &
       Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: false;
+        };
+        'content-type-builder': {
+          visible: false;
+        };
         i18n: {
           localized: true;
         };

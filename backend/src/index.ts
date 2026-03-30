@@ -3,11 +3,12 @@ import type { Core } from '@strapi/strapi';
 import { migrateArticleSectionUrls } from './bootstrap/migrations';
 import { registerPageSyncOnMenuChange, registerPageTitleAutofill, syncPagesFromMainMenu } from './bootstrap/menu';
 import { setPublicPermissions } from './bootstrap/permissions';
-import { seedGlobalIfEmpty, seedMenuIfEmpty } from './bootstrap/seed';
+import { seedGlobalIfEmpty, seedMenuIfEmpty, syncI18nLocaleDisplayNames } from './bootstrap/seed';
 import {
   ensureUploadOptimizationSettings,
   patchUploadFolderStructure,
   patchUploadImageOptimizer,
+  registerManualImageOptimizerEndpoint,
   patchWindowsTempUnlinkCrashGuard,
   patchWindowsUploadTempCleanup,
 } from './bootstrap/upload-settings';
@@ -29,7 +30,9 @@ export default {
       await patchWindowsUploadTempCleanup(strapi);
       patchUploadFolderStructure(strapi);
       patchUploadImageOptimizer(strapi);
+      registerManualImageOptimizerEndpoint(strapi);
       await setPublicPermissions(strapi);
+      await syncI18nLocaleDisplayNames(strapi);
       await seedGlobalIfEmpty(strapi);
       await seedMenuIfEmpty(strapi);
       registerPageSyncOnMenuChange(strapi);
