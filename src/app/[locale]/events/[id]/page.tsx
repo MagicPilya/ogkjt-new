@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowLeft, MapPin, FileText } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getEventById } from "@/lib/strapi";
 import { getEventForLocale } from "@/lib/translateEvent";
@@ -31,6 +31,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventDetailPage({ params }: Props) {
   const { id, locale } = await params;
+  if (locale !== "ru") {
+    redirect(`/ru/events/${id}`);
+  }
+
   const result = await getEventForLocale(getEventById, id, locale);
 
   if (!result) notFound();
