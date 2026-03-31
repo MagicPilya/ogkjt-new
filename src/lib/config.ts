@@ -15,6 +15,6 @@ function normalizeStrapiUrl(url: string): string {
   return `http://${trimmed}`;
 }
 
-const rawUrl = process.env.NEXT_PUBLIC_STRAPI_URL || "http://178.172.137.227:1337";
+const rawUrl = process.env.NEXT_PUBLIC_STRAPI_URL || "https://api.ogkjt.by";
 export const STRAPI_URL = normalizeStrapiUrl(rawUrl);
 

@@ -39,6 +39,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'api.devsu.site',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.ogkjt.by',
       }
     ],
   },

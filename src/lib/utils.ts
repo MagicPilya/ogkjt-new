@@ -24,15 +24,26 @@ function isLocalStrapiHost(url: string): boolean {
 
 /**
  * Базовый URL Strapi для медиа в браузере.
- * Для локального Strapi (localhost/127.0.0.1) оставляем HTTP, иначе браузер даёт ERR_SSL_PROTOCOL_ERROR.
- * Для удалённого — HTTPS, чтобы не было mixed content на HTTPS-страницах.
+ * Используем ровно тот base, который задан в STRAPI_URL.
  */
 function getStrapiMediaBase(): string {
-  const base = getStrapiURL();
-  if (isLocalStrapiHost(base)) {
-    return base;
+  return getStrapiURL();
+}
+
+function rewriteAbsoluteStrapiMediaUrl(url: string): string {
+  try {
+    const source = new URL(url);
+    const base = new URL(getStrapiMediaBase());
+
+    // Strapi-медиа нормализуем к публичному base из env.
+    if (source.pathname.startsWith("/uploads/")) {
+      return `${base.origin}${source.pathname}${source.search}${source.hash}`;
+    }
+
+    return url;
+  } catch {
+    return url;
   }
-  return base.replace(/^http:\/\//i, "https://");
 }
 
 /**
@@ -61,9 +72,7 @@ export function getStrapiMedia(
   }
 
   if (url.startsWith("http://") || url.startsWith("https://")) {
-    const isLocal = isLocalStrapiHost(url);
-    if (isLocal) return url;
-    return url.startsWith("http://") ? url.replace(/^http:\/\//i, "https://") : url;
+    return rewriteAbsoluteStrapiMediaUrl(url);
   }
   if (url.startsWith("//")) {
     const base = getStrapiMediaBase();
