@@ -95,9 +95,10 @@ export default async function NewsDetailPage({ params }: Props) {
         </div>
 
         {mediaList.length > 0 && (
-          <div className="mb-10">
-            <MediaSlider items={mediaList} height="400px" />
-          </div>
+          <section className="mb-10 mt-14 border-t border-slate-200 pt-8 dark:border-slate-800" aria-label="Фотогалерея">
+            <h2 className="mb-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Фотогалерея</h2>
+            <MediaSlider items={mediaList} height="340px" />
+          </section>
         )}
 
         <div className="prose prose-slate dark:prose-invert max-w-none lg:prose-lg">
