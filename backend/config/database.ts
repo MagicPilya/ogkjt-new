@@ -58,7 +58,13 @@ export default ({ env }: { env: any }) => {
     },
   };
 
-  const client = env('DATABASE_CLIENT', 'sqlite') as DatabaseClient;
+  const nodeEnv = env('NODE_ENV', 'development');
+  const rawClient = env('DATABASE_CLIENT');
+  if (nodeEnv === 'production' && !rawClient) {
+    throw new Error('DATABASE_CLIENT is required in production. Refusing to fallback to sqlite.');
+  }
+
+  const client = (rawClient ?? 'sqlite') as DatabaseClient;
 
   return {
     connection: {
