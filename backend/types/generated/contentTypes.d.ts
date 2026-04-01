@@ -606,7 +606,7 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
   };
   pluginOptions: {
     i18n: {
-      localized: true;
+      localized: false;
     };
   };
   attributes: {
@@ -618,11 +618,12 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     date: Schema.Attribute.Date;
     files: Schema.Attribute.Media<'files', true>;
-    locale: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::article.article'
-    >;
+    > &
+      Schema.Attribute.Private;
     Media: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios',
       true
@@ -661,7 +662,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   };
   pluginOptions: {
     i18n: {
-      localized: true;
+      localized: false;
     };
   };
   attributes: {
@@ -671,8 +672,9 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     date: Schema.Attribute.DateTime & Schema.Attribute.Required;
     description: Schema.Attribute.Blocks;
     file: Schema.Attribute.Media<'images' | 'files'>;
-    locale: Schema.Attribute.String;
-    localizations: Schema.Attribute.Relation<'oneToMany', 'api::event.event'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::event.event'> &
+      Schema.Attribute.Private;
     location: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String & Schema.Attribute.Required;

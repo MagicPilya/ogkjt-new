@@ -24,3 +24,25 @@
   text-align: center !important;
 }
 
+/* Единый размер статусов в списках контента (Опубликовано / Черновик). */
+main tbody td [role="status"],
+main tbody td [data-testid*="status" i],
+main tbody td [class*="badge" i] {
+  min-width: 118px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+/* У статусов одинаковая типографика, как у "Опубликовано". */
+main tbody td [role="status"] :is(span, div, p),
+main tbody td [data-testid*="status" i] :is(span, div, p),
+main tbody td [class*="badge" i] :is(span, div, p) {
+  font-size: 1.4rem;
+  line-height: 1.43;
+  font-weight: 600;
+}
+

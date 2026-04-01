@@ -331,14 +331,15 @@ export default {
     const normalizePageEditLayout = () => {
       const onPageEditScreen = window.location.pathname.includes('/content-manager/collection-types/api::page.page');
       if (!onPageEditScreen) return;
+      const pageEditRoot = document.querySelector<HTMLElement>('main') ?? document.body;
 
       const findFieldContainer = (fieldName: string, fallbackLabel?: string): HTMLElement | null => {
-        const byDataAttr = document.querySelector<HTMLElement>(
+        const byDataAttr = pageEditRoot.querySelector<HTMLElement>(
           `[data-strapi-field-name="${fieldName}"], [data-field-name="${fieldName}"]`
         );
         if (byDataAttr) return byDataAttr;
 
-        const byName = document.querySelector<HTMLElement>(`[name="${fieldName}"]`);
+        const byName = pageEditRoot.querySelector<HTMLElement>(`[name="${fieldName}"]`);
         if (byName) {
           let current: HTMLElement | null = byName;
           for (let i = 0; i < 8 && current?.parentElement; i += 1) {
@@ -351,7 +352,7 @@ export default {
         }
 
         if (fallbackLabel) {
-          const textNodes = document.querySelectorAll<HTMLElement>('label, span, div, p');
+          const textNodes = pageEditRoot.querySelectorAll<HTMLElement>('label, span, div, p');
           for (const node of Array.from(textNodes)) {
             if (node.textContent?.trim() !== fallbackLabel) continue;
             const wrapper =
@@ -367,18 +368,6 @@ export default {
       const hideField = (fieldName: string, label: string) => {
         const fieldContainer = findFieldContainer(fieldName, label);
         if (fieldContainer) fieldContainer.style.display = 'none';
-
-        // Иногда в правой колонке остается отдельный текстовый узел лейбла.
-        const textNodes = document.querySelectorAll<HTMLElement>('label, span, div, p');
-        textNodes.forEach((node) => {
-          if (node.textContent?.trim() !== label) return;
-          const wrapper = node.closest<HTMLElement>('[data-strapi-field-name], [data-field-name], div');
-          if (wrapper) {
-            wrapper.style.display = 'none';
-          } else {
-            node.style.display = 'none';
-          }
-        });
       };
 
       hideField('pageUrl', 'Страница');
@@ -445,6 +434,131 @@ export default {
       });
     };
 
+    const localizeCommonStatusBadges = () => {
+      const elements = document.querySelectorAll<HTMLElement>('span, div, p');
+      elements.forEach((el) => {
+        const text = el.textContent?.trim();
+        if (!text) return;
+        if (text === 'Modified') el.textContent = 'Черновик';
+        if (text === 'Draft') el.textContent = 'Черновик';
+        if (text === 'Опубликован') el.textContent = 'Опубликовано';
+        if (text === 'Published') el.textContent = 'Опубликовано';
+      });
+    };
+
+    const normalizeStatusBadgeTypography = () => {
+      const statusTexts = new Set(['Черновик', 'Опубликовано']);
+      const elements = document.querySelectorAll<HTMLElement>('span, div, p');
+      elements.forEach((el) => {
+        const text = el.textContent?.trim();
+        if (!text || !statusTexts.has(text)) return;
+        el.style.fontSize = '1.4rem';
+        el.style.lineHeight = '1.43';
+        el.style.fontWeight = '600';
+      });
+    };
+
+    const localizeAndNormalizeStatusBadges = () => {
+      localizeCommonStatusBadges();
+      normalizeStatusBadgeTypography();
+      localizeCommonStatusBadges();
+      normalizeStatusBadgeTypography();
+    };
+
+    const isArticleOrEventScreen = () =>
+      window.location.pathname.includes('/content-manager/collection-types/api::article.article') ||
+      window.location.pathname.includes('/content-manager/collection-types/api::event.event');
+    const isEventScreen = () => window.location.pathname.includes('/content-manager/collection-types/api::event.event');
+
+    const keepRuLocaleInAddressBarForArticleAndEvent = () => {
+      if (!isArticleOrEventScreen()) return;
+      const url = new URL(window.location.href);
+      let changed = false;
+
+      const localeKeys = ['locale', 'plugins[i18n][locale]'];
+      localeKeys.forEach((key) => {
+        const current = url.searchParams.get(key);
+        if (current === 'ru') return;
+        if (current !== null || key === 'locale') {
+          url.searchParams.set(key, 'ru');
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+      }
+    };
+
+    const hideLocaleControlsForArticleAndEvent = () => {
+      if (!isArticleOrEventScreen()) return;
+      const root = document.querySelector<HTMLElement>('main') ?? document.body;
+      const localeTokens = new Set(['ru', 'be', 'en', 'русский', 'беларуская', 'english']);
+      const controls = root.querySelectorAll<HTMLElement>('button, [role="button"], select, a[href]');
+
+      controls.forEach((node) => {
+        const text = (node.textContent ?? '').trim().toLowerCase();
+        const ariaLabel = (node.getAttribute('aria-label') ?? '').trim().toLowerCase();
+        const testId = (node.getAttribute('data-testid') ?? '').trim().toLowerCase();
+        const href = (node.getAttribute('href') ?? '').trim().toLowerCase();
+        const name = (node.getAttribute('name') ?? '').trim().toLowerCase();
+        const id = (node.getAttribute('id') ?? '').trim().toLowerCase();
+        const haystack = `${text} ${ariaLabel} ${testId} ${name} ${id}`;
+        const hasLocaleHint = /locale|локал|language|язык|i18n/.test(haystack);
+        const isLocaleToken = localeTokens.has(text);
+        const hasI18nHref = href.includes('plugins%5bi18n%5d%5blocale%5d') || href.includes('plugins[i18n][locale]');
+
+        if (!hasLocaleHint && !isLocaleToken && !hasI18nHref) return;
+        if (node.closest('table')) return;
+
+        if (node instanceof HTMLSelectElement) {
+          node.value = 'ru';
+          node.disabled = true;
+        }
+        if (node instanceof HTMLButtonElement) {
+          node.disabled = true;
+          node.setAttribute('aria-disabled', 'true');
+        }
+
+        const wrapper =
+          node.closest<HTMLElement>('[data-testid*="locale" i]') ||
+          node.closest<HTMLElement>('[aria-label*="locale" i]') ||
+          node.closest<HTMLElement>('[role="group"]') ||
+          null;
+        const target = wrapper ?? node;
+        if (target.getBoundingClientRect().width > 700) return;
+        target.style.display = 'none';
+      });
+
+      const directLocaleComboboxSelectors = [
+        '[aria-label="Выбрать перевод"][role="combobox"]',
+        '[aria-label="Select translation"][role="combobox"]',
+      ].join(', ');
+      const directLocaleComboboxes = root.querySelectorAll<HTMLElement>(directLocaleComboboxSelectors);
+      directLocaleComboboxes.forEach((node) => {
+        const wrapper =
+          node.closest<HTMLElement>('[data-state]') ||
+          node.closest<HTMLElement>('[role="group"]') ||
+          node.parentElement;
+        const target = wrapper ?? node;
+        target.style.display = 'none';
+      });
+
+      if (isEventScreen()) {
+        const topContainers = root.querySelectorAll<HTMLElement>('header, [role="toolbar"], [role="group"], nav, section, div');
+        topContainers.forEach((container) => {
+          const text = (container.textContent ?? '').toLowerCase();
+          const hasLocaleLabel = text.includes('locale') || text.includes('локал');
+          const hasLocaleValues = /\bru\b/.test(text) && (/\bbe\b/.test(text) || /\ben\b/.test(text));
+          const hasLocaleHref = !!container.querySelector('a[href*="plugins%5Bi18n%5D%5Blocale%5D"], a[href*="plugins[i18n][locale]"]');
+
+          if (!hasLocaleLabel && !hasLocaleValues && !hasLocaleHref) return;
+          if (container.getBoundingClientRect().width > 800) return;
+          container.style.display = 'none';
+        });
+      }
+    };
+
     const localizeBlocksLinkPopoverTexts = () => {
       const dialogs = document.querySelectorAll<HTMLElement>('[role="dialog"]');
       dialogs.forEach((dialog) => {
@@ -482,6 +596,87 @@ export default {
           if (placeholder === 'Enter link text') {
             input.setAttribute('placeholder', 'Введите текст ссылки');
           }
+        });
+      });
+    };
+
+    const localizeEntryActionsMenuTexts = () => {
+      const nodes = document.querySelectorAll<HTMLElement>('span, div, p, button, a');
+      const applyDeleteLikeTypography = (node: HTMLElement) => {
+        node.style.fontSize = '1.4rem';
+        node.style.lineHeight = '1.43';
+        node.style.fontWeight = '600';
+      };
+      nodes.forEach((node) => {
+        const text = node.textContent?.trim();
+        if (!text) return;
+
+        if (text === 'Edit') {
+          node.textContent = 'Редактировать';
+          applyDeleteLikeTypography(node);
+          return;
+        }
+        if (text === 'Duplicate') {
+          node.textContent = 'Дублировать';
+          applyDeleteLikeTypography(node);
+          return;
+        }
+        if (text === 'Редактировать' || text === 'Дублировать') {
+          applyDeleteLikeTypography(node);
+          return;
+        }
+        if (text === 'Delete entry') {
+          node.textContent = 'Удалить запись';
+          return;
+        }
+        if (text === 'Delete entry (all locales)') {
+          node.textContent = 'Удалить запись (все локали)';
+        }
+      });
+    };
+
+    const localizeCreateEntryTexts = () => {
+      const nodes = document.querySelectorAll<HTMLElement>('h1, h2, h3, span, div, p, a, button');
+      nodes.forEach((node) => {
+        const text = node.textContent?.trim();
+        if (!text) return;
+        if (text === 'Create an entry') {
+          node.textContent = 'Создать запись';
+        }
+      });
+    };
+
+    const localizeDocumentTitle = () => {
+      const title = document.title;
+      if (!title) return;
+      if (title.includes('Untitled')) {
+        document.title = title.replace(/Untitled/g, 'Без названия');
+      }
+    };
+
+    const hideUserCollectionTypeInSidebar = () => {
+      const userHrefTokens = [
+        'plugin::users-permissions.user',
+        'plugin%3a%3ausers-permissions.user',
+        'plugin%3a%3ausers-permissions%2euser',
+        'users-permissions%2euser',
+        'users-permissions.user',
+      ];
+      const sidebarRoots = document.querySelectorAll<HTMLElement>('nav, aside');
+      if (sidebarRoots.length === 0) return;
+
+      sidebarRoots.forEach((sidebarRoot) => {
+        const links = sidebarRoot.querySelectorAll<HTMLAnchorElement>('a[href]');
+        links.forEach((link) => {
+          const href = (link.getAttribute('href') ?? '').toLowerCase();
+          if (!href) return;
+          if (!userHrefTokens.some((token) => href.includes(token))) return;
+          const row =
+            link.closest<HTMLElement>('[role="listitem"]') ||
+            link.closest<HTMLElement>('[role="menuitem"]') ||
+            link.closest<HTMLElement>('li') ||
+            link;
+          row.style.display = 'none';
         });
       });
     };
@@ -904,9 +1099,46 @@ export default {
       return applyFallbackFormatting(action, root);
     };
 
+    const isDraftShortcutScreen = () => {
+      const path = window.location.pathname;
+      return (
+        path.includes('/content-manager/collection-types/api::article.article') ||
+        path.includes('/content-manager/collection-types/api::event.event') ||
+        path.includes('/content-manager/collection-types/api::page.page')
+      );
+    };
+
+    const trySaveDraftByHotkey = (): boolean => {
+      if (!isDraftShortcutScreen()) return false;
+      const root = document.querySelector<HTMLElement>('main') ?? document.body;
+      const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('button'));
+      const saveButton = buttons.find((button) => {
+        if (button.disabled || button.getAttribute('aria-disabled') === 'true') return false;
+        if (!isVisible(button)) return false;
+        const text = `${button.textContent ?? ''} ${button.getAttribute('aria-label') ?? ''}`.toLowerCase().trim();
+        if (!text) return false;
+        return text.includes('save') || text.includes('сохран');
+      });
+
+      if (!saveButton) return false;
+      saveButton.click();
+      return true;
+    };
+
     const hotkeyHandler = (event: KeyboardEvent) => {
       const hasModifier = event.ctrlKey || event.metaKey;
       if (!hasModifier) return;
+      const key = event.key.toLowerCase();
+      const code = event.code;
+
+      if ((code === 'KeyS' || key === 's') && !event.shiftKey && !event.altKey) {
+        const saved = trySaveDraftByHotkey();
+        if (!saved) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation?.();
+        return;
+      }
 
       const target = event.target as HTMLElement | null;
       const targetEditor = target?.closest?.('[data-slate-editor="true"]') as HTMLElement | null;
@@ -914,8 +1146,6 @@ export default {
       const editorRoot = targetEditor ?? activeEditor;
 
       let action: BlocksAction | null = null;
-      const key = event.key.toLowerCase();
-      const code = event.code;
       const allowSimple = !event.shiftKey || event.altKey;
 
       // Используем code, чтобы сочетания работали при любой раскладке клавиатуры.
@@ -1170,7 +1400,14 @@ export default {
     normalizePageEditLayout();
     lockPageDeleteButtons();
     localizeI18nLocalePickerTexts();
+    keepRuLocaleInAddressBarForArticleAndEvent();
+    hideLocaleControlsForArticleAndEvent();
     localizeBlocksLinkPopoverTexts();
+    localizeAndNormalizeStatusBadges();
+    localizeEntryActionsMenuTexts();
+    localizeCreateEntryTexts();
+    localizeDocumentTitle();
+    hideUserCollectionTypeInSidebar();
     ensureImageOptimizerButton();
 
     document.addEventListener('keydown', hotkeyHandler, true);
@@ -1189,7 +1426,14 @@ export default {
       normalizePageEditLayout();
       lockPageDeleteButtons();
       localizeI18nLocalePickerTexts();
+      keepRuLocaleInAddressBarForArticleAndEvent();
+      hideLocaleControlsForArticleAndEvent();
       localizeBlocksLinkPopoverTexts();
+      localizeAndNormalizeStatusBadges();
+      localizeEntryActionsMenuTexts();
+      localizeCreateEntryTexts();
+      localizeDocumentTitle();
+      hideUserCollectionTypeInSidebar();
       ensureImageOptimizerButton();
     });
 

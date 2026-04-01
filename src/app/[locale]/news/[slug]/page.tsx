@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Calendar, ArrowLeft, Languages, FileDown } from "lucide-react";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getArticleBySlugOrDocumentId } from "@/lib/strapi";
 import { getArticleForLocale } from "@/lib/translateArticle";
@@ -35,9 +35,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function NewsDetailPage({ params }: Props) {
   const { slug, locale } = await params;
   if (!slug || slug === "null") notFound();
-  if (locale !== "ru") {
-    redirect(`/ru/news/${slug}`);
-  }
 
   const result = await getArticleForLocale(getArticleBySlugOrDocumentId, slug, locale);
 

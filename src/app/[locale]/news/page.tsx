@@ -1,7 +1,6 @@
 import { Languages } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getPageByPath, getArticles } from "@/lib/strapi";
 import { getArticlesForLocale } from "@/lib/translateArticle";
 import { Events } from "@/components/blocks/Events";
@@ -29,12 +28,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function NewsPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const { page: pageParam } = await (searchParams ?? Promise.resolve({ page: undefined }));
-
-  if (locale !== "ru") {
-    const targetPath = pageParam && pageParam !== "1" ? `/ru/news?page=${encodeURIComponent(pageParam)}` : "/ru/news";
-    redirect(targetPath);
-  }
-
   const parsedPage = Number.parseInt(pageParam ?? "1", 10);
   const requestedPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const pageData = await getPageByPath("news", locale);

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Menu, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +39,6 @@ interface HeaderProps {
 }
 
 export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem }: HeaderProps) {
-  const pathname = usePathname();
   const menuItems = React.useMemo(() => {
     const baseItems = [...(initialMenu ?? [])];
     if (!yearThemeMenuItem) return baseItems;
@@ -78,11 +76,6 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
 
     const fullNameClasses = isLowVision ? "hidden 2xl:inline-block" : "hidden lg:inline-block";
     const shortNameClasses = isLowVision ? "2xl:hidden" : "lg:hidden";
-  const hideLocaleSwitcher = React.useMemo(() => {
-    if (!pathname) return false;
-    return /^\/(?:ru|be|en)\/(?:news(?:\/|$)|events(?:\/|$))/.test(pathname);
-  }, [pathname]);
-
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-slate-950 shadow-sm">
             {/* Уровень 1: Служебный функционал */}
@@ -93,7 +86,7 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                         <span className={shortNameClasses}>{shortCollegeName}</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
-                        {!hideLocaleSwitcher && <LocaleSwitcher currentLocale={locale} />}
+                        <LocaleSwitcher currentLocale={locale} />
                         <ThemeToggle locale={locale} />
                         <SearchDialog locale={locale} />
                         <LowVisionToggle locale={locale} />
