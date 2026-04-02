@@ -9,7 +9,7 @@ import { ArticleCard } from "@/components/blocks/ArticleCard";
 
 export async function NewsGrid({ locale }: { locale?: Locale }) {
   const loc = locale ?? "ru";
-  const { data: articles } = await getArticlesForLocale(getArticles, 1, 3, null, loc);
+  const { data: articles } = await getArticlesForLocale(getArticles, 1, 6, null, loc);
 
   return (
     <div className="h-full flex flex-col">
