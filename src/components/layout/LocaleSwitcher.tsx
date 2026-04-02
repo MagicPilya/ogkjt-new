@@ -64,7 +64,7 @@ export function LocaleSwitcher({ currentLocale, className }: LocaleSwitcherProps
       </div>
 
       {/* От 480px — три кнопки-ссылки */}
-      <div className="hidden xs:flex items-center gap-1">
+      <div className="hidden xs:flex items-center gap-1 4xl:gap-2">
         {locales.map((loc) => {
           const href = `/${loc}${pathWithoutLocale}`;
           const isActive = loc === currentLocale;
@@ -85,7 +85,7 @@ export function LocaleSwitcher({ currentLocale, className }: LocaleSwitcherProps
                 });
               }}
               className={cn(
-                "px-2 py-1 text-xs font-medium rounded transition-colors inline-flex items-center gap-1",
+                "px-2 py-1 text-xs font-medium rounded transition-colors inline-flex items-center gap-1 3xl:text-sm 4xl:text-lg 4xl:px-3 4xl:py-1.5",
                 isPending && "opacity-80 pointer-events-none",
                 isActive
                   ? "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200"

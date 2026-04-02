@@ -31,7 +31,9 @@ const VKIcon = ({ className }: { className?: string }) => (
 interface FooterProps {
   settings?: GlobalSettings | null;
   menu?: MenuSection[] | null;
+  resources?: Array<{ title: string; url: string }> | null;
   locale?: Locale;
+  yearThemeMenuItem?: { title: string; url: string } | null;
 }
 
 const fallbackResources: Record<Locale, Array<{ title: string; url: string }>> = {
@@ -55,7 +57,7 @@ const fallbackResources: Record<Locale, Array<{ title: string; url: string }>> =
   ],
 };
 
-export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
+export function Footer({ settings, menu, resources, locale = "ru", yearThemeMenuItem }: FooterProps) {
   const fallback = collegeNamesFallback[locale];
   const address = settings?.address || siteDefaults.address;
   const phoneReception = settings?.phoneReception || siteDefaults.phoneReception;
@@ -65,9 +67,11 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
   const shortCollegeName = settings?.collegeShortName || fallback.short;
   const logoLine1 = settings?.collegeMainName || fallback.main;
   const logoLine2 = settings?.collegeBranchShortName || fallback.branchShort;
-  const resourcesRaw = settings?.resources as unknown;
-  const normalizedResources = Array.isArray(resourcesRaw)
-    ? resourcesRaw
+  const resourcesFromMenu = Array.isArray(resources) ? resources : [];
+  const resourcesFromGlobal = Array.isArray(settings?.resources) ? settings.resources : [];
+  const resourcesSource = resourcesFromMenu.length > 0 ? resourcesFromMenu : resourcesFromGlobal;
+  const normalizedResources = Array.isArray(resourcesSource)
+    ? resourcesSource
         .map((item) => {
           const entry = item as
             | { title?: string; url?: string; attributes?: { title?: string; url?: string } }
@@ -79,8 +83,21 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
         })
         .filter((item): item is { title: string; url: string } => Boolean(item))
     : [];
-  const resources = normalizedResources.length > 0 ? normalizedResources : fallbackResources[locale];
-  const navigation = (menu ?? []).filter((item) => !!item.url);
+  const footerResources = normalizedResources.length > 0 ? normalizedResources : fallbackResources[locale];
+  const baseNavigation = (menu ?? []).filter((item) => !!item.url);
+  const navigation = yearThemeMenuItem && yearThemeMenuItem.url
+    ? baseNavigation.some((item) => item.url === yearThemeMenuItem.url)
+      ? baseNavigation
+      : [
+          ...baseNavigation,
+          {
+            id: Number.MAX_SAFE_INTEGER,
+            title: yearThemeMenuItem.title,
+            url: yearThemeMenuItem.url,
+            links: [],
+          },
+        ]
+    : baseNavigation;
   const prefix = (url: string) => (url?.startsWith("/") ? `/${locale}${url}` : `/${locale}/${url}`);
 
   return (
@@ -141,7 +158,7 @@ export function Footer({ settings, menu, locale = "ru" }: FooterProps) {
           <div className="flex flex-col items-center">
             <h3 className="font-semibold mb-2 text-lg">{uiStrings.footerResources[locale]}</h3>
             <ul className="space-y-0 text-sm leading-none text-slate-600 dark:text-slate-400 [&>li]:py-px">
-              {resources.map((resource, index) => (
+              {footerResources.map((resource, index) => (
                 <li key={`${resource.url}-${index}`}>
                   <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 inline-flex min-h-[26px] items-center touch-manipulation">
                     {resource.title}

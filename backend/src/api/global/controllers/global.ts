@@ -8,7 +8,10 @@ import { factories } from '@strapi/strapi';
 import { createLocalizedSingleTypeController } from '../../../utils/createLocalizedSingleTypeController';
 
 const uid = 'api::global.global';
+const populate = {
+  resources: true,
+};
 
 export default factories.createCoreController(uid, ({ strapi }) => ({
-  ...createLocalizedSingleTypeController(strapi, uid),
+  ...createLocalizedSingleTypeController(strapi, uid, { populate }),
 }));

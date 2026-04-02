@@ -21,6 +21,7 @@ export async function getMenu(locale?: Locale) {
   const params: Record<string, string> = {
     status: "published",
     "populate[mainMenu][populate][links][populate]": "*",
+    "populate[footerResources]": "*",
   };
   if (locale) params.locale = locale;
   const data = await fetchAPI<StrapiResponse<MenuData>>("/menu", params);

@@ -26,22 +26,32 @@ export function ArticleCard({
   const displayDate = article.date || article.publishedAt || article.createdAt;
 
   return (
-    <Card className={`flex flex-col overflow-hidden hover:shadow-lg transition-shadow ${centered ? "text-center" : "h-full"}`}>
-      <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+    <Card className={`flex h-full flex-col gap-0 overflow-hidden py-0 transition-shadow hover:shadow-lg ${centered ? "text-center" : ""}`}>
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={article.cover?.alternativeText || article.title}
-            loading="lazy"
-            className="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
-          />
+          <>
+            <img
+              src={imageUrl}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl"
+            />
+            <div className="absolute inset-0 bg-black/10" />
+            <img
+              src={imageUrl}
+              alt={article.cover?.alternativeText || article.title}
+              loading="lazy"
+              className="relative z-10 h-full w-full object-contain transition-transform duration-300 hover:scale-[1.02]"
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-400">
             {uiStrings.noPhoto[locale]}
           </div>
         )}
       </div>
-      <CardHeader>
+      <CardHeader className="pt-5">
         <div className={`flex items-center text-sm text-slate-500 mb-2 ${centered ? "justify-center" : ""}`}>
           <Calendar className="mr-2 h-4 w-4" />
           {formatDate(displayDate, locale)}
@@ -51,7 +61,7 @@ export function ArticleCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1">
-        <p className={`text-slate-600 dark:text-slate-400 line-clamp-3 ${centered ? "" : "text-sm"}`}>
+        <p className={`line-clamp-4 break-words text-slate-600 dark:text-slate-400 leading-relaxed text-sm ${centered ? "text-base" : ""}`}>
           {article.announcement}
         </p>
       </CardContent>

@@ -18,6 +18,7 @@ const populate = {
       links: { populate: ['sublinks'] },
     },
   },
+  footerResources: true,
 };
 
 export default factories.createCoreController(uid, ({ strapi }) => ({

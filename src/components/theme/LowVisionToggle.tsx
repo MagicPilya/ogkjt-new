@@ -49,9 +49,9 @@ export function LowVisionToggle({ locale = "ru" }: { locale?: Locale }) {
       onClick={toggle}
       aria-label={active ? uiStrings.disableLowVision[locale] : uiStrings.enableLowVision[locale]}
       aria-pressed={active}
-      className="h-11 min-h-[44px] min-w-[44px] px-3 sm:px-4 text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-offset-2"
+      className="h-11 min-h-[44px] min-w-[44px] px-3 sm:px-4 3xl:h-12 4xl:h-14 3xl:text-sm 4xl:text-lg 4xl:px-5 text-slate-600 dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-offset-2"
     >
-      <Eye className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+      <Eye className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6 shrink-0" aria-hidden />
       <span className="hidden md:inline header-tool-label">{uiStrings.lowVisionLabel[locale]}</span>
     </Button>
   );

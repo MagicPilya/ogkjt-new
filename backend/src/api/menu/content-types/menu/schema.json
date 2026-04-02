@@ -17,6 +17,12 @@
       "repeatable": true,
       "component": "elements.menu-section",
       "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "footerResources": {
+      "type": "component",
+      "repeatable": true,
+      "component": "elements.footer-resource",
+      "pluginOptions": { "i18n": { "localized": true } }
     }
   }
 }

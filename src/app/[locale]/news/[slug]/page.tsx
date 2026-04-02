@@ -78,6 +78,9 @@ export default async function NewsDetailPage({ params }: Props) {
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-6">
             {item.title}
           </h1>
+          <p className="lead text-xl text-slate-600 dark:text-slate-300 mx-auto mb-8 max-w-3xl">
+            {item.announcement}
+          </p>
         </div>
 
         <div className="relative h-[400px] w-full overflow-hidden rounded-xl mb-10 bg-slate-100">
@@ -99,9 +102,6 @@ export default async function NewsDetailPage({ params }: Props) {
         )}
 
         <div className="prose prose-slate dark:prose-invert max-w-none lg:prose-lg">
-          <p className="lead text-xl text-slate-600 dark:text-slate-300 mb-6">
-            {item.announcement}
-          </p>
           <ContentBlocks blocks={item.content ?? undefined} />
         </div>
 

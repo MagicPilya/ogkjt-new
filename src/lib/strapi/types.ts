@@ -203,4 +203,9 @@ export interface MenuData {
   id: number;
   documentId: string;
   mainMenu: MenuSection[];
+  footerResources?: Array<{
+    id?: number;
+    title: string;
+    url: string;
+  }> | null;
 }

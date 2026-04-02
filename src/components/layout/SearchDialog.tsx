@@ -117,9 +117,9 @@ export function SearchDialog({ locale }: { locale?: Locale }) {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 text-slate-600 dark:text-slate-300"
+          className="h-8 3xl:h-10 4xl:h-12 text-slate-600 dark:text-slate-300 3xl:text-sm 4xl:text-lg"
         >
-          <Search className="mr-2 h-4 w-4 md:mr-2" />
+          <Search className="mr-2 h-4 w-4 3xl:h-5 3xl:w-5 4xl:h-6 4xl:w-6 md:mr-2" />
           <span className="hidden md:inline header-tool-label">{uiStrings.search[activeLocale]}</span>
         </Button>
       </DialogTrigger>
