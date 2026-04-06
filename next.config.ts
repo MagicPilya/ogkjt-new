@@ -19,10 +19,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'http',
         hostname: '178.172.137.227', // Strapi на сервере
+        pathname: '/uploads/**',
       },
       {
         protocol: 'https',
         hostname: '178.172.137.227', // Strapi на сервере
+        pathname: '/uploads/**',
       },
       {
         protocol: 'https',
@@ -43,6 +45,7 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'api.ogkjt.by',
+        pathname: '/uploads/**',
       }
     ],
   },

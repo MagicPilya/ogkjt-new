@@ -27,7 +27,22 @@ function isLocalStrapiHost(url: string): boolean {
  * Используем ровно тот base, который задан в STRAPI_URL.
  */
 function getStrapiMediaBase(): string {
-  return getStrapiURL();
+  const base = getStrapiURL();
+  try {
+    const parsed = new URL(base);
+    const isIpHost = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(parsed.hostname);
+    const isLocalHost =
+      parsed.hostname === "localhost" ||
+      parsed.hostname === "127.0.0.1" ||
+      parsed.hostname === "::1";
+    // На проде стабилизируем медиа через публичный API-домен вместо прямого IP.
+    if (process.env.NODE_ENV === "production" && isIpHost && !isLocalHost) {
+      return "https://api.ogkjt.by";
+    }
+  } catch {
+    // no-op: если URL кривой, просто используем исходное значение
+  }
+  return base;
 }
 
 function rewriteAbsoluteStrapiMediaUrl(url: string): string {
