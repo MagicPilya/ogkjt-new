@@ -18,13 +18,22 @@ cp -f "$rel/server.js" ./server.js
 cp -f "$rel/package.json" ./package.json 2>/dev/null || true
 cp -f "$rel/package-lock.json" ./package-lock.json
 
-# Detect actual CloudLinux venv path (nodevenv/nodeenv, requested or any installed major).
-APP_VENV_DIR=$(ls -d "/home/__USER__/nodevenv/apps/ogkjt-web/__NODE_MAJOR__" "/home/__USER__/nodeenv/apps/ogkjt-web/__NODE_MAJOR__" 2>/dev/null | head -n1 || true)
+# Detect actual CloudLinux venv path (nodevenv/nodeenv, requested or any installed major)
+# and ensure selected venv really has executable node/npm.
+APP_VENV_DIR=""
+for p in \
+  "/home/__USER__/nodevenv/apps/ogkjt-web/__NODE_MAJOR__" \
+  "/home/__USER__/nodeenv/apps/ogkjt-web/__NODE_MAJOR__" \
+  /home/__USER__/nodevenv/apps/ogkjt-web/[0-9]* \
+  /home/__USER__/nodeenv/apps/ogkjt-web/[0-9]*; do
+  [ -d "$p" ] || continue
+  if [ -x "$p/bin/node" ] && [ -x "$p/bin/npm" ]; then
+    APP_VENV_DIR="$p"
+    break
+  fi
+done
 if [ -z "$APP_VENV_DIR" ]; then
-  APP_VENV_DIR=$(ls -d "/home/__USER__/nodevenv/apps/ogkjt-web"/[0-9]* "/home/__USER__/nodeenv/apps/ogkjt-web"/[0-9]* 2>/dev/null | head -n1 || true)
-fi
-if [ -z "$APP_VENV_DIR" ]; then
-  echo "Missing Node venv for ogkjt-web" >&2
+  echo "No usable Node venv found for ogkjt-web (missing bin/node or bin/npm)" >&2
   exit 1
 fi
 VENV_BIN="$APP_VENV_DIR/bin"
