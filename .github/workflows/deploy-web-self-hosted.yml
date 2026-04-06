@@ -33,21 +33,47 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect web-related changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            web:
+              - 'src/**'
+              - 'public/**'
+              - 'next.config.*'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'scripts/ci/**'
+              - '.github/workflows/deploy-web-self-hosted.yml'
+
+      - name: Skip web deploy (no relevant changes)
+        if: github.event_name != 'workflow_dispatch' && steps.changes.outputs.web != 'true'
+        shell: powershell
+        run: |
+          Write-Host "No web-related changes detected. Skipping web build/deploy."
 
       - name: Setup Node.js
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.web == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install dependencies
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.web == 'true'
         shell: powershell
         run: npm ci
 
       - name: Build Next.js (webpack)
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.web == 'true'
         shell: powershell
         run: npm run build -- --webpack
 
       - name: Prepare lightweight deploy package
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.web == 'true'
         shell: powershell
         run: |
           Remove-Item -Recurse -Force .\deploy -ErrorAction SilentlyContinue
@@ -66,6 +92,7 @@ jobs:
           tar -czf .\web-release.tar.gz -C .\deploy .
 
       - name: Upload and deploy via SSH
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.web == 'true'
         shell: powershell
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}

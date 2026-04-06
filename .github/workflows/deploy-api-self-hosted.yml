@@ -33,25 +33,50 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect API-related changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'backend/**'
+              - 'scripts/ci/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/deploy-api-self-hosted.yml'
+
+      - name: Skip API deploy (no relevant changes)
+        if: github.event_name != 'workflow_dispatch' && steps.changes.outputs.api != 'true'
+        shell: powershell
+        run: |
+          Write-Host "No API-related changes detected. Skipping API build/deploy."
 
       - name: Setup Node.js
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install root dependencies (required by shared PostCSS config)
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
         shell: powershell
         run: npm ci
 
       - name: Install backend dependencies
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
         shell: powershell
         run: npm --prefix backend ci
 
       - name: Build Strapi admin
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
         shell: powershell
         run: npm --prefix backend run build
 
       - name: Pack API release
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
         shell: powershell
         run: |
           $adminBuildPath = $null
@@ -77,6 +102,7 @@ jobs:
           tar -czf .\api-release.tar.gz -C .\api-deploy backend
 
       - name: Upload and deploy API via SSH
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
         shell: powershell
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
