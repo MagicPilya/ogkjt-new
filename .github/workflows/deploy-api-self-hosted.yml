@@ -2,6 +2,15 @@ name: Deploy API to cPanel (Self-Hosted)
 
 on:
   workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: "Force API deploy even when no API-related changes"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
   push:
     branches: ["main"]
 
@@ -49,34 +58,34 @@ jobs:
               - '.github/workflows/deploy-api-self-hosted.yml'
 
       - name: Skip API deploy (no relevant changes)
-        if: github.event_name != 'workflow_dispatch' && steps.changes.outputs.api != 'true'
+        if: steps.changes.outputs.api != 'true' && github.event.inputs.force_deploy != 'true'
         shell: powershell
         run: |
           Write-Host "No API-related changes detected. Skipping API build/deploy."
 
       - name: Setup Node.js
-        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
+        if: steps.changes.outputs.api == 'true' || github.event.inputs.force_deploy == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install root dependencies (required by shared PostCSS config)
-        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
+        if: steps.changes.outputs.api == 'true' || github.event.inputs.force_deploy == 'true'
         shell: powershell
         run: npm ci
 
       - name: Install backend dependencies
-        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
+        if: steps.changes.outputs.api == 'true' || github.event.inputs.force_deploy == 'true'
         shell: powershell
         run: npm --prefix backend ci
 
       - name: Build Strapi admin
-        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
+        if: steps.changes.outputs.api == 'true' || github.event.inputs.force_deploy == 'true'
         shell: powershell
         run: npm --prefix backend run build
 
       - name: Pack API release
-        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
+        if: steps.changes.outputs.api == 'true' || github.event.inputs.force_deploy == 'true'
         shell: powershell
         run: |
           $adminBuildPath = $null
@@ -102,7 +111,7 @@ jobs:
           tar -czf .\api-release.tar.gz -C .\api-deploy backend
 
       - name: Upload and deploy API via SSH
-        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
+        if: steps.changes.outputs.api == 'true' || github.event.inputs.force_deploy == 'true'
         shell: powershell
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
@@ -123,6 +132,9 @@ jobs:
           $localScriptPath = Join-Path $env:RUNNER_TEMP "deploy-api.sh"
           $template = Get-Content -Raw ".\scripts\ci\deploy-api.sh.tpl"
           $lfScript = $template.Replace("__REMOTE_ARCHIVE__", $remoteArchive).Replace("__USER__", $userName).Replace("__NODE_MAJOR__", $nodeMajor)
+          $lfScript = $lfScript -replace "`r`n", "`n"
+          $lfScript = $lfScript -replace "`r", "`n"
+          if (-not $lfScript.EndsWith("`n")) { $lfScript += "`n" }
           $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
           [System.IO.File]::WriteAllText($localScriptPath, $lfScript, $utf8NoBom)
 
