@@ -954,16 +954,16 @@ export default {
 
         runBtn.onclick = async () => {
           const token = tokenInput.value.trim();
-          if (!token) {
-            appendLog('Ошибка: введите NEWS_IMPORT_TOKEN');
-            return;
-          }
           const file = zipInput.files?.[0];
           if (!file) {
             appendLog('Ошибка: выберите ZIP-файл');
             return;
           }
-          window.localStorage.setItem(NEWS_IMPORT_TOKEN_STORAGE_KEY, token);
+          if (token) {
+            window.localStorage.setItem(NEWS_IMPORT_TOKEN_STORAGE_KEY, token);
+          } else {
+            window.localStorage.removeItem(NEWS_IMPORT_TOKEN_STORAGE_KEY);
+          }
 
           runBtn.disabled = true;
           runBtn.textContent = 'Импорт...';
@@ -978,7 +978,7 @@ export default {
               method: 'POST',
               credentials: 'include',
               headers: {
-                'x-news-import-token': token,
+                ...(token ? { 'x-news-import-token': token } : {}),
                 ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
               },
               body: form,

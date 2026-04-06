@@ -85,30 +85,36 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
     const body = (ctx.request.body ?? {}) as ImportRequestBody;
     const dryRun = body.dryRun === true || String(body.dryRun ?? '').toLowerCase() === 'true';
 
-    const token = process.env.NEWS_IMPORT_TOKEN || process.env.STRAPI_TOKEN || '';
-    if (!token) {
-      ctx.status = 500;
-      ctx.body = {
-        data: null,
-        error: {
-          status: 500,
-          name: 'ApplicationError',
-          message: 'Не задан NEWS_IMPORT_TOKEN (или STRAPI_TOKEN) на сервере.',
-          details: {},
-        },
-      };
-      return;
-    }
-
+    const tokenFromEnv = process.env.NEWS_IMPORT_TOKEN?.trim() || '';
     const providedToken = String(ctx.request.headers['x-news-import-token'] ?? '').trim();
-    if (!providedToken || providedToken !== token) {
+    const adminAuthHeader = String(ctx.request.headers.authorization ?? '').trim();
+    const hasAdminBearer = /^bearer\s+/i.test(adminAuthHeader);
+
+    // Security model:
+    // - If NEWS_IMPORT_TOKEN is configured -> require x-news-import-token match.
+    // - If not configured -> allow requests from authenticated Strapi Admin (Bearer/cookie flow).
+    if (tokenFromEnv) {
+      if (!providedToken || providedToken !== tokenFromEnv) {
+        ctx.status = 401;
+        ctx.body = {
+          data: null,
+          error: {
+            status: 401,
+            name: 'UnauthorizedError',
+            message: 'Неверный токен запуска импорта.',
+            details: {},
+          },
+        };
+        return;
+      }
+    } else if (!hasAdminBearer && !ctx.state?.user) {
       ctx.status = 401;
       ctx.body = {
         data: null,
         error: {
           status: 401,
           name: 'UnauthorizedError',
-          message: 'Неверный токен запуска импорта.',
+          message: 'Требуется авторизация администратора.',
           details: {},
         },
       };
@@ -117,6 +123,20 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
 
     const cwd = process.cwd();
     const strapiUrl = process.env.STRAPI_PUBLIC_URL || process.env.STRAPI_URL || 'http://127.0.0.1:1337';
+    const strapiImportToken = process.env.STRAPI_TOKEN || process.env.NEWS_IMPORT_STRAPI_TOKEN || '';
+    if (!strapiImportToken) {
+      ctx.status = 500;
+      ctx.body = {
+        data: null,
+        error: {
+          status: 500,
+          name: 'ApplicationError',
+          message: 'Не задан STRAPI_TOKEN (или NEWS_IMPORT_STRAPI_TOKEN) для внутреннего импорта.',
+          details: {},
+        },
+      };
+      return;
+    }
     const filesContainer = (ctx.request.files ?? {}) as Record<string, UploadedLike | UploadedLike[]>;
     const firstFileValue = filesContainer.zip ?? Object.values(filesContainer)[0];
     const uploadFile = Array.isArray(firstFileValue) ? firstFileValue[0] : firstFileValue;
@@ -200,7 +220,7 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
         cwd,
         sourceDir,
         strapiUrl,
-        strapiToken: token,
+        strapiToken: strapiImportToken,
         dryRun,
       });
 
