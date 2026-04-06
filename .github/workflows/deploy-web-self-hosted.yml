@@ -56,8 +56,6 @@ jobs:
               - 'next.config.*'
               - 'package.json'
               - 'package-lock.json'
-              - 'scripts/ci/**'
-              - '.github/workflows/deploy-web-self-hosted.yml'
 
       - name: Skip web deploy (no relevant changes)
         if: steps.changes.outputs.web != 'true' && github.event.inputs.force_deploy != 'true'

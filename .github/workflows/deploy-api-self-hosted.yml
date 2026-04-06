@@ -52,10 +52,8 @@ jobs:
           filters: |
             api:
               - 'backend/**'
-              - 'scripts/ci/**'
               - 'package.json'
               - 'package-lock.json'
-              - '.github/workflows/deploy-api-self-hosted.yml'
 
       - name: Skip API deploy (no relevant changes)
         if: steps.changes.outputs.api != 'true' && github.event.inputs.force_deploy != 'true'
