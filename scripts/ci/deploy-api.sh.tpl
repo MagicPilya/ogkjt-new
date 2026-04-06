@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -Eeuo pipefail
 cd /home/__USER__/apps/ogkjt-api
 rel=_incoming_api_$(date +%s)
 mkdir -p "$rel"
@@ -15,3 +15,9 @@ mkdir -p /home/__USER__/apps/ogkjt-api/tmp
 touch /home/__USER__/apps/ogkjt-api/tmp/restart.txt
 rm -f "__REMOTE_ARCHIVE__"
 rm -rf "$rel"
+
+# Keep deploy footprint small: cleanup old rollout leftovers.
+find "/home/__USER__/apps/ogkjt-api" -maxdepth 1 -type d -name '_incoming_api_*' -mtime +2 -exec rm -rf {} + 2>/dev/null || true
+find "/home/__USER__" -maxdepth 1 -type d -name '_incoming_api_*' -mtime +2 -exec rm -rf {} + 2>/dev/null || true
+find "/home/__USER__/tmp" -maxdepth 1 -type f -name 'api-release*.tar.gz' -mtime +2 -delete 2>/dev/null || true
+find "/home/__USER__/tmp" -maxdepth 1 -type f -name 'deploy-api.sh' -mtime +2 -delete 2>/dev/null || true

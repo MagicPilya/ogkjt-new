@@ -67,3 +67,11 @@ mkdir -p tmp
 touch tmp/restart.txt
 rm -f "$ARCHIVE"
 rm -rf "$rel"
+
+# Keep deploy footprint small: cleanup old rollout leftovers.
+find "$APP_DIR" -maxdepth 1 -type d -name '.next_old_*' -mtime +2 -exec rm -rf {} + 2>/dev/null || true
+find "$APP_DIR" -maxdepth 1 -type d -name 'public_old_*' -mtime +2 -exec rm -rf {} + 2>/dev/null || true
+find "$APP_DIR" -maxdepth 1 -type d -name '_incoming_*' -mtime +2 -exec rm -rf {} + 2>/dev/null || true
+find "/home/__USER__" -maxdepth 1 -type d -name '_incoming_*' -mtime +2 -exec rm -rf {} + 2>/dev/null || true
+find "/home/__USER__/tmp" -maxdepth 1 -type f -name 'web-release*.tar.gz' -mtime +2 -delete 2>/dev/null || true
+find "/home/__USER__/tmp" -maxdepth 1 -type f -name 'deploy-web.sh' -mtime +2 -delete 2>/dev/null || true
