@@ -123,7 +123,13 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
 
     const cwd = process.cwd();
     const strapiUrl = process.env.STRAPI_PUBLIC_URL || process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-    const strapiImportToken = process.env.STRAPI_TOKEN || process.env.NEWS_IMPORT_STRAPI_TOKEN || '';
+    const bearerToken = hasAdminBearer ? adminAuthHeader.replace(/^bearer\s+/i, '').trim() : '';
+    const strapiImportToken =
+      process.env.STRAPI_TOKEN?.trim() ||
+      process.env.NEWS_IMPORT_STRAPI_TOKEN?.trim() ||
+      providedToken ||
+      bearerToken ||
+      '';
     if (!strapiImportToken) {
       ctx.status = 500;
       ctx.body = {
@@ -131,7 +137,8 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
         error: {
           status: 500,
           name: 'ApplicationError',
-          message: 'Не задан STRAPI_TOKEN (или NEWS_IMPORT_STRAPI_TOKEN) для внутреннего импорта.',
+          message:
+            'Не найден токен для импорта: задайте STRAPI_TOKEN/NEWS_IMPORT_STRAPI_TOKEN в env или передайте токен в поле модалки.',
           details: {},
         },
       };
