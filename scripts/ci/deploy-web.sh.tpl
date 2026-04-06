@@ -49,7 +49,20 @@ export PATH="$VENV_BIN:$PATH"
 LOCK_HASH_FILE=/home/__USER__/apps/ogkjt-web/.last-lock-hash
 NEW_HASH=$(sha256sum package-lock.json | awk '{print $1}')
 OLD_HASH=$(cat "$LOCK_HASH_FILE" 2>/dev/null || true)
-if [ "$NEW_HASH" != "$OLD_HASH" ]; then npm ci --omit=dev --no-audit --no-fund && echo "$NEW_HASH" > "$LOCK_HASH_FILE"; else echo "Dependencies unchanged, skip npm ci"; fi
+NEED_INSTALL=0
+if [ "$NEW_HASH" != "$OLD_HASH" ]; then
+  NEED_INSTALL=1
+fi
+if [ ! -f "node_modules/next/package.json" ]; then
+  echo "next is missing in node_modules; forcing npm ci"
+  NEED_INSTALL=1
+fi
+if [ "$NEED_INSTALL" -eq 1 ]; then
+  npm ci --omit=dev --no-audit --no-fund
+  echo "$NEW_HASH" > "$LOCK_HASH_FILE"
+else
+  echo "Dependencies unchanged, skip npm ci"
+fi
 mkdir -p tmp
 touch tmp/restart.txt
 rm -f "$ARCHIVE"
