@@ -682,6 +682,8 @@ export default {
     };
 
     const IMAGE_OPTIMIZER_BUTTON_ID = 'ogkjt-image-optimizer-run-button';
+    const NEWS_IMPORT_BUTTON_ID = 'ogkjt-news-import-run-button';
+    const NEWS_IMPORT_TOKEN_STORAGE_KEY = 'ogkjt-news-import-token';
     const getAdminJwtToken = () => {
       const localStorageCandidates = ['jwtToken', 'strapi-admin-jwt', 'token'];
       for (const key of localStorageCandidates) {
@@ -830,6 +832,227 @@ export default {
           button.style.transform = 'translateY(0)';
         }
       };
+
+      document.body.appendChild(button);
+    };
+
+    const ensureNewsImportButton = () => {
+      const onArticleScreen = window.location.pathname.includes('/content-manager/collection-types/api::article.article');
+      const existingButton = document.getElementById(NEWS_IMPORT_BUTTON_ID) as HTMLButtonElement | null;
+      if (!onArticleScreen) {
+        if (existingButton) existingButton.remove();
+        return;
+      }
+
+      if (existingButton) return;
+
+      const showImportModal = () => {
+        const existing = document.getElementById('ogkjt-news-import-modal');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'ogkjt-news-import-modal';
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.zIndex = '10000';
+        overlay.style.background = 'rgba(12, 14, 24, 0.72)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+
+        const modal = document.createElement('div');
+        modal.style.width = 'min(860px, calc(100vw - 24px))';
+        modal.style.maxHeight = 'calc(100vh - 24px)';
+        modal.style.background = '#1d2340';
+        modal.style.border = '1px solid rgba(124, 138, 230, 0.35)';
+        modal.style.borderRadius = '12px';
+        modal.style.padding = '14px';
+        modal.style.display = 'flex';
+        modal.style.flexDirection = 'column';
+        modal.style.gap = '10px';
+        modal.style.boxShadow = '0 18px 48px rgba(0,0,0,.45)';
+
+        const title = document.createElement('div');
+        title.textContent = 'Импорт новостей из ZIP';
+        title.style.fontSize = '15px';
+        title.style.fontWeight = '700';
+        title.style.color = '#f4f7ff';
+
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'password';
+        tokenInput.placeholder = 'NEWS_IMPORT_TOKEN';
+        tokenInput.value = window.localStorage.getItem(NEWS_IMPORT_TOKEN_STORAGE_KEY) ?? '';
+        tokenInput.style.padding = '8px 10px';
+        tokenInput.style.borderRadius = '8px';
+        tokenInput.style.border = '1px solid rgba(160, 171, 244, 0.35)';
+        tokenInput.style.background = '#12172c';
+        tokenInput.style.color = '#eaf0ff';
+
+        const zipInput = document.createElement('input');
+        zipInput.type = 'file';
+        zipInput.accept = '.zip,application/zip';
+        zipInput.style.color = '#dfe7ff';
+
+        const dryWrap = document.createElement('label');
+        dryWrap.style.display = 'inline-flex';
+        dryWrap.style.alignItems = 'center';
+        dryWrap.style.gap = '8px';
+        dryWrap.style.color = '#d9e0ff';
+        dryWrap.style.fontSize = '13px';
+        const dryInput = document.createElement('input');
+        dryInput.type = 'checkbox';
+        dryWrap.appendChild(dryInput);
+        dryWrap.append('DRY RUN (без записи)');
+
+        const logArea = document.createElement('textarea');
+        logArea.readOnly = true;
+        logArea.value = 'Готово к запуску импорта...\n';
+        logArea.style.width = '100%';
+        logArea.style.minHeight = '260px';
+        logArea.style.resize = 'vertical';
+        logArea.style.padding = '10px';
+        logArea.style.borderRadius = '8px';
+        logArea.style.border = '1px solid rgba(117, 129, 211, 0.35)';
+        logArea.style.background = '#10152a';
+        logArea.style.color = '#d6e2ff';
+        logArea.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+        logArea.style.fontSize = '12px';
+
+        const btnRow = document.createElement('div');
+        btnRow.style.display = 'flex';
+        btnRow.style.justifyContent = 'flex-end';
+        btnRow.style.gap = '8px';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.textContent = 'Закрыть';
+        closeBtn.style.padding = '8px 12px';
+        closeBtn.style.borderRadius = '8px';
+        closeBtn.style.border = '1px solid rgba(148, 158, 225, 0.35)';
+        closeBtn.style.background = '#1b2140';
+        closeBtn.style.color = '#dfe6ff';
+
+        const runBtn = document.createElement('button');
+        runBtn.type = 'button';
+        runBtn.textContent = 'Запустить импорт ZIP';
+        runBtn.style.padding = '8px 12px';
+        runBtn.style.borderRadius = '8px';
+        runBtn.style.border = '1px solid rgba(72, 179, 116, 0.55)';
+        runBtn.style.background = 'linear-gradient(180deg, #2d9b62 0%, #1f7c4c 100%)';
+        runBtn.style.color = '#f6fff9';
+        runBtn.style.fontWeight = '600';
+
+        const appendLog = (text: string) => {
+          logArea.value += `${text}\n`;
+          logArea.scrollTop = logArea.scrollHeight;
+        };
+
+        closeBtn.onclick = () => overlay.remove();
+        overlay.onclick = (e) => {
+          if (e.target === overlay) overlay.remove();
+        };
+
+        runBtn.onclick = async () => {
+          const token = tokenInput.value.trim();
+          if (!token) {
+            appendLog('Ошибка: введите NEWS_IMPORT_TOKEN');
+            return;
+          }
+          const file = zipInput.files?.[0];
+          if (!file) {
+            appendLog('Ошибка: выберите ZIP-файл');
+            return;
+          }
+          window.localStorage.setItem(NEWS_IMPORT_TOKEN_STORAGE_KEY, token);
+
+          runBtn.disabled = true;
+          runBtn.textContent = 'Импорт...';
+          try {
+            appendLog(`Загрузка: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+            const adminToken = getAdminJwtToken();
+            const form = new FormData();
+            form.append('zip', file);
+            form.append('dryRun', dryInput.checked ? 'true' : 'false');
+
+            const response = await window.fetch('/content-manager/news-import/zip', {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'x-news-import-token': token,
+                ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
+              },
+              body: form,
+            });
+
+            const text = await response.text();
+            let payload: {
+              data?: { ok?: boolean; code?: number; sourceDir?: string; stdout?: string; stderr?: string };
+              error?: { message?: string };
+            } = {};
+            try {
+              payload = text ? (JSON.parse(text) as typeof payload) : {};
+            } catch {
+              payload = { error: { message: text || `HTTP ${response.status}` } };
+            }
+
+            appendLog(`HTTP ${response.status}`);
+            if (payload.data?.sourceDir) appendLog(`Source: ${payload.data.sourceDir}`);
+            if (payload.data?.stdout) appendLog(`\nstdout:\n${payload.data.stdout}`);
+            if (payload.data?.stderr) appendLog(`\nstderr:\n${payload.data.stderr}`);
+
+            if (!response.ok || payload.data?.ok === false) {
+              throw new Error(payload?.error?.message ?? 'Импорт завершился с ошибкой');
+            }
+            appendLog('\nГотово: импорт завершен успешно.');
+          } catch (error) {
+            appendLog(`\nОшибка: ${error instanceof Error ? error.message : String(error)}`);
+          } finally {
+            runBtn.disabled = false;
+            runBtn.textContent = 'Запустить импорт ZIP';
+          }
+        };
+
+        btnRow.appendChild(closeBtn);
+        btnRow.appendChild(runBtn);
+
+        modal.appendChild(title);
+        modal.appendChild(tokenInput);
+        modal.appendChild(zipInput);
+        modal.appendChild(dryWrap);
+        modal.appendChild(logArea);
+        modal.appendChild(btnRow);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+      };
+
+      const button = document.createElement('button');
+      button.id = NEWS_IMPORT_BUTTON_ID;
+      button.type = 'button';
+      button.textContent = 'Импорт новостей (ZIP)';
+      button.style.position = 'fixed';
+      button.style.right = '16px';
+      button.style.bottom = '64px';
+      button.style.zIndex = '9998';
+      button.style.padding = '10px 14px';
+      button.style.border = '1px solid rgba(72, 179, 116, 0.55)';
+      button.style.borderRadius = '8px';
+      button.style.background = 'linear-gradient(180deg, #2d9b62 0%, #1f7c4c 100%)';
+      button.style.color = '#f6fff9';
+      button.style.fontSize = '13px';
+      button.style.fontWeight = '600';
+      button.style.cursor = 'pointer';
+      button.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
+      button.style.transition = 'opacity .15s ease, transform .15s ease';
+
+      button.onmouseenter = () => {
+        if (button.disabled) return;
+        button.style.transform = 'translateY(-1px)';
+      };
+      button.onmouseleave = () => {
+        button.style.transform = 'translateY(0)';
+      };
+
+      button.onclick = () => showImportModal();
 
       document.body.appendChild(button);
     };
@@ -1409,6 +1632,7 @@ export default {
     localizeDocumentTitle();
     hideUserCollectionTypeInSidebar();
     ensureImageOptimizerButton();
+    ensureNewsImportButton();
 
     document.addEventListener('keydown', hotkeyHandler, true);
     document.addEventListener('contextmenu', contextMenuHandler, true);
@@ -1435,6 +1659,7 @@ export default {
       localizeDocumentTitle();
       hideUserCollectionTypeInSidebar();
       ensureImageOptimizerButton();
+      ensureNewsImportButton();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });

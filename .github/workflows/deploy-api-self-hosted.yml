@@ -101,6 +101,7 @@ jobs:
           Copy-Item .\backend\database .\api-deploy\backend\ -Recurse -Force
           Copy-Item .\backend\dist .\api-deploy\backend\ -Recurse -Force -ErrorAction SilentlyContinue
           Copy-Item .\backend\public .\api-deploy\backend\ -Recurse -Force
+          Copy-Item .\backend\scripts .\api-deploy\backend\ -Recurse -Force
           Copy-Item .\backend\src .\api-deploy\backend\ -Recurse -Force
           Copy-Item .\backend\package.json .\api-deploy\backend\package.json -Force
           Copy-Item .\backend\package-lock.json .\api-deploy\backend\package-lock.json -Force

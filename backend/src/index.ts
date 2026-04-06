@@ -12,6 +12,7 @@ import {
   patchWindowsTempUnlinkCrashGuard,
   patchWindowsUploadTempCleanup,
 } from './bootstrap/upload-settings';
+import { registerNewsImportEndpoint } from './bootstrap/news-import';
 
 export default {
   register({ strapi }: { strapi: Core.Strapi }) {
@@ -31,6 +32,7 @@ export default {
       patchUploadFolderStructure(strapi);
       patchUploadImageOptimizer(strapi);
       registerManualImageOptimizerEndpoint(strapi);
+      registerNewsImportEndpoint(strapi);
       await setPublicPermissions(strapi);
       await syncI18nLocaleDisplayNames(strapi);
       await seedGlobalIfEmpty(strapi);
