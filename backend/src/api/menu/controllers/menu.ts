@@ -5,9 +5,6 @@
  */
 
 import { factories } from '@strapi/strapi';
-import { DEFAULT_MENU_LOCALE } from '../../../bootstrap/constants';
-import { collectUrlTitleFromMenu, syncPagesByItems } from '../../../bootstrap/menu';
-import type { MenuSection } from '../../../bootstrap/types';
 import { createLocalizedSingleTypeController } from '../../../utils/createLocalizedSingleTypeController';
 
 const uid = 'api::menu.menu';
@@ -23,13 +20,4 @@ const populate = {
 
 export default factories.createCoreController(uid, ({ strapi }) => ({
   ...createLocalizedSingleTypeController(strapi, uid, { populate }),
-
-  async find(ctx) {
-    const locale = typeof ctx.query?.locale === 'string' && ctx.query.locale.trim() ? ctx.query.locale : DEFAULT_MENU_LOCALE;
-    const localizedController = createLocalizedSingleTypeController(strapi, uid, { populate });
-    const response = (await localizedController.find(ctx)) as { data?: { mainMenu?: unknown } } | undefined;
-    const mainMenu = (Array.isArray(response?.data?.mainMenu) ? response.data.mainMenu : []) as MenuSection[];
-    await syncPagesByItems(strapi, collectUrlTitleFromMenu(mainMenu), locale);
-    return response;
-  },
 }));

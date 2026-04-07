@@ -1,7 +1,11 @@
 import type { Core } from '@strapi/strapi';
 
 import { migrateArticleSectionUrls } from './bootstrap/migrations';
-import { registerPageSyncOnMenuChange, registerPageTitleAutofill, syncPagesFromMainMenu } from './bootstrap/menu';
+import {
+  registerManualPageDedupeEndpoint,
+  registerPageSyncOnMenuChange,
+  registerPageTitleAutofill,
+} from './bootstrap/menu';
 import { setPublicPermissions } from './bootstrap/permissions';
 import { seedGlobalIfEmpty, seedMenuIfEmpty, syncI18nLocaleDisplayNames } from './bootstrap/seed';
 import {
@@ -33,12 +37,12 @@ export default {
       patchUploadImageOptimizer(strapi);
       registerManualImageOptimizerEndpoint(strapi);
       registerNewsImportEndpoint(strapi);
+      registerManualPageDedupeEndpoint(strapi);
       await setPublicPermissions(strapi);
       await syncI18nLocaleDisplayNames(strapi);
       await seedGlobalIfEmpty(strapi);
       await seedMenuIfEmpty(strapi);
       registerPageSyncOnMenuChange(strapi);
-      await syncPagesFromMainMenu(strapi);
       await migrateArticleSectionUrls(strapi);
       await ensureUploadOptimizationSettings(strapi);
     } catch (error) {
