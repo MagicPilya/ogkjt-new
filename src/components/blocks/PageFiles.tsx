@@ -156,10 +156,7 @@ export function PageFiles({ files, locale = "ru", className }: PageFilesProps) {
                   >
                     {getTypeLabel(item.type, item.ext)}
                   </span>
-                  <span
-                    className="min-w-0 break-words whitespace-normal md:truncate md:whitespace-nowrap"
-                    title={item.label}
-                  >
+                  <span className="min-w-0 break-words whitespace-normal md:truncate md:whitespace-nowrap">
                     {item.label}
                   </span>
                   <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden max-w-[28rem] rounded-md bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-lg group-hover:block group-focus-within:block dark:bg-slate-700 md:block md:opacity-0 md:transition-opacity md:duration-150 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
