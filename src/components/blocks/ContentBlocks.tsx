@@ -119,7 +119,7 @@ export function ContentBlocks({ blocks, className }: ContentBlocksProps) {
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return null;
   const normalizedBlocks = blocks as Block[];
 
-  const paragraphClass = "indent-[1.25em] mb-3 last:mb-0";
+  const paragraphClass = "mb-3 last:mb-0";
 
   return (
     <div className={className}>
