@@ -146,7 +146,7 @@ export function PageFiles({ files, locale = "ru", className }: PageFilesProps) {
               className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60"
             >
               <div className="flex min-h-[44px] items-center justify-between gap-3">
-                <div className="min-w-0 flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                <div className="group relative min-w-0 flex items-center gap-2 text-slate-800 dark:text-slate-100">
                   {getTypeIcon(item.type)}
                   <span
                     className={cn(
@@ -156,7 +156,15 @@ export function PageFiles({ files, locale = "ru", className }: PageFilesProps) {
                   >
                     {getTypeLabel(item.type, item.ext)}
                   </span>
-                  <span className="truncate">{item.label}</span>
+                  <span
+                    className="min-w-0 break-words whitespace-normal md:truncate md:whitespace-nowrap"
+                    title={item.label}
+                  >
+                    {item.label}
+                  </span>
+                  <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden max-w-[28rem] rounded-md bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-lg group-hover:block group-focus-within:block dark:bg-slate-700 md:block md:opacity-0 md:transition-opacity md:duration-150 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+                    <span className="hidden md:inline">{item.label}</span>
+                  </div>
                 </div>
                 <a
                   href={item.url}
