@@ -326,6 +326,16 @@ export const uiStrings = {
     be: "Дадаткі",
     en: "Attachments",
   } as Record<Locale, string>,
+  attachmentsSearchPlaceholder: {
+    ru: "Найти документ...",
+    be: "Знайсці дакумент...",
+    en: "Find a document...",
+  } as Record<Locale, string>,
+  attachmentsFilterAll: {
+    ru: "Все",
+    be: "Усе",
+    en: "All",
+  } as Record<Locale, string>,
 
   /** Подразделы (блок внизу страницы раздела) */
   subSectionsTitle: {
