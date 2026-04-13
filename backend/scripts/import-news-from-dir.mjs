@@ -7,6 +7,7 @@ const SOURCE_ROOT = process.argv[2];
 const STRAPI_URL = (process.env.STRAPI_URL || "http://127.0.0.1:1337").replace(/\/+$/, "");
 const STRAPI_TOKEN = process.env.STRAPI_TOKEN || "";
 const DRY_RUN = process.env.DRY_RUN === "1";
+const NEWS_COLLECTION_API_PATH = (process.env.NEWS_COLLECTION_API_PATH || "/api/articles").trim();
 
 if (!SOURCE_ROOT) {
   console.error("Usage: node scripts/import-news-from-dir.mjs <source-dir>");
@@ -165,7 +166,7 @@ async function findExistingArticle(title, date) {
   qs.set("pagination[pageSize]", "5");
   qs.set("filters[title][$eq]", title);
   if (date) qs.set("filters[date][$eq]", date);
-  const url = `${STRAPI_URL}/api/articles?${qs.toString()}`;
+  const url = `${STRAPI_URL}${NEWS_COLLECTION_API_PATH}?${qs.toString()}`;
   const res = await strapiFetch(url);
   const json = await res.json();
   const data = Array.isArray(json?.data) ? json.data : [];
@@ -262,7 +263,7 @@ async function importArticle(metaPath) {
     return { status: "dry", title, media: uploadedImages.length + uploadedFiles.length };
   }
 
-  await strapiFetch(`${STRAPI_URL}/api/articles`, {
+  await strapiFetch(`${STRAPI_URL}${NEWS_COLLECTION_API_PATH}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ data }),

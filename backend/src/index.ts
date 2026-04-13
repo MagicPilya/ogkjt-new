@@ -1,6 +1,5 @@
 import type { Core } from '@strapi/strapi';
 
-import { migrateArticleSectionUrls } from './bootstrap/migrations';
 import {
   registerManualPageDedupeEndpoint,
   registerPageSyncOnMenuChange,
@@ -43,7 +42,6 @@ export default {
       await seedGlobalIfEmpty(strapi);
       await seedMenuIfEmpty(strapi);
       registerPageSyncOnMenuChange(strapi);
-      await migrateArticleSectionUrls(strapi);
       await ensureUploadOptimizationSettings(strapi);
     } catch (error) {
       strapi.log.warn('Bootstrap default settings failed (при первом запуске можно перезапустить Strapi).', error);

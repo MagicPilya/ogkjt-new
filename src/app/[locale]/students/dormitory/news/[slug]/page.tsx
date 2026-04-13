@@ -3,14 +3,13 @@ import { Calendar, ArrowLeft, Languages } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getArticleBySlugOrDocumentId } from "@/lib/strapi";
+import { getDormitoryNewsBySlugOrDocumentId } from "@/lib/strapi";
 import { getArticleForLocale } from "@/lib/translateArticle";
 import { formatDate, getStrapiMediaWithFormats } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { MediaSlider, type MediaItem } from "@/components/blocks/MediaSlider";
 import { PageFiles } from "@/components/blocks/PageFiles";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
-import { uiStrings } from "@/lib/ui-strings";
 
 interface Props {
   params: Promise<{ locale: Locale; slug: string }>;
@@ -21,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!slug || slug === "null") {
     return { title: "404" };
   }
-  const result = await getArticleForLocale(getArticleBySlugOrDocumentId, slug, locale);
+  const result = await getArticleForLocale(getDormitoryNewsBySlugOrDocumentId, slug, locale);
 
   if (!result) {
     return { title: "Новость не найдена" };
@@ -33,12 +32,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function NewsDetailPage({ params }: Props) {
+export default async function DormitoryNewsDetailPage({ params }: Props) {
   const { slug, locale } = await params;
   if (!slug || slug === "null") notFound();
 
-  const result = await getArticleForLocale(getArticleBySlugOrDocumentId, slug, locale);
-
+  const result = await getArticleForLocale(getDormitoryNewsBySlugOrDocumentId, slug, locale);
   if (!result) notFound();
 
   const { article: item, isTranslated } = result;
@@ -63,9 +61,9 @@ export default async function NewsDetailPage({ params }: Props) {
 
       <div className="flex justify-center mb-8">
         <Button variant="ghost" className="pl-0 hover:bg-transparent hover:text-blue-600" asChild>
-          <Link href={`/${locale}/news`}>
+          <Link href={`/${locale}/students/dormitory/news`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {uiStrings.backToNews[locale]}
+            Назад к новостям
           </Link>
         </Button>
       </div>

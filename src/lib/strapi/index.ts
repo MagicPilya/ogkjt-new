@@ -4,6 +4,10 @@ export {
   getArticles,
 } from "./articles";
 export {
+  getDormitoryNews,
+  getDormitoryNewsBySlugOrDocumentId,
+} from "./dormitory-news";
+export {
   getAdministration,
   getAdmissionDocuments,
   getSpecialties,
@@ -15,7 +19,6 @@ export {
 } from "./globals";
 export { getEventById, getEvents, getEventsInRange } from "./events";
 export { getPageByPath, getPageBySlug } from "./pages";
-export { SECTION_URL_TO_STRAPI } from "./types";
 export type {
   Administration,
   AdministrationMember,

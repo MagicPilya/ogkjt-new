@@ -1,19 +1,12 @@
 import { defaultLocale, type Locale } from "../i18n";
 import { fetchAPI } from "./fetch-api";
 import type { Article, StrapiResponse } from "./types";
-import { SECTION_URL_TO_STRAPI } from "./types";
 
 const ARTICLE_REVALIDATE_SECONDS = 30;
 
-function toSectionValueForFilter(sectionUrlOrStrapiValue: string): string {
-  if (sectionUrlOrStrapiValue.startsWith("/")) {
-    return SECTION_URL_TO_STRAPI[sectionUrlOrStrapiValue] ?? sectionUrlOrStrapiValue;
-  }
-  return sectionUrlOrStrapiValue;
-}
-
 export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string | null, locale?: Locale) {
   void locale;
+  void sectionUrl;
   const params: Record<string, string> = {
     status: "published",
     populate: "*",
@@ -23,16 +16,6 @@ export async function getArticles(page = 1, pageSize = 10, sectionUrl?: string |
     "pagination[pageSize]": String(pageSize),
   };
   params.locale = defaultLocale;
-  if (sectionUrl) {
-    const sectionValue = toSectionValueForFilter(sectionUrl);
-    const isMainNews = sectionValue === "НОВОСТИ КОЛЛЕДЖА";
-    if (isMainNews) {
-      params["filters[$or][0][sectionUrl][$eq]"] = sectionValue;
-      params["filters[$or][1][sectionUrl][$null]"] = "true";
-    } else {
-      params["filters[sectionUrl][$eq]"] = sectionValue;
-    }
-  }
   const data = await fetchAPI<StrapiResponse<Article[]>>("/articles", params, {
     next: { revalidate: ARTICLE_REVALIDATE_SECONDS },
   });

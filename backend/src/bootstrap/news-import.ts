@@ -33,12 +33,14 @@ function runImportProcess({
   strapiUrl,
   strapiToken,
   dryRun,
+  newsCollectionApiPath,
 }: {
   cwd: string;
   sourceDir: string;
   strapiUrl: string;
   strapiToken: string;
   dryRun: boolean;
+  newsCollectionApiPath: string;
 }) {
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve, reject) => {
     const child = spawn(
@@ -51,6 +53,7 @@ function runImportProcess({
           STRAPI_URL: strapiUrl,
           STRAPI_TOKEN: strapiToken,
           DRY_RUN: dryRun ? '1' : '0',
+          NEWS_COLLECTION_API_PATH: newsCollectionApiPath,
         },
         stdio: ['ignore', 'pipe', 'pipe'],
       }
@@ -77,10 +80,23 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
   if (strapiServer[NEWS_IMPORT_ENDPOINT_KEY]) return;
 
   strapi.server.use(async (ctx, next) => {
-    if (!(ctx.method === 'POST' && ctx.path === '/content-manager/news-import/zip')) {
+    if (
+      !(
+        ctx.method === 'POST' &&
+        (ctx.path === '/content-manager/news-import/zip' ||
+          ctx.path === '/content-manager/dormitory-news-import/zip' ||
+          ctx.path === '/_tools/dormitory-news-import/zip')
+      )
+    ) {
       await next();
       return;
     }
+    const importTarget = String(ctx.request.headers['x-news-import-target'] ?? '').trim().toLowerCase();
+    const isDormitoryImport =
+      ctx.path === '/content-manager/dormitory-news-import/zip' ||
+      ctx.path === '/_tools/dormitory-news-import/zip' ||
+      importTarget === 'dormitory';
+    const newsCollectionApiPath = isDormitoryImport ? '/api/dormitory-news-items' : '/api/articles';
 
     const body = (ctx.request.body ?? {}) as ImportRequestBody;
     const dryRun = body.dryRun === true || String(body.dryRun ?? '').toLowerCase() === 'true';
@@ -89,6 +105,7 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
     const providedToken = String(ctx.request.headers['x-news-import-token'] ?? '').trim();
     const adminAuthHeader = String(ctx.request.headers.authorization ?? '').trim();
     const hasAdminBearer = /^bearer\s+/i.test(adminAuthHeader);
+    const hasCookieSession = Boolean(String(ctx.request.headers.cookie ?? '').trim());
 
     // Security model:
     // - If NEWS_IMPORT_TOKEN is configured -> require x-news-import-token match.
@@ -107,7 +124,7 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
         };
         return;
       }
-    } else if (!hasAdminBearer && !ctx.state?.user) {
+    } else if (!hasAdminBearer && !ctx.state?.user && !hasCookieSession) {
       ctx.status = 401;
       ctx.body = {
         data: null,
@@ -229,6 +246,7 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
         strapiUrl,
         strapiToken: strapiImportToken,
         dryRun,
+        newsCollectionApiPath,
       });
 
       const ok = result.code === 0;
@@ -272,6 +290,8 @@ export function registerNewsImportEndpoint(strapi: Core.Strapi) {
   });
 
   strapiServer[NEWS_IMPORT_ENDPOINT_KEY] = true;
-  strapi.log.info('Registered news import endpoint (/content-manager/news-import/zip).');
+  strapi.log.info(
+    'Registered news import endpoints (/content-manager/news-import/zip, /content-manager/dormitory-news-import/zip, /_tools/dormitory-news-import/zip).'
+  );
 }
 

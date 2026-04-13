@@ -42,7 +42,24 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
   const mediaList: MediaItem[] = Array.isArray(pageData?.media)
     ? pageData.media
     : ((pageData as { Media?: MediaItem[] } | null)?.Media ?? []);
-  const newsHref = (identifier: string) => (locale ? `/${locale}/news/${identifier}` : `/news/${identifier}`);
+  const normalizedPath = `/${path.replace(/^\/+|\/+$/g, "")}`;
+  const normalizeUrl = (url: string) => `/${url.replace(/^\/+|\/+$/g, "")}`;
+
+  const activeSectionLink = section.links?.find((link) => {
+    const linkUrl = normalizeUrl(link.url ?? "");
+    return normalizedPath === linkUrl;
+  });
+
+  const topNavLinks = isRootSection ? section.links ?? [] : activeSectionLink?.sublinks ?? [];
+  const isDormitorySection = path === "students/dormitory";
+  const newsHref = (identifier: string) =>
+    isDormitorySection
+      ? locale
+        ? `/${locale}/students/dormitory/news/${identifier}`
+        : `/students/dormitory/news/${identifier}`
+      : locale
+        ? `/${locale}/news/${identifier}`
+        : `/news/${identifier}`;
 
   return (
     <div className="w-full px-4 md:px-8 max-w-[1600px] mx-auto py-12" data-locale={locale}>
@@ -50,9 +67,9 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
           {title}
         </h1>
-        {isRootSection && section.links && section.links.length > 0 && (
+        {topNavLinks.length > 0 && (
           <SubSectionLinks
-            links={section.links}
+            links={topNavLinks}
             title=""
             variant="minimal"
             className="mb-6"

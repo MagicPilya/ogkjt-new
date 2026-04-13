@@ -150,8 +150,15 @@ export async function GET(request: NextRequest) {
   const results: SearchResultItem[] = [];
 
   // Загружаем статьи, страницы, администрацию и специальности
-  const [articlesRes, pagesRes, administrationData, specialtiesData] = await Promise.all([
+  const [articlesRes, dormitoryNewsRes, pagesRes, administrationData, specialtiesData] = await Promise.all([
     fetchStrapi<ArticleRow>("/articles", {
+      status: "published",
+      locale,
+      populate: "*",
+      "pagination[pageSize]": String(SEARCH_PAGE_SIZE),
+      sort: "createdAt:desc",
+    }),
+    fetchStrapi<ArticleRow>("/dormitory-news-items", {
       status: "published",
       locale,
       populate: "*",
@@ -187,6 +194,20 @@ export async function GET(request: NextRequest) {
       id: a.id,
       title: a.title,
       url: `/news/${a.slug}`,
+      snippet: buildExcerptAroundMatch(searchable, qLower) || undefined,
+    });
+  }
+
+  for (const a of dormitoryNewsRes.data) {
+    if (articleCount >= MAX_RESULTS_PER_TYPE) break;
+    const searchable = getArticleSearchableText(a);
+    if (!searchable.toLowerCase().includes(qLower)) continue;
+    articleCount++;
+    results.push({
+      type: "article",
+      id: `dormitory-${a.id}`,
+      title: a.title,
+      url: `/students/dormitory/news/${a.slug}`,
       snippet: buildExcerptAroundMatch(searchable, qLower) || undefined,
     });
   }

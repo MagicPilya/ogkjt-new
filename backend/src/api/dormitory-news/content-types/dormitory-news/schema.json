@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dormitory_news_items",
+  "info": {
+    "singularName": "dormitory-news",
+    "pluralName": "dormitory-news-items",
+    "displayName": "Новости общежития",
+    "description": "Новости общежития"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": { "i18n": { "localized": false } },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "announcement": {
+      "type": "text",
+      "required": true
+    },
+    "content": {
+      "type": "blocks"
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "date": {
+      "type": "date"
+    },
+    "Media": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images", "files", "videos", "audios"]
+    },
+    "files": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["files"]
+    }
+  }
+}

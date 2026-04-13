@@ -2,6 +2,7 @@ import {
   getAdministration,
   getAdmissionDocuments,
   getArticles,
+  getDormitoryNews,
   getMenu,
   getPageByPath,
   getSpecialties,
@@ -48,7 +49,11 @@ export async function loadSectionPageData(path: string, locale?: Locale): Promis
   const isDocumentsPage = path === "applicants/documents";
 
   const [articlesRes, administration, specialties, admissionDocuments] = await Promise.all([
-    showArticleFeed ? getArticles(1, 50, feedSection, locale) : Promise.resolve({ data: [] as Article[] }),
+    showArticleFeed
+      ? path === "students/dormitory"
+        ? getDormitoryNews(1, 50, locale)
+        : getArticles(1, 50, feedSection, locale)
+      : Promise.resolve({ data: [] as Article[] }),
     isAdministrationPage ? getAdministration(locale) : Promise.resolve(null),
     isSpecialtiesPage ? getSpecialties(locale) : Promise.resolve(null),
     isDocumentsPage ? getAdmissionDocuments(locale) : Promise.resolve(null),

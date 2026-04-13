@@ -1,14 +1,3 @@
-export const SECTION_URL_TO_STRAPI: Record<string, string> = {
-  "/news": "НОВОСТИ КОЛЛЕДЖА",
-  "/students/dormitory": "НОВОСТИ ОБЩЕЖИТИЯ",
-  "/about": "О колледже",
-  "/applicants": "Абитуриентам",
-  "/students": "Обучающимся",
-  "/ideology": "Воспитательная работа",
-  "/one-window": "Одно окно",
-  "/appeals": "Электронные обращения",
-};
-
 export interface StrapiResponse<T> {
   data: T;
   meta: {
@@ -74,7 +63,6 @@ export interface Article {
   cover: StrapiImage | null;
   media?: (StrapiImage | StrapiFile)[] | null;
   files?: StrapiFile[] | null;
-  sectionUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;

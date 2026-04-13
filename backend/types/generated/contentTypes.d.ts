@@ -629,18 +629,51 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
       true
     >;
     publishedAt: Schema.Attribute.DateTime;
-    sectionUrl: Schema.Attribute.Enumeration<
-      [
-        '\u041D\u041E\u0412\u041E\u0421\u0422\u0418 \u041A\u041E\u041B\u041B\u0415\u0414\u0416\u0410',
-        '\u041D\u041E\u0412\u041E\u0421\u0422\u0418 \u041E\u0411\u0429\u0415\u0416\u0418\u0422\u0418\u042F',
-        '\u041E \u043A\u043E\u043B\u043B\u0435\u0434\u0436\u0435',
-        '\u0410\u0431\u0438\u0442\u0443\u0440\u0438\u0435\u043D\u0442\u0430\u043C',
-        '\u041E\u0431\u0443\u0447\u0430\u044E\u0449\u0438\u043C\u0441\u044F',
-        '\u0412\u043E\u0441\u043F\u0438\u0442\u0430\u0442\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0431\u043E\u0442\u0430',
-        '\u041E\u0434\u043D\u043E \u043E\u043A\u043D\u043E',
-        '\u042D\u043B\u0435\u043A\u0442\u0440\u043E\u043D\u043D\u044B\u0435 \u043E\u0431\u0440\u0430\u0449\u0435\u043D\u0438\u044F',
-      ]
+    slug: Schema.Attribute.UID<'title'>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDormitoryNewsDormitoryNews
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'dormitory_news_items';
+  info: {
+    description: '\u041D\u043E\u0432\u043E\u0441\u0442\u0438 \u043E\u0431\u0449\u0435\u0436\u0438\u0442\u0438\u044F';
+    displayName: '\u041D\u043E\u0432\u043E\u0441\u0442\u0438 \u043E\u0431\u0449\u0435\u0436\u0438\u0442\u0438\u044F';
+    pluralName: 'dormitory-news-items';
+    singularName: 'dormitory-news';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: false;
+    };
+  };
+  attributes: {
+    announcement: Schema.Attribute.Text & Schema.Attribute.Required;
+    content: Schema.Attribute.Blocks;
+    cover: Schema.Attribute.Media<'images'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date;
+    files: Schema.Attribute.Media<'files', true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dormitory-news.dormitory-news'
+    > &
+      Schema.Attribute.Private;
+    Media: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
     >;
+    publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'title'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -1511,6 +1544,7 @@ declare module '@strapi/strapi' {
       'api::admission-document.admission-document': ApiAdmissionDocumentAdmissionDocument;
       'api::annual-symbol.annual-symbol': ApiAnnualSymbolAnnualSymbol;
       'api::article.article': ApiArticleArticle;
+      'api::dormitory-news.dormitory-news': ApiDormitoryNewsDormitoryNews;
       'api::event.event': ApiEventEvent;
       'api::global.global': ApiGlobalGlobal;
       'api::menu.menu': ApiMenuMenu;
