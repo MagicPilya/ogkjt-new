@@ -43,13 +43,15 @@ export function PageFiles({ files, locale = "ru", className }: PageFilesProps) {
           const extRaw = file.ext?.replace(".", "") || baseName.split(".").pop() || "";
           const ext = extRaw.toLowerCase();
           const label = normalizeFileTitle(baseName, ext);
-          const type: "pdf" | "docx" | "xls" | "zip" | "other" =
+          const type: "pdf" | "docx" | "xls" | "pptx" | "zip" | "other" =
             ext === "pdf"
               ? "pdf"
               : ["doc", "docx", "odt", "rtf"].includes(ext)
                 ? "docx"
                 : ["xls", "xlsx", "ods", "csv"].includes(ext)
                   ? "xls"
+                : ["ppt", "pptx", "odp"].includes(ext)
+                  ? "pptx"
                 : ["zip", "rar", "7z"].includes(ext)
                   ? "zip"
                   : "other";
@@ -68,16 +70,17 @@ export function PageFiles({ files, locale = "ru", className }: PageFilesProps) {
     });
   }, [filter, normalizedFiles, query]);
 
-  const getTypeIcon = (type: "pdf" | "docx" | "xls" | "zip" | "other") => {
+  const getTypeIcon = (type: "pdf" | "docx" | "xls" | "pptx" | "zip" | "other") => {
     if (type === "xls") return <FileSpreadsheet className="h-4 w-4 shrink-0" />;
     if (type === "zip") return <FileArchive className="h-4 w-4 shrink-0" />;
     return <FileText className="h-4 w-4 shrink-0" />;
   };
 
-  const getTypeLabel = (type: "pdf" | "docx" | "xls" | "zip" | "other", ext: string) => {
+  const getTypeLabel = (type: "pdf" | "docx" | "xls" | "pptx" | "zip" | "other", ext: string) => {
     if (type === "pdf") return "PDF";
     if (type === "docx") return "DOCX";
     if (type === "xls") return "XLS";
+    if (type === "pptx") return "PPTX";
     if (type === "zip") {
       if (ext === "rar") return "RAR";
       if (ext === "7z") return "7Z";
@@ -86,7 +89,7 @@ export function PageFiles({ files, locale = "ru", className }: PageFilesProps) {
     return ext ? ext.toUpperCase() : "FILE";
   };
 
-  const getTypeBadgeClass = (type: "pdf" | "docx" | "xls" | "zip" | "other") => {
+  const getTypeBadgeClass = (type: "pdf" | "docx" | "xls" | "pptx" | "zip" | "other") => {
     if (type === "pdf") {
       return "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300";
     }
@@ -95,6 +98,12 @@ export function PageFiles({ files, locale = "ru", className }: PageFilesProps) {
     }
     if (type === "xls") {
       return "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300";
+    }
+    if (type === "pptx") {
+      return "bg-[#C43E1C]/15 text-[#C43E1C] dark:bg-[#C43E1C]/25 dark:text-[#ff9f88]";
+    }
+    if (type === "zip") {
+      return "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300";
     }
     return "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200";
   };

@@ -336,6 +336,11 @@ export const uiStrings = {
     be: "Усе",
     en: "All",
   } as Record<Locale, string>,
+  pageMedia: {
+    ru: "Галерея",
+    be: "Галерэя",
+    en: "Gallery",
+  } as Record<Locale, string>,
 
   /** Подразделы (блок внизу страницы раздела) */
   subSectionsTitle: {

@@ -7,6 +7,7 @@ import { SpecialtyCards } from "@/components/blocks/SpecialtyCards";
 import { DocumentCards } from "@/components/blocks/DocumentCards";
 import { PageFiles } from "@/components/blocks/PageFiles";
 import { ArticleCard } from "@/components/blocks/ArticleCard";
+import { MediaSlider, type MediaItem } from "@/components/blocks/MediaSlider";
 import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 import { loadSectionPageData, loadSectionPageMeta } from "@/lib/services/section-page";
@@ -38,6 +39,9 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
   const isAdministrationPage = path === "about/administration";
   const isSpecialtiesPage = path === "applicants/specialties";
   const isDocumentsPage = path === "applicants/documents";
+  const mediaList: MediaItem[] = Array.isArray(pageData?.media)
+    ? pageData.media
+    : ((pageData as { Media?: MediaItem[] } | null)?.Media ?? []);
   const newsHref = (identifier: string) => (locale ? `/${locale}/news/${identifier}` : `/news/${identifier}`);
 
   return (
@@ -72,6 +76,15 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
 
       {isDocumentsPage && admissionDocuments && (
         <DocumentCards data={admissionDocuments} locale={locale} />
+      )}
+
+      {mediaList.length > 0 && (
+        <section className="mt-10 border-t border-slate-200 pt-8 dark:border-slate-800" aria-label={uiStrings.pageMedia[locale ?? "ru"]}>
+          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+            {uiStrings.pageMedia[locale ?? "ru"]}
+          </h2>
+          <MediaSlider items={mediaList} height="420px" />
+        </section>
       )}
 
       {pageData?.files && pageData.files.length > 0 && (

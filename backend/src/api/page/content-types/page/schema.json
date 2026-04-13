@@ -33,6 +33,14 @@
       "type": "blocks",
       "pluginOptions": { "i18n": { "localized": true } }
     },
+    "media": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"],
+      "pluginOptions": { "i18n": { "localized": true } },
+      "description": "Изображения для слайдера на странице"
+    },
     "files": {
       "type": "media",
       "multiple": true,

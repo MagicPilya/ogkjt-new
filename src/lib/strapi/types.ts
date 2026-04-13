@@ -87,6 +87,7 @@ export interface Page {
   title: string;
   metaDescription?: string | null;
   content: unknown[];
+  media?: (StrapiImage | StrapiFile)[] | null;
   files?: StrapiFile[] | null;
   articleFeedSection?: string | null;
   createdAt?: string;
