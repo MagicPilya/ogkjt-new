@@ -32,9 +32,11 @@ export default async function DormitoryNewsPage({ params, searchParams }: Props)
   const requestedPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const pageData = await getPageByPath("students/dormitory/news", locale);
   const title = pageData?.title ?? "Новости общежития";
+  const getDormitoryNewsForLocale = (page: number, pageSize: number, _sectionUrl: string | null, targetLocale?: Locale) =>
+    getDormitoryNews(page, pageSize, targetLocale);
 
   const { data: articles, meta, isTranslated } = await getArticlesForLocale(
-    getDormitoryNews,
+    getDormitoryNewsForLocale,
     requestedPage,
     NEWS_PAGE_SIZE,
     null,
