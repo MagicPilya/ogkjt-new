@@ -3,7 +3,6 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { getPageByPath, getDormitoryNews } from "@/lib/strapi";
 import { getArticlesForLocale } from "@/lib/translateArticle";
-import { Events } from "@/components/blocks/Events";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { ArticleCard } from "@/components/blocks/ArticleCard";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
@@ -90,79 +89,72 @@ export default async function DormitoryNewsPage({ params, searchParams }: Props)
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
-        <div className="lg:col-span-8 xl:col-span-9">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {articles.map((item) => {
-              const articlePath = item.slug || item.documentId;
-              return (
-                <ArticleCard
-                  key={item.id}
-                  article={item}
-                  locale={locale}
-                  href={`/${locale}/students/dormitory/news/${articlePath}`}
-                  centered
-                  showReadMore
-                />
-              );
-            })}
-          </div>
-          {pageCount > 1 && (
-            <nav className="mt-10 flex flex-wrap items-center justify-center gap-2" aria-label={labels.pagination}>
-              {hasPrev ? (
-                <Link
-                  href={makePageHref(currentPage - 1)}
-                  className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  {labels.prev}
-                </Link>
-              ) : (
-                <span className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-400 dark:border-slate-800 dark:text-slate-600">
-                  {labels.prev}
-                </span>
-              )}
-
-              {pageNumbers.map((page) => {
-                const isActive = page === currentPage;
-                return isActive ? (
-                  <span
-                    key={page}
-                    aria-current="page"
-                    className="rounded-md border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-semibold text-white"
-                  >
-                    {page}
-                  </span>
-                ) : (
-                  <Link
-                    key={page}
-                    href={makePageHref(page)}
-                    className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    {page}
-                  </Link>
-                );
-              })}
-
-              {hasNext ? (
-                <Link
-                  href={makePageHref(currentPage + 1)}
-                  className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  {labels.next}
-                </Link>
-              ) : (
-                <span className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-400 dark:border-slate-800 dark:text-slate-600">
-                  {labels.next}
-                </span>
-              )}
-            </nav>
-          )}
-        </div>
-
-        <div className="lg:col-span-4 xl:col-span-3">
-          <Events locale={locale} />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {articles.map((item) => {
+          const articlePath = item.slug || item.documentId;
+          return (
+            <ArticleCard
+              key={item.id}
+              article={item}
+              locale={locale}
+              href={`/${locale}/students/dormitory/news/${articlePath}`}
+              centered
+              showReadMore
+            />
+          );
+        })}
       </div>
+
+      {pageCount > 1 && (
+        <nav className="mt-10 flex flex-wrap items-center justify-center gap-2" aria-label={labels.pagination}>
+          {hasPrev ? (
+            <Link
+              href={makePageHref(currentPage - 1)}
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              {labels.prev}
+            </Link>
+          ) : (
+            <span className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-400 dark:border-slate-800 dark:text-slate-600">
+              {labels.prev}
+            </span>
+          )}
+
+          {pageNumbers.map((page) => {
+            const isActive = page === currentPage;
+            return isActive ? (
+              <span
+                key={page}
+                aria-current="page"
+                className="rounded-md border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-semibold text-white"
+              >
+                {page}
+              </span>
+            ) : (
+              <Link
+                key={page}
+                href={makePageHref(page)}
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                {page}
+              </Link>
+            );
+          })}
+
+          {hasNext ? (
+            <Link
+              href={makePageHref(currentPage + 1)}
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              {labels.next}
+            </Link>
+          ) : (
+            <span className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-400 dark:border-slate-800 dark:text-slate-600">
+              {labels.next}
+            </span>
+          )}
+        </nav>
+      )}
     </div>
   );
 }
