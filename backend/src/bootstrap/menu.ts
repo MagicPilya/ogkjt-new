@@ -13,6 +13,43 @@ const MENU_POPULATE = {
 const MENU_SYNC_STORE_KEY = 'page-urls-by-locale';
 const DEFAULT_PAGE_CONTENT = [{ type: 'paragraph', children: [{ type: 'text', text: '' }] }];
 const MANUAL_PAGE_DEDUPE_ENDPOINT_KEY = '__ogkjtManualPageDedupeEndpointInstalled';
+const MENU_SYNC_DEDUP_WINDOW_MS = 5000;
+const menuSyncLocksByLocale = new Map<string, Promise<void>>();
+const lastMenuSyncFingerprintByLocale = new Map<string, string>();
+const lastMenuSyncAtByLocale = new Map<string, number>();
+
+function getContentTextScore(value: unknown): number {
+  if (typeof value === 'string') {
+    return value.trim().length;
+  }
+  if (Array.isArray(value)) {
+    return value.reduce<number>((total, item) => total + getContentTextScore(item), 0);
+  }
+  if (value && typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).reduce<number>(
+      (total, item) => total + getContentTextScore(item),
+      0
+    );
+  }
+  return 0;
+}
+
+function pickBetterCandidate<T extends { content?: unknown; title?: string; updatedAt?: string }>(a: T, b: T): T {
+  const aContentScore = getContentTextScore(a.content);
+  const bContentScore = getContentTextScore(b.content);
+  if (aContentScore !== bContentScore) return aContentScore > bContentScore ? a : b;
+
+  const aTitleScore = typeof a.title === 'string' ? a.title.trim().length : 0;
+  const bTitleScore = typeof b.title === 'string' ? b.title.trim().length : 0;
+  if (aTitleScore !== bTitleScore) return aTitleScore > bTitleScore ? a : b;
+
+  if (a.updatedAt && b.updatedAt) {
+    return a.updatedAt.localeCompare(b.updatedAt) >= 0 ? a : b;
+  }
+  if (a.updatedAt) return a;
+  if (b.updatedAt) return b;
+  return a;
+}
 
 function normalizeUrl(url: string): string {
   const cleaned = (url || '').replace(/[\u0000-\u001F\u007F\u00A0\u200B-\u200D\u2060\uFEFF]/g, '');
@@ -53,6 +90,24 @@ async function setPreviouslySyncedUrls(strapi: Core.Strapi, locale: string, urls
       [locale]: urls,
     },
   });
+}
+
+async function withLocaleSyncLock(strapi: Core.Strapi, locale: string, task: () => Promise<void>) {
+  const previous = menuSyncLocksByLocale.get(locale) ?? Promise.resolve();
+  const current = previous
+    .catch(() => undefined)
+    .then(async () => {
+      await task();
+    });
+  menuSyncLocksByLocale.set(locale, current);
+  try {
+    await current;
+  } finally {
+    if (menuSyncLocksByLocale.get(locale) === current) {
+      menuSyncLocksByLocale.delete(locale);
+      strapi.log.debug(`Menu sync lock released [${locale}]`);
+    }
+  }
 }
 
 export function getTitleForUrl(mainMenu: MenuSection[], pageUrl: string): string | null {
@@ -171,9 +226,51 @@ export function collectUrlTitleFromMenu(mainMenu: MenuSection[]): MenuPageItem[]
   return Array.from(items.entries()).map(([pageUrl, title]) => ({ pageUrl, title }));
 }
 
+type PageLocaleRecord = {
+  documentId: string;
+  pageUrl: string;
+  title?: string;
+  locale?: string;
+  content?: unknown;
+  updatedAt?: string;
+};
+
+function pickBestRecord(records: PageLocaleRecord[]): PageLocaleRecord | undefined {
+  if (!records.length) return undefined;
+  return records.reduce((best, current) => pickBetterCandidate(best, current));
+}
+
+async function publishPageLocale(
+  strapi: Core.Strapi,
+  documentId: string,
+  locale: string,
+  data: { pageUrl: string; title: string; content?: unknown }
+) {
+  await strapi.documents('api::page.page').update({
+    documentId,
+    locale,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
+    data: data as any,
+  });
+  await strapi.documents('api::page.page').update({
+    documentId,
+    locale,
+    status: 'published',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
+    data: data as any,
+  });
+}
+
 export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageItem[], locale = DEFAULT_MENU_LOCALE) {
-  const pageUrls = toCreate.map((item) => normalizeUrl(item.pageUrl));
-  const desiredUrlSet = new Set(pageUrls);
+  const desiredItems = new Map<string, string>();
+  for (const item of toCreate) {
+    const normalizedUrl = normalizeUrl(item.pageUrl);
+    if (!desiredItems.has(normalizedUrl)) {
+      desiredItems.set(normalizedUrl, item.title);
+    }
+  }
+  const desiredUrls = Array.from(desiredItems.keys());
+  const desiredUrlSet = new Set(desiredUrls);
   const previouslySyncedUrls = await getPreviouslySyncedUrls(strapi, locale);
   const urlsToDelete = previouslySyncedUrls.filter((url) => !desiredUrlSet.has(url));
 
@@ -202,140 +299,130 @@ export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageIt
     return;
   }
 
-  const existingPages = (await strapi.documents('api::page.page').findMany({
-    filters: { pageUrl: { $in: pageUrls } },
-    fields: ['documentId', 'pageUrl', 'title'],
-    locale,
-  })) as Array<{ documentId?: string; pageUrl?: string; title?: string }>;
-  const allLocalePages = (await strapi.documents('api::page.page').findMany({
-    filters: { pageUrl: { $in: pageUrls } },
-    fields: ['documentId', 'pageUrl', 'title', 'locale', 'content', 'updatedAt'],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi runtime supports locale: 'all' for i18n documents.
-    locale: 'all' as any,
-  })) as Array<{ documentId?: string; pageUrl?: string; title?: string; locale?: string; content?: unknown; updatedAt?: string }>;
+  const pageQuery = strapi.db.query('api::page.page') as {
+    findMany: (params?: unknown) => Promise<
+      Array<{
+        documentId?: string;
+        pageUrl?: string;
+        title?: string;
+        locale?: string;
+        content?: unknown;
+        updatedAt?: string;
+        publishedAt?: string | null;
+      }>
+    >;
+  };
+  const allLocalePages = (await pageQuery.findMany({
+    select: ['documentId', 'pageUrl', 'title', 'locale', 'content', 'updatedAt', 'publishedAt'],
+    where: {
+      pageUrl: { $in: desiredUrls },
+      publishedAt: { $notNull: true },
+    },
+  })) as Array<PageLocaleRecord>;
 
-  const existingByUrl = new Map(
-    existingPages
-      .filter((page): page is { documentId: string; pageUrl: string; title?: string } => Boolean(page?.documentId && page?.pageUrl))
-      .map((page) => [normalizeUrl(page.pageUrl), page])
-  );
-  const allLocalesByUrl = new Map<
-    string,
-    Array<{ documentId: string; pageUrl: string; title?: string; locale?: string; content?: unknown; updatedAt?: string }>
-  >();
+  const allLocalesByUrl = new Map<string, PageLocaleRecord[]>();
   for (const page of allLocalePages) {
     if (!page?.documentId || !page?.pageUrl) continue;
     const normalizedUrl = normalizeUrl(page.pageUrl);
     const list = allLocalesByUrl.get(normalizedUrl) ?? [];
-    list.push({
-      documentId: page.documentId,
-      pageUrl: normalizedUrl,
-      title: page.title,
-      locale: page.locale,
-      content: page.content,
-      updatedAt: page.updatedAt,
-    });
+    list.push({ ...page, pageUrl: normalizedUrl });
     allLocalesByUrl.set(normalizedUrl, list);
   }
 
-  await Promise.all(
-    toCreate.map(async ({ pageUrl, title }) => {
-      const normalizedUrl = normalizeUrl(pageUrl);
-      const existing = existingByUrl.get(normalizedUrl);
-      const allForUrl = allLocalesByUrl.get(normalizedUrl) ?? [];
-      allForUrl.sort((a, b) => (a.updatedAt && b.updatedAt ? b.updatedAt.localeCompare(a.updatedAt) : 0));
-      const canonical = allForUrl.find((page) => page.locale === DEFAULT_MENU_LOCALE) ?? allForUrl[0];
-      const existingInLocale = allForUrl.find((page) => page.locale === locale);
-      let activeDocumentId = canonical?.documentId;
+  for (const [normalizedUrl, title] of desiredItems.entries()) {
+    const allForUrl = allLocalesByUrl.get(normalizedUrl) ?? [];
+    const canonical =
+      allForUrl.find((page) => page.locale === DEFAULT_MENU_LOCALE) ??
+      pickBestRecord(allForUrl);
+    const localeRecords = allForUrl.filter((page) => page.locale === locale);
+    const bestLocaleRecord = pickBestRecord(localeRecords);
 
-      if (!activeDocumentId && !existingInLocale) {
-        const created = await strapi.documents('api::page.page').create({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi create typings are narrower than runtime support.
-          data: { pageUrl: normalizedUrl, title, content: DEFAULT_PAGE_CONTENT } as any,
-          status: 'published',
-          locale,
-        });
-        activeDocumentId = (created as { documentId?: string } | null)?.documentId;
-        strapi.log.info(`Page created from mainMenu [${locale}]: ${normalizedUrl} (${title})`);
-      } else if (activeDocumentId && (!existingInLocale || existingInLocale.documentId !== activeDocumentId)) {
-        const source = existingInLocale;
-        // Re-link localized variant to the canonical document and keep existing locale content/title when possible.
-        await strapi.documents('api::page.page').update({
-          documentId: activeDocumentId,
-          locale,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
-          data: {
-            pageUrl: normalizedUrl,
-            title,
-            content: source?.content ?? DEFAULT_PAGE_CONTENT,
-          } as any,
-        });
-        await strapi.documents('api::page.page').update({
-          documentId: activeDocumentId,
-          locale,
-          status: 'published',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
-          data: {
-            pageUrl: normalizedUrl,
-            title,
-            content: source?.content ?? DEFAULT_PAGE_CONTENT,
-          } as any,
-        });
+    let activeDocumentId = canonical?.documentId;
+    let createdInCurrentSync = false;
+    if (!activeDocumentId) {
+      const created = await strapi.documents('api::page.page').create({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi create typings are narrower than runtime support.
+        data: { pageUrl: normalizedUrl, title, content: DEFAULT_PAGE_CONTENT } as any,
+        status: 'published',
+        locale,
+      });
+      activeDocumentId = (created as { documentId?: string } | null)?.documentId;
+      createdInCurrentSync = Boolean(activeDocumentId);
+      strapi.log.info(`Page created from mainMenu [${locale}]: ${normalizedUrl} (${title})`);
+    }
+    if (!activeDocumentId) continue;
 
-        if (source && source.documentId !== activeDocumentId) {
-          await strapi.documents('api::page.page').delete({
-            documentId: source.documentId,
-            locale,
-          });
-          strapi.log.info(`Page merged into canonical document [${locale}]: ${normalizedUrl}`);
-        }
-      }
+    const deletedDocumentIds = new Set<string>();
+    if (bestLocaleRecord && bestLocaleRecord.documentId !== activeDocumentId) {
+      const sourceLocalized = (await strapi.documents('api::page.page').findOne({
+        documentId: bestLocaleRecord.documentId,
+        locale,
+      })) as { content?: unknown } | null;
+      await publishPageLocale(strapi, activeDocumentId, locale, {
+        pageUrl: normalizedUrl,
+        title,
+        content: sourceLocalized?.content ?? DEFAULT_PAGE_CONTENT,
+      });
+      await strapi.documents('api::page.page').delete({
+        documentId: bestLocaleRecord.documentId,
+        locale,
+      });
+      deletedDocumentIds.add(bestLocaleRecord.documentId);
+      strapi.log.info(`Page merged into canonical document [${locale}]: ${normalizedUrl}`);
+    } else if (!bestLocaleRecord && !createdInCurrentSync) {
+      await publishPageLocale(strapi, activeDocumentId, locale, {
+        pageUrl: normalizedUrl,
+        title,
+        content: DEFAULT_PAGE_CONTENT,
+      });
+      strapi.log.info(`Page localization created from mainMenu [${locale}]: ${normalizedUrl}`);
+    } else {
+      await publishPageLocale(strapi, activeDocumentId, locale, {
+        pageUrl: normalizedUrl,
+        title,
+      });
+    }
 
-      if (activeDocumentId) {
-        const sameLocaleDuplicates = allForUrl.filter((page) => page.locale === locale && page.documentId !== activeDocumentId);
-        await Promise.all(
-          sameLocaleDuplicates.map(async (dup) => {
-            await strapi.documents('api::page.page').delete({
-              documentId: dup.documentId,
-              locale,
-            });
-            strapi.log.info(`Duplicate page removed [${locale}]: ${normalizedUrl}`);
-          })
-        );
-      }
+    const sameLocaleDuplicates = localeRecords.filter(
+      (record) => record.documentId !== activeDocumentId && !deletedDocumentIds.has(record.documentId)
+    );
+    for (const duplicate of sameLocaleDuplicates) {
+      await strapi.documents('api::page.page').delete({
+        documentId: duplicate.documentId,
+        locale,
+      });
+      strapi.log.info(`Duplicate page removed during sync [${locale}]: ${normalizedUrl}`);
+    }
+  }
 
-      const localizedPage = existing?.documentId === activeDocumentId ? existing : undefined;
-      if (activeDocumentId && localizedPage?.title !== title) {
-        await strapi.documents('api::page.page').update({
-          documentId: activeDocumentId,
-          locale,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
-          data: { title } as any,
-        });
-        await strapi.documents('api::page.page').update({
-          documentId: activeDocumentId,
-          locale,
-          status: 'published',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
-          data: { title } as any,
-        });
-        strapi.log.info(`Page title synced from mainMenu [${locale}]: ${normalizedUrl} (${title})`);
-      }
-    })
-  );
-
-  await setPreviouslySyncedUrls(strapi, locale, pageUrls);
+  await setPreviouslySyncedUrls(strapi, locale, desiredUrls);
 }
 
 export async function syncPagesFromMainMenu(strapi: Core.Strapi, locale = DEFAULT_MENU_LOCALE) {
-  const menuDoc = await strapi.documents('api::menu.menu').findFirst({
-    status: 'published',
-    locale,
-    populate: MENU_POPULATE as never,
-  });
+  await withLocaleSyncLock(strapi, locale, async () => {
+    const menuDoc = await strapi.documents('api::menu.menu').findFirst({
+      status: 'published',
+      locale,
+      populate: MENU_POPULATE as never,
+    });
 
-  const toCreate = collectUrlTitleFromMenu(getMainMenu(menuDoc));
-  await syncPagesByItems(strapi, toCreate, locale);
+    const toCreate = collectUrlTitleFromMenu(getMainMenu(menuDoc));
+    const fingerprint = JSON.stringify(
+      toCreate.map((item) => ({ pageUrl: normalizeUrl(item.pageUrl), title: item.title.trim() }))
+    );
+    const now = Date.now();
+    const lastFingerprint = lastMenuSyncFingerprintByLocale.get(locale);
+    const lastSyncAt = lastMenuSyncAtByLocale.get(locale) ?? 0;
+    const isDuplicateRun = lastFingerprint === fingerprint && now - lastSyncAt < MENU_SYNC_DEDUP_WINDOW_MS;
+    if (isDuplicateRun) {
+      strapi.log.info(`Menu sync skipped as duplicate [${locale}]`);
+      return;
+    }
+
+    await syncPagesByItems(strapi, toCreate, locale);
+    lastMenuSyncFingerprintByLocale.set(locale, fingerprint);
+    lastMenuSyncAtByLocale.set(locale, now);
+  });
 }
 
 export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
@@ -354,11 +441,19 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
 
   const pageQuery = strapi.db.query('api::page.page') as {
     findMany: (params?: unknown) => Promise<
-      Array<{ documentId?: string; pageUrl?: string; locale?: string; updatedAt?: string; publishedAt?: string | null }>
+      Array<{
+        documentId?: string;
+        pageUrl?: string;
+        locale?: string;
+        title?: string;
+        content?: unknown;
+        updatedAt?: string;
+        publishedAt?: string | null;
+      }>
     >;
   };
   const pages = await pageQuery.findMany({
-    select: ['documentId', 'pageUrl', 'locale', 'title', 'updatedAt', 'publishedAt'],
+    select: ['documentId', 'pageUrl', 'locale', 'title', 'content', 'updatedAt', 'publishedAt'],
     where: {
       publishedAt: { $notNull: true },
     },
@@ -366,7 +461,7 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
 
   const duplicatesByLocaleUrl = new Map<
     string,
-    Array<{ documentId: string; pageUrl: string; locale: string; updatedAt?: string }>
+    Array<{ documentId: string; pageUrl: string; locale: string; title?: string; content?: unknown; updatedAt?: string }>
   >();
   for (const page of pages) {
     if (!page?.documentId || !page?.pageUrl || !page?.locale) continue;
@@ -376,6 +471,8 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
       documentId: page.documentId,
       pageUrl: normalizeUrl(page.pageUrl),
       locale: page.locale,
+      title: page.title,
+      content: page.content,
       updatedAt: page.updatedAt,
     });
     duplicatesByLocaleUrl.set(key, list);
@@ -393,9 +490,8 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
 
   for (const [, list] of duplicatesByLocaleUrl) {
     if (list.length <= 1) continue;
-    list.sort((a, b) => (a.updatedAt && b.updatedAt ? b.updatedAt.localeCompare(a.updatedAt) : 0));
-    const keep = list[0];
-    const toDelete = list.slice(1);
+    const keep = list.reduce((best, current) => pickBetterCandidate(best, current));
+    const toDelete = list.filter((item) => item.documentId !== keep.documentId);
     await Promise.all(
       toDelete.map(async (dup) => {
         await removeDuplicate(dup, 'locale+url');
@@ -405,7 +501,10 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
   }
 
   // Fallback pass: handle rare "ghost" duplicates where URL differs only by hidden chars/case but same title.
-  const byLocaleTitle = new Map<string, Array<{ documentId: string; locale: string; pageUrl: string; updatedAt?: string }>>();
+  const byLocaleTitle = new Map<
+    string,
+    Array<{ documentId: string; locale: string; pageUrl: string; title?: string; content?: unknown; updatedAt?: string }>
+  >();
   for (const page of pages) {
     if (!page?.documentId || !page?.locale) continue;
     const rawTitle = typeof (page as { title?: unknown }).title === 'string' ? ((page as { title: string }).title || '').trim() : '';
@@ -416,13 +515,18 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
       documentId: page.documentId,
       locale: page.locale,
       pageUrl: normalizeUrl(page.pageUrl ?? ''),
+      title: rawTitle,
+      content: page.content,
       updatedAt: page.updatedAt,
     });
     byLocaleTitle.set(key, list);
   }
   for (const [, list] of byLocaleTitle) {
     if (list.length <= 1) continue;
-    const byUrl = new Map<string, Array<{ documentId: string; locale: string; pageUrl: string; updatedAt?: string }>>();
+    const byUrl = new Map<
+      string,
+      Array<{ documentId: string; locale: string; pageUrl: string; title?: string; content?: unknown; updatedAt?: string }>
+    >();
     for (const item of list) {
       const key = item.pageUrl.toLowerCase();
       const arr = byUrl.get(key) ?? [];
@@ -431,9 +535,9 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
     }
     for (const [, sameUrl] of byUrl) {
       if (sameUrl.length <= 1) continue;
-      sameUrl.sort((a, b) => (a.updatedAt && b.updatedAt ? b.updatedAt.localeCompare(a.updatedAt) : 0));
+      const keep = sameUrl.reduce((best, current) => pickBetterCandidate(best, current));
       await Promise.all(
-        sameUrl.slice(1).map(async (dup) => {
+        sameUrl.filter((item) => item.documentId !== keep.documentId).map(async (dup) => {
           await removeDuplicate(dup, 'locale+title+url');
         })
       );
@@ -441,12 +545,15 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
   }
 
   const pagesAfterDedupe = await pageQuery.findMany({
-    select: ['documentId', 'pageUrl', 'locale', 'updatedAt', 'publishedAt'],
+    select: ['documentId', 'pageUrl', 'locale', 'title', 'content', 'updatedAt', 'publishedAt'],
     where: {
       publishedAt: { $notNull: true },
     },
   });
-  const byUrlAcrossLocales = new Map<string, Array<{ documentId: string; pageUrl: string; locale: string; updatedAt?: string }>>();
+  const byUrlAcrossLocales = new Map<
+    string,
+    Array<{ documentId: string; pageUrl: string; locale: string; title?: string; content?: unknown; updatedAt?: string }>
+  >();
   for (const page of pagesAfterDedupe) {
     if (!page?.documentId || !page?.pageUrl || !page?.locale) continue;
     const key = normalizeUrl(page.pageUrl).toLowerCase();
@@ -455,6 +562,8 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
       documentId: page.documentId,
       pageUrl: normalizeUrl(page.pageUrl),
       locale: page.locale,
+      title: page.title,
+      content: page.content,
       updatedAt: page.updatedAt,
     });
     byUrlAcrossLocales.set(key, list);
@@ -463,15 +572,22 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
   let relinkedLocales = 0;
   for (const [normalizedUrl, list] of byUrlAcrossLocales) {
     if (list.length <= 1) continue;
-    const canonical =
-      list.find((item) => item.locale === DEFAULT_MENU_LOCALE) ??
-      [...list].sort((a, b) => (a.updatedAt && b.updatedAt ? b.updatedAt.localeCompare(a.updatedAt) : 0))[0];
+    const defaultLocaleDoc = list.find((item) => item.locale === DEFAULT_MENU_LOCALE);
+    const canonical = defaultLocaleDoc ?? list.reduce((best, current) => pickBetterCandidate(best, current));
     if (!canonical) continue;
 
-    const latestByLocale = new Map<string, { documentId: string; pageUrl: string; locale: string; updatedAt?: string }>();
+    const latestByLocale = new Map<
+      string,
+      { documentId: string; pageUrl: string; locale: string; title?: string; content?: unknown; updatedAt?: string }
+    >();
     for (const item of list) {
       const prev = latestByLocale.get(item.locale);
-      if (!prev || (item.updatedAt && prev.updatedAt && item.updatedAt.localeCompare(prev.updatedAt) > 0) || !prev.updatedAt) {
+      if (!prev) {
+        latestByLocale.set(item.locale, item);
+        continue;
+      }
+      const better = pickBetterCandidate(prev, item);
+      if (better.documentId !== prev.documentId) {
         latestByLocale.set(item.locale, item);
       }
     }
@@ -626,7 +742,7 @@ export function registerPageSyncOnMenuChange(strapi: Core.Strapi) {
     const isMenuPublishRoute = ctx.method === 'POST' && ctx.path === '/content-manager/single-types/api::menu.menu/actions/publish';
     const isMenuSaveRoute = (ctx.method === 'PUT' || ctx.method === 'POST') && ctx.path === '/content-manager/single-types/api::menu.menu';
     if (isMenuPublishRoute || isMenuSaveRoute) {
-      await syncPagesFromMainMenu(strapi, locale);
+      // Sync runs from model lifecycle hooks to avoid duplicate triggers from HTTP middleware routes.
     }
   });
 }
