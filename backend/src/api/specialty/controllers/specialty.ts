@@ -13,5 +13,9 @@ const uid = 'api::specialty.specialty';
 const populate = { items: { populate: ['specializations', 'workerProfessions'] } } as any;
 
 export default factories.createCoreController(uid, ({ strapi }) => ({
-  ...createLocalizedSingleTypeController(strapi, uid, { populate }),
+  ...createLocalizedSingleTypeController(strapi, uid, {
+    populate,
+    replicateToOtherLocales: true,
+    replicateMode: 'missingOnly',
+  }),
 }));

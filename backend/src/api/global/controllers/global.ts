@@ -13,5 +13,9 @@ const populate = {
 };
 
 export default factories.createCoreController(uid, ({ strapi }) => ({
-  ...createLocalizedSingleTypeController(strapi, uid, { populate }),
+  ...createLocalizedSingleTypeController(strapi, uid, {
+    populate,
+    replicateToOtherLocales: true,
+    replicateMode: 'missingOnly',
+  }),
 }));

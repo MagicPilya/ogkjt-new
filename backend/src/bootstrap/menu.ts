@@ -12,7 +12,6 @@ const MENU_POPULATE = {
 };
 const MENU_SYNC_STORE_KEY = 'page-urls-by-locale';
 const DEFAULT_PAGE_CONTENT = [{ type: 'paragraph', children: [{ type: 'text', text: '' }] }];
-const MANUAL_PAGE_DEDUPE_ENDPOINT_KEY = '__ogkjtManualPageDedupeEndpointInstalled';
 const MENU_SYNC_DEDUP_WINDOW_MS = 5000;
 const menuSyncLocksByLocale = new Map<string, Promise<void>>();
 const lastMenuSyncFingerprintByLocale = new Map<string, string>();
@@ -425,6 +424,185 @@ export async function syncPagesFromMainMenu(strapi: Core.Strapi, locale = DEFAUL
   });
 }
 
+type MenuMirrorSublink = { title?: string; url?: string | null };
+type MenuMirrorLink = { title?: string; url?: string | null; sublinks?: MenuMirrorSublink[] };
+type MenuMirrorSection = { title?: string; url?: string | null; links?: MenuMirrorLink[] };
+
+function stripComponentIdsDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripComponentIdsDeep(item)) as T;
+  }
+  if (value && typeof value === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+      if (key === 'id' || key === '__component') continue;
+      result[key] = stripComponentIdsDeep(nested);
+    }
+    return result as T;
+  }
+  return value;
+}
+
+function mergeMenuMissingOnly(
+  sourceMenu: MenuMirrorSection[] | undefined,
+  targetMenu: MenuMirrorSection[] | undefined
+): { merged: MenuMirrorSection[]; changed: boolean } {
+  const source = sourceMenu ?? [];
+  const target = [...(targetMenu ?? [])];
+  let changed = false;
+
+  const getItemKey = (item: Record<string, unknown>) => {
+    const urlCandidate = (item.url ?? item.pageUrl ?? item.slug ?? item.link) as string | null | undefined;
+    const titleCandidate = (item.title ?? item.name ?? item.label) as string | undefined;
+    const normalizedUrl = normalizeUrl(urlCandidate ?? '');
+    if (normalizedUrl && normalizedUrl !== '/') return `url:${normalizedUrl}`;
+    const normalizedTitle = (titleCandidate ?? '').trim().toLowerCase();
+    if (normalizedTitle) return `title:${normalizedTitle}`;
+    return '';
+  };
+
+  const mergeSublinks = (sourceSublinks: MenuMirrorSublink[] | undefined, targetSublinks: MenuMirrorSublink[] | undefined) => {
+    const src = sourceSublinks ?? [];
+    const tgt = [...(targetSublinks ?? [])];
+    const sourceKeys = new Set(src.map((item) => getItemKey(item as unknown as Record<string, unknown>)).filter(Boolean));
+
+    for (let i = tgt.length - 1; i >= 0; i -= 1) {
+      const key = getItemKey(tgt[i] as unknown as Record<string, unknown>);
+      if (!key || sourceKeys.has(key)) continue;
+      tgt.splice(i, 1);
+      changed = true;
+    }
+
+    for (const srcItem of src) {
+      const srcKey = getItemKey(srcItem as unknown as Record<string, unknown>);
+      if (!srcKey) continue;
+      const idx = tgt.findIndex((item) => getItemKey(item as unknown as Record<string, unknown>) === srcKey);
+      if (idx === -1) {
+        tgt.push({ title: srcItem.title ?? '', url: srcItem.url ?? null });
+        changed = true;
+        continue;
+      }
+      if ((!tgt[idx].title || !String(tgt[idx].title).trim()) && srcItem.title) {
+        tgt[idx] = { ...tgt[idx], title: srcItem.title };
+        changed = true;
+      }
+    }
+    return tgt;
+  };
+
+  const mergeLinks = (sourceLinks: MenuMirrorLink[] | undefined, targetLinks: MenuMirrorLink[] | undefined) => {
+    const src = sourceLinks ?? [];
+    const tgt = [...(targetLinks ?? [])];
+    const sourceKeys = new Set(src.map((item) => getItemKey(item as unknown as Record<string, unknown>)).filter(Boolean));
+
+    for (let i = tgt.length - 1; i >= 0; i -= 1) {
+      const key = getItemKey(tgt[i] as unknown as Record<string, unknown>);
+      if (!key || sourceKeys.has(key)) continue;
+      tgt.splice(i, 1);
+      changed = true;
+    }
+
+    for (const srcItem of src) {
+      const srcKey = getItemKey(srcItem as unknown as Record<string, unknown>);
+      if (!srcKey) continue;
+      const idx = tgt.findIndex((item) => getItemKey(item as unknown as Record<string, unknown>) === srcKey);
+      if (idx === -1) {
+        tgt.push({
+          title: srcItem.title ?? '',
+          url: srcItem.url ?? null,
+          sublinks: mergeSublinks(srcItem.sublinks, []),
+        });
+        changed = true;
+        continue;
+      }
+      const current = tgt[idx];
+      const nextTitle = (!current.title || !String(current.title).trim()) && srcItem.title ? srcItem.title : current.title;
+      const nextSublinks = mergeSublinks(srcItem.sublinks, current.sublinks);
+      if (nextTitle !== current.title || nextSublinks !== current.sublinks) {
+        tgt[idx] = { ...current, title: nextTitle, sublinks: nextSublinks };
+        changed = true;
+      }
+    }
+    return tgt;
+  };
+
+  for (const srcSection of source) {
+    const srcKey = getItemKey(srcSection as unknown as Record<string, unknown>);
+    if (!srcKey) continue;
+    const idx = target.findIndex((item) => getItemKey(item as unknown as Record<string, unknown>) === srcKey);
+    if (idx === -1) {
+      target.push({
+        title: srcSection.title ?? '',
+        url: srcSection.url ?? null,
+        links: mergeLinks(srcSection.links, []),
+      });
+      changed = true;
+      continue;
+    }
+    const current = target[idx];
+    const nextTitle = (!current.title || !String(current.title).trim()) && srcSection.title ? srcSection.title : current.title;
+    const nextLinks = mergeLinks(srcSection.links, current.links);
+    if (nextTitle !== current.title || nextLinks !== current.links) {
+      target[idx] = { ...current, title: nextTitle, links: nextLinks };
+      changed = true;
+    }
+  }
+
+  const sourceSectionKeys = new Set(source.map((item) => getItemKey(item as unknown as Record<string, unknown>)).filter(Boolean));
+  for (let i = target.length - 1; i >= 0; i -= 1) {
+    const key = getItemKey(target[i] as unknown as Record<string, unknown>);
+    if (!key || sourceSectionKeys.has(key)) continue;
+    target.splice(i, 1);
+    changed = true;
+  }
+
+  return { merged: target, changed };
+}
+
+async function mirrorMenuToOtherLocales(strapi: Core.Strapi, sourceLocale: string) {
+  const sourceDoc = (await strapi.documents('api::menu.menu').findFirst({
+    status: 'published',
+    locale: sourceLocale,
+    populate: MENU_POPULATE as never,
+  })) as { documentId?: string; mainMenu?: MenuMirrorSection[] } | null;
+  if (!sourceDoc?.documentId) return;
+
+  const localeQuery = strapi.db.query('plugin::i18n.locale') as {
+    findMany: (params?: unknown) => Promise<Array<{ code?: string }>>;
+  };
+  const localeRows = await localeQuery.findMany({ select: ['code'] });
+  const localeCodes = localeRows.map((row) => (typeof row?.code === 'string' ? row.code.trim() : '')).filter(Boolean);
+  strapi.log.info(`[api::menu.menu] Mirror run source=${sourceLocale} locales=${localeCodes.join(',')}`);
+
+  for (const targetLocale of localeCodes) {
+    if (targetLocale === sourceLocale) continue;
+    const targetDoc = (await strapi.documents('api::menu.menu').findFirst({
+      status: 'published',
+      locale: targetLocale,
+      populate: MENU_POPULATE as never,
+    })) as { documentId?: string; mainMenu?: MenuMirrorSection[] } | null;
+    const targetDocumentId = targetDoc?.documentId ?? sourceDoc.documentId;
+
+    const { merged, changed } = mergeMenuMissingOnly(sourceDoc.mainMenu, targetDoc?.mainMenu);
+    strapi.log.info(
+      `[api::menu.menu] Mirror evaluate ${sourceLocale} -> ${targetLocale} changed=${changed} sourceItems=${
+        sourceDoc.mainMenu?.length ?? 0
+      } targetItems=${targetDoc?.mainMenu?.length ?? 0}`
+    );
+    if (!changed) continue;
+
+    const sanitizedMainMenu = stripComponentIdsDeep(merged);
+    await strapi.documents('api::menu.menu').update({
+      documentId: targetDocumentId,
+      locale: targetLocale,
+      status: 'published',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
+      data: { mainMenu: sanitizedMainMenu } as any,
+    });
+    strapi.log.info(`[api::menu.menu] Mirrored menu missing items ${sourceLocale} -> ${targetLocale}`);
+  }
+}
+
 export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
   const localeQuery = strapi.db.query('plugin::i18n.locale') as {
     findMany: (params?: unknown) => Promise<Array<{ code?: string }>>;
@@ -641,41 +819,6 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
   };
 }
 
-export function registerManualPageDedupeEndpoint(strapi: Core.Strapi) {
-  const strapiServer = strapi.server as Core.Strapi['server'] & {
-    [MANUAL_PAGE_DEDUPE_ENDPOINT_KEY]?: boolean;
-  };
-  if (strapiServer[MANUAL_PAGE_DEDUPE_ENDPOINT_KEY]) return;
-
-  strapi.server.use(async (ctx, next) => {
-    if (!(ctx.method === 'POST' && ctx.path === '/_tools/pages/dedupe/run')) {
-      await next();
-      return;
-    }
-
-    try {
-      const result = await dedupePagesForAllLocales(strapi);
-      ctx.status = result.failedLocales > 0 ? 207 : 200;
-      ctx.body = { data: result };
-    } catch (error) {
-      strapi.log.error('Manual page dedupe failed.', error);
-      ctx.status = 500;
-      ctx.body = {
-        data: null,
-        error: {
-          status: 500,
-          name: 'ApplicationError',
-          message: 'Ошибка очистки дублей страниц.',
-          details: {},
-        },
-      };
-    }
-  });
-
-  strapiServer[MANUAL_PAGE_DEDUPE_ENDPOINT_KEY] = true;
-  strapi.log.info('Registered manual page dedupe admin endpoint (/_tools/pages/dedupe/run).');
-}
-
 export function registerPageSyncOnMenuChange(strapi: Core.Strapi) {
   const syncFromLifecycleEvent = async (
     event: { result?: { locale?: unknown }; params?: { data?: { locale?: unknown } } } | undefined
@@ -742,7 +885,16 @@ export function registerPageSyncOnMenuChange(strapi: Core.Strapi) {
     const isMenuPublishRoute = ctx.method === 'POST' && ctx.path === '/content-manager/single-types/api::menu.menu/actions/publish';
     const isMenuSaveRoute = (ctx.method === 'PUT' || ctx.method === 'POST') && ctx.path === '/content-manager/single-types/api::menu.menu';
     if (isMenuPublishRoute || isMenuSaveRoute) {
-      // Sync runs from model lifecycle hooks to avoid duplicate triggers from HTTP middleware routes.
+      try {
+        await mirrorMenuToOtherLocales(strapi, locale);
+      } catch (error) {
+        const err = error as { message?: string; details?: unknown };
+        strapi.log.warn(
+          `[api::menu.menu] Mirror failed after ${ctx.method} ${ctx.path}: ${err?.message ?? 'unknown'} ${
+            err?.details ? JSON.stringify(err.details) : ''
+          }`
+        );
+      }
     }
   });
 }

@@ -1,7 +1,6 @@
 import type { Core } from '@strapi/strapi';
 
 import {
-  registerManualPageDedupeEndpoint,
   registerPageSyncOnMenuChange,
   registerPageTitleAutofill,
 } from './bootstrap/menu';
@@ -16,6 +15,7 @@ import {
   patchWindowsUploadTempCleanup,
 } from './bootstrap/upload-settings';
 import { registerNewsImportEndpoint } from './bootstrap/news-import';
+import { registerSingleTypeLocaleMirror } from './bootstrap/single-type-locale-mirror';
 
 export default {
   register({ strapi }: { strapi: Core.Strapi }) {
@@ -36,12 +36,12 @@ export default {
       patchUploadImageOptimizer(strapi);
       registerManualImageOptimizerEndpoint(strapi);
       registerNewsImportEndpoint(strapi);
-      registerManualPageDedupeEndpoint(strapi);
       await setPublicPermissions(strapi);
       await syncI18nLocaleDisplayNames(strapi);
       await seedGlobalIfEmpty(strapi);
       await seedMenuIfEmpty(strapi);
       registerPageSyncOnMenuChange(strapi);
+      registerSingleTypeLocaleMirror(strapi);
       await ensureUploadOptimizationSettings(strapi);
     } catch (error) {
       strapi.log.warn('Bootstrap default settings failed (при первом запуске можно перезапустить Strapi).', error);

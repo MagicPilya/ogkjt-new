@@ -697,7 +697,6 @@ export default {
     const IMAGE_OPTIMIZER_BUTTON_ID = 'ogkjt-image-optimizer-run-button';
     const NEWS_IMPORT_BUTTON_ID = 'ogkjt-news-import-run-button';
     const DORMITORY_NEWS_IMPORT_BUTTON_ID = 'ogkjt-dormitory-news-import-run-button';
-    const PAGE_DEDUPE_BUTTON_ID = 'ogkjt-page-dedupe-run-button';
     const NEWS_IMPORT_TOKEN_STORAGE_KEY = 'ogkjt-news-import-token';
     const getAdminJwtToken = () => {
       const localStorageCandidates = ['jwtToken', 'strapi-admin-jwt', 'token'];
@@ -1296,123 +1295,6 @@ export default {
       document.body.appendChild(button);
     };
 
-    const ensurePageDedupeButton = () => {
-      const onPageScreen = window.location.pathname.includes('/content-manager/collection-types/api::page.page');
-      const existingButton = document.getElementById(PAGE_DEDUPE_BUTTON_ID) as HTMLButtonElement | null;
-      if (!onPageScreen) {
-        if (existingButton) existingButton.remove();
-        return;
-      }
-
-      if (existingButton) return;
-
-      const button = document.createElement('button');
-      button.id = PAGE_DEDUPE_BUTTON_ID;
-      button.type = 'button';
-      button.textContent = 'Очистить дубли страниц';
-      button.style.position = 'fixed';
-      button.style.right = '16px';
-      button.style.bottom = '112px';
-      button.style.zIndex = '9998';
-      button.style.padding = '10px 14px';
-      button.style.border = '1px solid rgba(199, 122, 131, 0.55)';
-      button.style.borderRadius = '8px';
-      button.style.background = 'linear-gradient(180deg, #b4546b 0%, #8f2f49 100%)';
-      button.style.color = '#fff7f9';
-      button.style.fontSize = '13px';
-      button.style.fontWeight = '600';
-      button.style.cursor = 'pointer';
-      button.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
-      button.style.transition = 'opacity .15s ease, transform .15s ease';
-
-      button.onmouseenter = () => {
-        if (button.disabled) return;
-        button.style.transform = 'translateY(-1px)';
-      };
-      button.onmouseleave = () => {
-        button.style.transform = 'translateY(0)';
-      };
-
-      button.onclick = async () => {
-        if (button.disabled) return;
-        const shouldRun = window.confirm(
-          'Очистить дубли страниц и объединить локали по menu pageUrl? Это действие может занять время.'
-        );
-        if (!shouldRun) return;
-
-        const previousText = button.textContent;
-        button.disabled = true;
-        button.textContent = 'Очистка...';
-        button.style.opacity = '0.75';
-        button.style.cursor = 'wait';
-
-        try {
-          const token = getAdminJwtToken();
-          const response = await window.fetch('/_tools/pages/dedupe/run', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: JSON.stringify({}),
-          });
-          const responseText = await response.text();
-          let payload: {
-            data?: {
-              scannedLocales?: number;
-              succeededLocales?: number;
-              failedLocales?: number;
-              removedDuplicates?: number;
-              relinkedLocales?: number;
-              failed?: Array<{ locale?: string; error?: string }>;
-            };
-            error?: { message?: string };
-          } = {};
-          try {
-            payload = responseText ? (JSON.parse(responseText) as typeof payload) : {};
-          } catch {
-            payload = {
-              error: { message: responseText || `HTTP ${response.status}` },
-            };
-          }
-
-          if (!response.ok && response.status !== 207) {
-            const errorMessage = payload?.error?.message ?? `HTTP ${response.status}`;
-            throw new Error(errorMessage);
-          }
-
-          const stats = payload.data ?? {};
-          const failedLines = (stats.failed ?? [])
-            .map((item) => `${item.locale ?? 'unknown'}: ${item.error ?? 'error'}`)
-            .join('\n');
-          const failedBlock = failedLines ? `\n\nОшибки локалей:\n${failedLines}` : '';
-          window.alert(
-            `Очистка дублей завершена.\n` +
-              `Локалей проверено: ${stats.scannedLocales ?? 0}\n` +
-              `Успешно: ${stats.succeededLocales ?? 0}\n` +
-              `Удалено дублей: ${stats.removedDuplicates ?? 0}\n` +
-              `Перелинковано локалей: ${stats.relinkedLocales ?? 0}\n` +
-              `С ошибками: ${stats.failedLocales ?? 0}` +
-              failedBlock
-          );
-        } catch (error) {
-          window.alert(
-            `Не удалось запустить очистку дублей страниц: ${
-              error instanceof Error ? error.message : String(error)
-            }`
-          );
-        } finally {
-          button.disabled = false;
-          button.textContent = previousText ?? 'Очистить дубли страниц';
-          button.style.opacity = '1';
-          button.style.cursor = 'pointer';
-          button.style.transform = 'translateY(0)';
-        }
-      };
-
-      document.body.appendChild(button);
-    };
 
     type BlocksAction =
       | 'bold'
@@ -1991,7 +1873,6 @@ export default {
     ensureImageOptimizerButton();
     ensureNewsImportButton();
     ensureDormitoryNewsImportButton();
-    ensurePageDedupeButton();
 
     document.addEventListener('keydown', hotkeyHandler, true);
     document.addEventListener('contextmenu', contextMenuHandler, true);
@@ -2020,7 +1901,6 @@ export default {
       ensureImageOptimizerButton();
       ensureNewsImportButton();
       ensureDormitoryNewsImportButton();
-      ensurePageDedupeButton();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
