@@ -32,7 +32,9 @@ type SingleTypeControllerOptions = {
 type DocumentUid = Parameters<Core.Strapi['documents']>[0];
 
 function resolveLocale(ctx: ControllerContext): string | undefined {
-  return typeof ctx.query?.locale === 'string' ? ctx.query.locale : undefined;
+  const queryLocale = typeof ctx.query?.locale === 'string' ? ctx.query.locale : undefined;
+  const bodyDataLocale = typeof ctx.request.body?.data?.locale === 'string' ? ctx.request.body.data.locale : undefined;
+  return queryLocale ?? bodyDataLocale;
 }
 
 async function transformEntityResponse(

@@ -55,6 +55,7 @@ export default {
         'api::event.event': 'Событие',
         'api::article.article': 'Новости',
         'api::dormitory-news.dormitory-news': 'Новости общежития',
+        'Новости общежития': 'Новости общежития',
         'plugin::users-permissions.user': 'Пользователь',
         'api::administration.administration': 'Администрация',
         'api::admission-document.admission-document': 'Документы приёмной комиссии',
@@ -213,6 +214,7 @@ export default {
         'content-manager.components.elements.administration-member.position': 'Должность',
         'content-manager.components.elements.administration-member.contacts': 'Контакты',
         'content-manager.components.elements.administration-member.photo': 'Фото',
+        'content-manager.components.elements.document-name-item.name': 'Название документа',
 
         // Контент-тип Admission Document (Документы приёмной комиссии)
         'content-manager.content-types.api::admission-document.admission-document.fullTimeBase': 'Доп. информация (очная форма)',

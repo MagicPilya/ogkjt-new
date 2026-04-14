@@ -13,8 +13,6 @@ type MirrorEvent = {
 
 const MIRRORED_SINGLE_TYPE_UIDS = new Set([
   'api::administration.administration',
-  'api::admission-document.admission-document',
-  'api::annual-symbol.annual-symbol',
   'api::specialty.specialty',
   'api::global.global',
 ]);
