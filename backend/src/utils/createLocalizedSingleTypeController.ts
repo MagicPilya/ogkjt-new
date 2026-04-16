@@ -109,8 +109,7 @@ export function createLocalizedSingleTypeController(
     if (isPlainObject(value)) {
       const looksLikeMediaEntity =
         ('id' in value || 'documentId' in value) &&
-        (typeof value.url === 'string' ||
-          typeof value.mime === 'string' ||
+        (typeof value.mime === 'string' ||
           typeof value.ext === 'string' ||
           typeof value.hash === 'string' ||
           typeof value.provider === 'string');

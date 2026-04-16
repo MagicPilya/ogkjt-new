@@ -32,6 +32,12 @@ const POPULATE_BY_UID: Record<string, unknown> = {
   'api::administration.administration': {
     members: { populate: ['photo'] },
   },
+  'api::global.global': {
+    resources: true,
+  },
+  'api::specialty.specialty': {
+    items: { populate: ['specializations', 'workerProfessions'] },
+  },
 };
 const SYSTEM_FIELDS = new Set([
   'id',
@@ -141,6 +147,58 @@ function buildAdministrationPhotoPatch(source: unknown, target: unknown): Record
   return changed ? { members: patchedMembers } : undefined;
 }
 
+function buildGlobalResourcesPatch(source: unknown, target: unknown): Record<string, unknown> | undefined {
+  if (!isPlainObject(source) || !isPlainObject(target)) return undefined;
+  const sourceResources = Array.isArray(source.resources) ? source.resources : [];
+  const targetResources = Array.isArray(target.resources) ? target.resources : [];
+
+  const normalizeResource = (item: unknown) => {
+    if (!isPlainObject(item)) return null;
+    const url = typeof item.url === 'string' ? item.url.trim() : '';
+    const title = typeof item.title === 'string' ? item.title.trim() : '';
+    if (!url) return null;
+    return { url, title };
+  };
+
+  const normalizedSource = sourceResources
+    .map(normalizeResource)
+    .filter((item): item is { url: string; title: string } => item !== null);
+  const normalizedTarget = targetResources
+    .map(normalizeResource)
+    .filter((item): item is { url: string; title: string } => item !== null);
+
+  const sourceByUrl = new Map(normalizedSource.map((item) => [item.url, item]));
+  const targetByUrl = new Map(normalizedTarget.map((item) => [item.url, item]));
+
+  let changed = false;
+  const merged: Array<{ url: string; title: string }> = [];
+
+  for (const src of normalizedSource) {
+    const targetItem = targetByUrl.get(src.url);
+    if (!targetItem) {
+      merged.push(src);
+      changed = true;
+      continue;
+    }
+    const keepLocalizedTitle = targetItem.title.trim().length > 0 ? targetItem.title : src.title;
+    merged.push({ url: src.url, title: keepLocalizedTitle });
+    if (keepLocalizedTitle !== targetItem.title) {
+      changed = true;
+    }
+  }
+
+  for (const targetItem of normalizedTarget) {
+    if (!sourceByUrl.has(targetItem.url)) {
+      changed = true;
+    }
+  }
+
+  if (!changed && JSON.stringify(merged) === JSON.stringify(normalizedTarget)) {
+    return undefined;
+  }
+  return { resources: merged };
+}
+
 function buildAdministrationPhotoPool(docs: unknown[]): Map<string, unknown> {
   const pool = new Map<string, unknown>();
   for (const doc of docs) {
@@ -199,8 +257,7 @@ function sanitizeMirrorValue(value: unknown): unknown {
   if (isPlainObject(value)) {
     const looksLikeMediaEntity =
       ('id' in value || 'documentId' in value) &&
-      (typeof value.url === 'string' ||
-        typeof value.mime === 'string' ||
+      (typeof value.mime === 'string' ||
         typeof value.ext === 'string' ||
         typeof value.hash === 'string' ||
         typeof value.provider === 'string');
@@ -444,9 +501,18 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
 
     strapi.log.info(`[${uid}] Mirror trigger locale=${locale}`);
 
-    const loadSingleTypeDoc = async (targetUid: string, targetLocale: string) => {
+    const loadSingleTypeDoc = async (targetUid: string, targetLocale: string, preferDraftFirst = false) => {
       const documentsApi = strapi.documents(targetUid as Parameters<Core.Strapi['documents']>[0]);
       const populate = (POPULATE_BY_UID[targetUid] ?? '*') as never;
+      if (preferDraftFirst) {
+        const draftOrAnyFirst = (await documentsApi.findFirst({
+          locale: targetLocale,
+          populate,
+        })) as (Record<string, unknown> & { documentId?: unknown }) | null;
+        if (draftOrAnyFirst && Object.keys(stripSystemFields(draftOrAnyFirst)).length > 0) {
+          return draftOrAnyFirst;
+        }
+      }
       const publishedDoc = (await documentsApi.findFirst({
         status: 'published',
         locale: targetLocale,
@@ -481,7 +547,7 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
       let sourceDocumentId = documentId;
       const allDocsForPhotoPool: unknown[] = [];
       try {
-        const sourceDoc = await loadSingleTypeDoc(uid, locale);
+        const sourceDoc = await loadSingleTypeDoc(uid, locale, true);
         if (sourceDoc) {
           sourcePayload = stripSystemFields(sourceDoc);
           if (uid === 'api::administration.administration') {
@@ -527,12 +593,18 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
                   buildAdministrationPhotoPool(allDocsForPhotoPool)
                 )
               : undefined;
+          const globalResourcesPatch =
+            uid === 'api::global.global' ? buildGlobalResourcesPatch(sourcePayload, targetPayload ?? undefined) : undefined;
           const mergedPatch =
-            isPlainObject(patch) || isPlainObject(adminPhotoPatch) || isPlainObject(adminPhotoPoolPatch)
+            isPlainObject(patch) ||
+            isPlainObject(adminPhotoPatch) ||
+            isPlainObject(adminPhotoPoolPatch) ||
+            isPlainObject(globalResourcesPatch)
               ? {
                   ...(isPlainObject(patch) ? patch : {}),
                   ...(isPlainObject(adminPhotoPatch) ? adminPhotoPatch : {}),
                   ...(isPlainObject(adminPhotoPoolPatch) ? adminPhotoPoolPatch : {}),
+                  ...(isPlainObject(globalResourcesPatch) ? globalResourcesPatch : {}),
                 }
               : undefined;
           strapi.log.info(
