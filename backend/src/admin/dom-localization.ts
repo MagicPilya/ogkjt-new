@@ -1,3 +1,5 @@
+import { isArticleOrEventScreen, isEventScreen, isPageScreen } from './admin-url-utils';
+
 export function applyAdminDomLocalizationTweaks(): void {
   const oldUploadLabel = 'Перетащите сюда или';
   const newUploadLabel = 'Перетащите файлы сюда или выберите на компьютере';
@@ -15,7 +17,7 @@ export function applyAdminDomLocalizationTweaks(): void {
   };
 
   const lockPageTitleInput = () => {
-    const onPageEditScreen = window.location.pathname.includes('/content-manager/collection-types/api::page.page');
+    const onPageEditScreen = isPageScreen(window.location.pathname);
     if (!onPageEditScreen) return;
 
     const titleInput = document.querySelector<HTMLInputElement>('input[name="title"]');
@@ -31,7 +33,7 @@ export function applyAdminDomLocalizationTweaks(): void {
   };
 
   const normalizePageEditLayout = () => {
-    const onPageEditScreen = window.location.pathname.includes('/content-manager/collection-types/api::page.page');
+    const onPageEditScreen = isPageScreen(window.location.pathname);
     if (!onPageEditScreen) return;
     const pageEditRoot = document.querySelector<HTMLElement>('main') ?? document.body;
 
@@ -89,7 +91,7 @@ export function applyAdminDomLocalizationTweaks(): void {
   };
 
   const lockPageDeleteButtons = () => {
-    const onPageScreen = window.location.pathname.includes('/content-manager/collection-types/api::page.page');
+    const onPageScreen = isPageScreen(window.location.pathname);
     if (!onPageScreen) return;
 
     const deleteTexts = ['delete', 'удалить', 'delete all entries', 'удалить все записи', 'all locales', 'все локали'];
@@ -105,7 +107,7 @@ export function applyAdminDomLocalizationTweaks(): void {
   };
 
   const localizeI18nLocalePickerTexts = () => {
-    const onPageEditScreen = window.location.pathname.includes('/content-manager/collection-types/api::page.page');
+    const onPageEditScreen = isPageScreen(window.location.pathname);
     if (!onPageEditScreen) return;
 
     const elements = document.querySelectorAll<HTMLElement>('span, div, p');
@@ -166,13 +168,8 @@ export function applyAdminDomLocalizationTweaks(): void {
     normalizeStatusBadgeTypography();
   };
 
-  const isArticleOrEventScreen = () =>
-    window.location.pathname.includes('/content-manager/collection-types/api::article.article') ||
-    window.location.pathname.includes('/content-manager/collection-types/api::event.event');
-  const isEventScreen = () => window.location.pathname.includes('/content-manager/collection-types/api::event.event');
-
   const keepRuLocaleInAddressBarForArticleAndEvent = () => {
-    if (!isArticleOrEventScreen()) return;
+    if (!isArticleOrEventScreen(window.location.pathname)) return;
     const url = new URL(window.location.href);
     let changed = false;
 
@@ -192,7 +189,7 @@ export function applyAdminDomLocalizationTweaks(): void {
   };
 
   const hideLocaleControlsForArticleAndEvent = () => {
-    if (!isArticleOrEventScreen()) return;
+    if (!isArticleOrEventScreen(window.location.pathname)) return;
     const root = document.querySelector<HTMLElement>('main') ?? document.body;
     const localeTokens = new Set(['ru', 'be', 'en', 'русский', 'беларуская', 'english']);
     const controls = root.querySelectorAll<HTMLElement>('button, [role="button"], select, a[href]');
@@ -243,7 +240,7 @@ export function applyAdminDomLocalizationTweaks(): void {
       target.style.display = 'none';
     });
 
-    if (isEventScreen()) {
+    if (isEventScreen(window.location.pathname)) {
       const topContainers = root.querySelectorAll<HTMLElement>('header, [role="toolbar"], [role="group"], nav, section, div');
       topContainers.forEach((container) => {
         const text = (container.textContent ?? '').toLowerCase();

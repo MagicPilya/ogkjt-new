@@ -1,3 +1,4 @@
+import { promptForSafeHttpUrl } from './admin-url-utils';
 import { isDraftShortcutScreen } from './runtime-helpers';
 
 const EDITOR_SELECTOR = '[data-slate-editor="true"]';
@@ -83,18 +84,29 @@ export function installBlocksEditorTools(): void {
     return !!startNode?.closest?.(EDITOR_SELECTOR) && root.contains(startNode);
   };
 
-  const insertHtmlByRange = (root: HTMLElement, html: string): boolean => {
+  const escapeHtml = (value: string): string =>
+    value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const insertNodeByRange = (root: HTMLElement, node: Node): boolean => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return false;
     const range = selection.getRangeAt(0);
     if (!root.contains(range.startContainer)) return false;
-    const template = document.createElement('template');
-    template.innerHTML = html;
-    const fragment = template.content.cloneNode(true) as DocumentFragment;
+
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(node);
     range.deleteContents();
     range.insertNode(fragment);
     selection.removeAllRanges();
     return true;
+  };
+
+  const insertQuoteBlockAtRange = (root: HTMLElement): boolean => {
+    const blockquote = document.createElement('blockquote');
+    const paragraph = document.createElement('p');
+    paragraph.textContent = 'Цитата';
+    blockquote.appendChild(paragraph);
+    return insertNodeByRange(root, blockquote);
   };
 
   const applyFallbackFormatting = (action: BlocksAction, root: HTMLElement): boolean => {
@@ -105,7 +117,7 @@ export function installBlocksEditorTools(): void {
     if (action === 'strikethrough') return document.execCommand('strikeThrough');
     if (action === 'link') {
       if (!hasSelection) return false;
-      const url = window.prompt('Введите URL ссылки', 'https://');
+      const url = promptForSafeHttpUrl('Введите URL ссылки');
       if (!url) return false;
       return document.execCommand('createLink', false, url);
     }
@@ -113,34 +125,39 @@ export function installBlocksEditorTools(): void {
     if (action === 'numbered-list') return document.execCommand('insertOrderedList');
     if (action === 'quote') {
       if (!hasSelection) {
-        const withExec = document.execCommand('insertHTML', false, '<blockquote><p>Цитата</p></blockquote><p><br/></p>');
-        if (withExec) return true;
-        return insertHtmlByRange(root, '<blockquote><p>Цитата</p></blockquote><p><br/></p>');
+        const insertedByRange = insertQuoteBlockAtRange(root);
+        if (insertedByRange) return true;
+        return document.execCommand('insertHTML', false, '<blockquote><p>Цитата</p></blockquote><p><br/></p>');
       }
       const selection = window.getSelection();
       const selectedText = selection?.toString() ?? '';
       if (!selectedText) return document.execCommand('formatBlock', false, 'blockquote');
-      const escaped = selectedText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const byExec = document.execCommand('insertHTML', false, `<blockquote>${escaped}</blockquote>`);
-      if (byExec) return true;
-      return insertHtmlByRange(root, `<blockquote>${escaped}</blockquote>`);
+      const blockquote = document.createElement('blockquote');
+      blockquote.textContent = selectedText;
+      const byRange = insertNodeByRange(root, blockquote);
+      if (byRange) return true;
+      return document.execCommand('formatBlock', false, 'blockquote');
     }
     if (action === 'image') {
-      const url = window.prompt('Введите URL изображения', 'https://');
+      const url = promptForSafeHttpUrl('Введите URL изображения');
       if (!url) return false;
       const inserted = document.execCommand('insertImage', false, url);
       if (inserted) return true;
-      const withExec = document.execCommand('insertHTML', false, `<img src="${url}" alt="" />`);
-      if (withExec) return true;
-      return insertHtmlByRange(root, `<img src="${url}" alt="" />`);
+      const image = document.createElement('img');
+      image.setAttribute('src', url);
+      image.setAttribute('alt', '');
+      return insertNodeByRange(root, image);
     }
     if (action === 'inline-code') {
       if (!hasSelection) return false;
       const selection = window.getSelection();
       const selectedText = selection?.toString() ?? '';
       if (!selectedText) return false;
-      const escaped = selectedText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      return document.execCommand('insertHTML', false, `<code>${escaped}</code>`);
+      const code = document.createElement('code');
+      code.textContent = selectedText;
+      const byRange = insertNodeByRange(root, code);
+      if (byRange) return true;
+      return document.execCommand('insertHTML', false, `<code>${escapeHtml(selectedText)}</code>`);
     }
     return false;
   };

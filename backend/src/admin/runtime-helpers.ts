@@ -1,3 +1,5 @@
+import { isArticleScreen, isEventScreen, isPageScreen } from './admin-url-utils';
+
 export function getAdminJwtToken(): string | null {
   const localStorageCandidates = ['jwtToken', 'strapi-admin-jwt', 'token'];
   for (const key of localStorageCandidates) {
@@ -32,9 +34,5 @@ export function getAdminJwtToken(): string | null {
 }
 
 export function isDraftShortcutScreen(pathname: string): boolean {
-  return (
-    pathname.includes('/content-manager/collection-types/api::article.article') ||
-    pathname.includes('/content-manager/collection-types/api::event.event') ||
-    pathname.includes('/content-manager/collection-types/api::page.page')
-  );
+  return isArticleScreen(pathname) || isEventScreen(pathname) || isPageScreen(pathname);
 }
