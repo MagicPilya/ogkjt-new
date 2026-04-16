@@ -15,7 +15,7 @@ export function registerAdminFields(app: StrapiApp): void {
     },
     components: {
       Input: async () =>
-        import('./components/MenuLinkSelectInput').then((mod) => ({ default: mod.default as unknown as ComponentType })),
+        import('../components/MenuLinkSelectInput').then((mod) => ({ default: mod.default as unknown as ComponentType })),
     },
   });
 }

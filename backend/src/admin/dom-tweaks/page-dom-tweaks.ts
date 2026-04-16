@@ -1,4 +1,4 @@
-import { isPageScreen } from '../admin-url-utils';
+import { isPageScreen } from '../core/admin-url-utils';
 
 export function updateUploadDropzoneText(): void {
   const oldUploadLabel = 'Перетащите сюда или';

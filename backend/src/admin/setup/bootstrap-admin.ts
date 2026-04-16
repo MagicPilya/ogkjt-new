@@ -1,6 +1,6 @@
-import { installBlocksEditorTools } from './blocks-editor-tools';
-import { applyAdminDomLocalizationTweaks } from './dom-tweaks/dom-localization';
-import { ensureImageOptimizerButton } from './upload-tools';
+import { installBlocksEditorTools } from '../editor/blocks-editor-tools';
+import { applyAdminDomLocalizationTweaks } from '../dom-tweaks/dom-localization';
+import { ensureImageOptimizerButton } from '../upload/upload-tools';
 
 let isAdminBootstrapInstalled = false;
 

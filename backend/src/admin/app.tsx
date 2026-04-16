@@ -1,7 +1,7 @@
 import './custom.css';
-import { bootstrapAdmin } from './bootstrap-admin';
-import { registerAdminFields } from './register-admin-fields';
-import { ruTranslations } from './translations';
+import { ruTranslations } from './i18n/translations';
+import { bootstrapAdmin } from './setup/bootstrap-admin';
+import { registerAdminFields } from './setup/register-admin-fields';
 
 export default {
   config: {

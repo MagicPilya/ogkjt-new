@@ -2,11 +2,10 @@ import type { Core } from '@strapi/strapi';
 
 import { DEFAULT_MENU_LOCALE } from './constants';
 import { DEFAULT_PAGE_CONTENT, MENU_POPULATE, MENU_SYNC_DEDUP_WINDOW_MS, MENU_SYNC_STORE_KEY } from './menu-sync/config';
-import { collectUrlTitleFromMenu, getMainMenu, getTitleForUrl, normalizeUrl, pickBetterCandidate, resolveLocale } from './menu-sync/helpers';
-import { dedupePagesForAllLocales } from './menu-sync/page-dedupe';
+import { collectUrlTitleFromMenu, getMainMenu, getTitleForUrl, normalizeUrl, resolveLocale } from './menu-sync/helpers';
 import { mirrorMenuToOtherLocales } from './menu-sync/menu-mirror';
 import { pickBestRecord, publishPageLocale, type PageLocaleRecord } from './menu-sync/page-sync';
-import type { MenuDocument, MenuPageItem, MenuSection } from './types';
+import type { MenuPageItem } from './types';
 const menuSyncLocksByLocale = new Map<string, Promise<void>>();
 const lastMenuSyncFingerprintByLocale = new Map<string, string>();
 const lastMenuSyncAtByLocale = new Map<string, number>();
@@ -32,7 +31,7 @@ async function setPreviouslySyncedUrls(strapi: Core.Strapi, locale: string, urls
   });
 }
 
-async function withLocaleSyncLock(strapi: Core.Strapi, locale: string, task: () => Promise<void>) {
+async function withLocaleSyncLock(locale: string, task: () => Promise<void>) {
   const previous = menuSyncLocksByLocale.get(locale) ?? Promise.resolve();
   const current = previous
     .catch((): void => undefined)
@@ -228,7 +227,7 @@ export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageIt
 }
 
 export async function syncPagesFromMainMenu(strapi: Core.Strapi, locale = DEFAULT_MENU_LOCALE) {
-  await withLocaleSyncLock(strapi, locale, async () => {
+  await withLocaleSyncLock(locale, async () => {
     const menuDoc = await strapi.documents('api::menu.menu').findFirst({
       status: 'published',
       locale,

@@ -1,4 +1,4 @@
-import { getAdminJwtToken } from './runtime-helpers';
+import { getAdminJwtToken } from '../core/runtime-helpers';
 
 const IMAGE_OPTIMIZER_BUTTON_ID = 'ogkjt-image-optimizer-run-button';
 

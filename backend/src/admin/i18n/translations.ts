@@ -38,7 +38,7 @@ export const ruTranslations = {
   'pages.PurchaseRelease.perks1': 'Добавляйте множество записей в релизы',
   'pages.PurchaseRelease.perks2': 'Быстро находите записи с ошибками',
   'pages.PurchaseRelease.perks3': 'Планируйте публикацию или публикуйте вручную',
-
+ 
   // i18n / локализации в списке
   'i18n.list-view.table.header.label': 'Доступно в',
 

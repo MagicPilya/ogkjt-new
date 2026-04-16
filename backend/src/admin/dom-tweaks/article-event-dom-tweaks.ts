@@ -1,4 +1,4 @@
-import { isArticleOrEventScreen, isEventScreen } from '../admin-url-utils';
+import { isArticleOrEventScreen, isEventScreen } from '../core/admin-url-utils';
 
 export function keepRuLocaleInAddressBarForArticleAndEvent(): void {
   if (!isArticleOrEventScreen(window.location.pathname)) return;
