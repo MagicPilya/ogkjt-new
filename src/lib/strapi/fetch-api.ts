@@ -54,16 +54,12 @@ export async function fetchAPI<T>(path: string, urlParamsObject = {}, options = 
       };
     }
 
-    if (isStrapiDebugLogsEnabled && requestedLocale !== undefined) {
-      console.log("[Strapi] Запрос:", path, "| locale =", requestedLocale);
-    }
-
     const requestInit = mergedOptions as RequestInit;
     const executeRequest = async (): Promise<T> => {
       const response = await fetch(requestUrl, requestInit);
       if (!response.ok) {
         if (isStrapiDebugLogsEnabled) {
-          console.warn(`[Strapi] ${response.status} ${response.statusText}: ${requestUrl.replace(/\?.*/, "")}`);
+          console.error(`[Strapi] ${response.status} ${response.statusText}: ${requestUrl.replace(/\?.*/, "")}`);
         }
         return {} as T;
       }
@@ -77,7 +73,7 @@ export async function fetchAPI<T>(path: string, urlParamsObject = {}, options = 
               : (data as { data: { locale?: string } }).data?.locale
             : undefined;
         if (resLocale !== undefined && resLocale !== requestedLocale) {
-          console.warn("[Strapi] В ответе другая локаль: запрашивали", requestedLocale, ", пришло", resLocale, "|", path);
+          console.error("[Strapi] В ответе другая локаль: запрашивали", requestedLocale, ", пришло", resLocale, "|", path);
         }
       }
       return data as T;
@@ -100,7 +96,7 @@ export async function fetchAPI<T>(path: string, urlParamsObject = {}, options = 
     return await requestPromise;
   } catch {
     if (isStrapiDebugLogsEnabled) {
-      console.warn("[Strapi] Запрос не выполнен (сеть/URL):", getStrapiURL() + path);
+      console.error("[Strapi] Запрос не выполнен (сеть/URL):", getStrapiURL() + path);
     }
     return {} as T;
   }

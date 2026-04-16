@@ -104,7 +104,6 @@ async function withLocaleSyncLock(strapi: Core.Strapi, locale: string, task: () 
   } finally {
     if (menuSyncLocksByLocale.get(locale) === current) {
       menuSyncLocksByLocale.delete(locale);
-      strapi.log.debug(`Menu sync lock released [${locale}]`);
     }
   }
 }
@@ -288,7 +287,6 @@ export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageIt
             documentId: page.documentId,
             locale,
           });
-          strapi.log.info(`Page removed after menu delete [${locale}]: ${page.pageUrl}`);
         })
     );
   }
@@ -347,7 +345,6 @@ export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageIt
       });
       activeDocumentId = (created as { documentId?: string } | null)?.documentId;
       createdInCurrentSync = Boolean(activeDocumentId);
-      strapi.log.info(`Page created from mainMenu [${locale}]: ${normalizedUrl} (${title})`);
     }
     if (!activeDocumentId) continue;
 
@@ -367,14 +364,12 @@ export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageIt
         locale,
       });
       deletedDocumentIds.add(bestLocaleRecord.documentId);
-      strapi.log.info(`Page merged into canonical document [${locale}]: ${normalizedUrl}`);
     } else if (!bestLocaleRecord && !createdInCurrentSync) {
       await publishPageLocale(strapi, activeDocumentId, locale, {
         pageUrl: normalizedUrl,
         title,
         content: DEFAULT_PAGE_CONTENT,
       });
-      strapi.log.info(`Page localization created from mainMenu [${locale}]: ${normalizedUrl}`);
     } else {
       await publishPageLocale(strapi, activeDocumentId, locale, {
         pageUrl: normalizedUrl,
@@ -390,7 +385,6 @@ export async function syncPagesByItems(strapi: Core.Strapi, toCreate: MenuPageIt
         documentId: duplicate.documentId,
         locale,
       });
-      strapi.log.info(`Duplicate page removed during sync [${locale}]: ${normalizedUrl}`);
     }
   }
 
@@ -414,7 +408,6 @@ export async function syncPagesFromMainMenu(strapi: Core.Strapi, locale = DEFAUL
     const lastSyncAt = lastMenuSyncAtByLocale.get(locale) ?? 0;
     const isDuplicateRun = lastFingerprint === fingerprint && now - lastSyncAt < MENU_SYNC_DEDUP_WINDOW_MS;
     if (isDuplicateRun) {
-      strapi.log.info(`Menu sync skipped as duplicate [${locale}]`);
       return;
     }
 
@@ -606,7 +599,6 @@ async function mirrorMenuToOtherLocales(strapi: Core.Strapi, sourceLocale: strin
   };
   const localeRows = await localeQuery.findMany({ select: ['code'] });
   const localeCodes = localeRows.map((row) => (typeof row?.code === 'string' ? row.code.trim() : '')).filter(Boolean);
-  strapi.log.info(`[api::menu.menu] Mirror run source=${sourceLocale} locales=${localeCodes.join(',')}`);
 
   for (const targetLocale of localeCodes) {
     if (targetLocale === sourceLocale) continue;
@@ -618,11 +610,6 @@ async function mirrorMenuToOtherLocales(strapi: Core.Strapi, sourceLocale: strin
     const targetDocumentId = targetDoc?.documentId ?? sourceDoc.documentId;
 
     const { merged, changed } = mergeMenuMissingOnly(sourceDoc.mainMenu, targetDoc?.mainMenu);
-    strapi.log.info(
-      `[api::menu.menu] Mirror evaluate ${sourceLocale} -> ${targetLocale} changed=${changed} sourceItems=${
-        sourceDoc.mainMenu?.length ?? 0
-      } targetItems=${targetDoc?.mainMenu?.length ?? 0}`
-    );
     if (!changed) continue;
 
     const sanitizedMainMenu = stripComponentIdsDeep(merged);
@@ -633,7 +620,6 @@ async function mirrorMenuToOtherLocales(strapi: Core.Strapi, sourceLocale: strin
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
       data: { mainMenu: sanitizedMainMenu } as any,
     });
-    strapi.log.info(`[api::menu.menu] Mirrored menu missing items ${sourceLocale} -> ${targetLocale}`);
   }
 }
 
@@ -697,7 +683,6 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
       locale: dup.locale,
     });
     removedDuplicates += 1;
-    strapi.log.info(`Duplicate page removed manually (${reason}) [${dup.locale}]: ${dup.pageUrl}`);
   };
 
   for (const [, list] of duplicatesByLocaleUrl) {
@@ -709,7 +694,6 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
         await removeDuplicate(dup, 'locale+url');
       })
     );
-    strapi.log.info(`Manual dedupe kept canonical [${keep.locale}]: ${keep.pageUrl}`);
   }
 
   // Fallback pass: handle rare "ghost" duplicates where URL differs only by hidden chars/case but same title.
@@ -839,7 +823,6 @@ export async function dedupePagesForAllLocales(strapi: Core.Strapi) {
         locale,
       });
       relinkedLocales += 1;
-      strapi.log.info(`Locale re-linked to canonical document [${locale}]: ${normalizedUrl}`);
     }
   }
 
@@ -923,7 +906,7 @@ export function registerPageSyncOnMenuChange(strapi: Core.Strapi) {
         await mirrorMenuToOtherLocales(strapi, locale);
       } catch (error) {
         const err = error as { message?: string; details?: unknown };
-        strapi.log.warn(
+        strapi.log.error(
           `[api::menu.menu] Mirror failed after ${ctx.method} ${ctx.path}: ${err?.message ?? 'unknown'} ${
             err?.details ? JSON.stringify(err.details) : ''
           }`

@@ -55,8 +55,6 @@ export async function seedMenuIfEmpty(strapi: Core.Strapi) {
     status: 'published',
     locale: DEFAULT_MENU_LOCALE,
   });
-
-  strapi.log.info('Menu single type seeded with empty mainMenu.');
 }
 
 export async function syncI18nLocaleDisplayNames(strapi: Core.Strapi) {
@@ -73,7 +71,6 @@ export async function syncI18nLocaleDisplayNames(strapi: Core.Strapi) {
         where: { id: locale.id },
         data: { name: expectedName },
       });
-      strapi.log.info(`Updated i18n locale name: ${locale.code} -> ${expectedName}`);
     })
   );
 }

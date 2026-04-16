@@ -91,24 +91,19 @@ export async function translateText(
       const data = (await res.json()) as { translatedText?: string };
       if (data.translatedText) return data.translatedText;
     }
-  } catch (err) {
-    console.warn("[translate] LibreTranslate failed:", err);
-  }
+  } catch {}
 
   try {
     const gtx = await translateViaGoogleGtx(t, source, target);
     if (gtx && gtx.trim() && gtx !== t) {
       return gtx;
     }
-  } catch (err) {
-    console.warn("[translate] Google GTX fallback failed:", err);
-  }
+  } catch {}
 
   try {
     const myMemory = await translateViaMyMemory(t, source, target);
     return myMemory;
-  } catch (err) {
-    console.warn("[translate] MyMemory fallback failed:", err);
+  } catch {
     return text;
   }
 }

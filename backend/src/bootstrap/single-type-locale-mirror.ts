@@ -499,8 +499,6 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
       return;
     }
 
-    strapi.log.info(`[${uid}] Mirror trigger locale=${locale}`);
-
     const loadSingleTypeDoc = async (targetUid: string, targetLocale: string, preferDraftFirst = false) => {
       const documentsApi = strapi.documents(targetUid as Parameters<Core.Strapi['documents']>[0]);
       const populate = (POPULATE_BY_UID[targetUid] ?? '*') as never;
@@ -537,7 +535,7 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
           .map((row) => (typeof row?.code === 'string' ? row.code.trim() : ''))
           .filter((code): code is string => Boolean(code));
       } catch (error) {
-        strapi.log.warn(`[${uid}] Failed to load locales for lifecycle mirror.`, error);
+        strapi.log.error(`[${uid}] Failed to load locales for lifecycle mirror.`, error);
         return;
       }
 
@@ -558,19 +556,16 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
           }
         }
       } catch (error) {
-        strapi.log.warn(`[${uid}] Failed to load source locale document for lifecycle mirror.`, error);
+        strapi.log.error(`[${uid}] Failed to load source locale document for lifecycle mirror.`, error);
         return;
       }
       if (!sourceDocumentId) {
-        strapi.log.warn(`[${uid}] Mirror skipped: no source documentId for locale "${locale}".`);
         return;
       }
       if (Object.keys(sourcePayload).length === 0) {
-        strapi.log.warn(`[${uid}] Mirror skipped: empty source payload for locale "${locale}".`);
         return;
       }
 
-      strapi.log.info(`[${uid}] Mirror run source=${locale} targets=${targets.join(',')}`);
       for (const targetLocale of targets) {
         try {
           const targetDoc = await loadSingleTypeDoc(uid, targetLocale);
@@ -607,11 +602,6 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
                   ...(isPlainObject(globalResourcesPatch) ? globalResourcesPatch : {}),
                 }
               : undefined;
-          strapi.log.info(
-            `[${uid}] Mirror evaluate ${locale} -> ${targetLocale} changed=${
-              isPlainObject(mergedPatch) ? Object.keys(mergedPatch).length > 0 : Array.isArray(mergedPatch)
-            }`
-          );
           if (!isPlainObject(mergedPatch) || Object.keys(mergedPatch).length === 0) continue;
           const sanitizedPatch = sanitizeMirrorValue(mergedPatch);
           if (!isPlainObject(sanitizedPatch) || Object.keys(sanitizedPatch).length === 0) continue;
@@ -626,7 +616,6 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Strapi update typings are narrower than runtime support.
               data: sanitizedPatch as any,
             });
-            strapi.log.info(`[${uid}] Mirrored missing fields ${locale} -> ${targetLocale}`);
           } finally {
             suppressedMirrorKeys.delete(targetKey);
           }
@@ -637,7 +626,7 @@ export function registerSingleTypeLocaleMirror(strapi: Core.Strapi) {
             cause?: unknown;
             stack?: string;
           };
-          strapi.log.warn(
+          strapi.log.error(
             `[${uid}] Failed mirror to locale "${targetLocale}". ` +
               `${errorObject?.message ?? 'unknown error'} ` +
               `${errorObject?.details ? JSON.stringify(errorObject.details) : ''}`

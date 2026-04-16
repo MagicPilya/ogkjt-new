@@ -354,7 +354,7 @@ export function createLocalizedSingleTypeController(
     try {
       localeCodes = await getAllLocaleCodes();
     } catch (error) {
-      strapi.log.warn(`[${uid}] Failed to load locales for replication.`, error);
+      strapi.log.error(`[${uid}] Failed to load locales for replication.`, error);
       return;
     }
 
@@ -386,7 +386,7 @@ export function createLocalizedSingleTypeController(
           data: payload,
         });
       } catch (error) {
-        strapi.log.warn(`[${uid}] Failed to replicate data to locale "${targetLocale}".`, error);
+        strapi.log.error(`[${uid}] Failed to replicate data to locale "${targetLocale}".`, error);
       }
     }
   };
@@ -418,7 +418,7 @@ export function createLocalizedSingleTypeController(
         const existing = await strapi.documents(documentUid).findFirst({ ...(locale && { locale }) });
         documentId = existing?.documentId;
       } catch (error) {
-        strapi.log.warn(`[${uid}] Failed to resolve localized document for update.`, error);
+        strapi.log.error(`[${uid}] Failed to resolve localized document for update.`, error);
       }
 
       if (!documentId) {
@@ -426,7 +426,7 @@ export function createLocalizedSingleTypeController(
           const anyLocaleDocument = await strapi.documents(documentUid).findFirst({});
           documentId = anyLocaleDocument?.documentId;
         } catch (error) {
-          strapi.log.warn(`[${uid}] Failed to resolve fallback document for update.`, error);
+          strapi.log.error(`[${uid}] Failed to resolve fallback document for update.`, error);
         }
       }
 

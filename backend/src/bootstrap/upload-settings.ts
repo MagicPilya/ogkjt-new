@@ -207,14 +207,10 @@ export async function patchWindowsUploadTempCleanup(strapi: Core.Strapi) {
       }
     }
 
-    strapi.log.warn(
-      `Skip temp cleanup after retries: ${typeof targetPath === 'string' ? targetPath : 'unknown path'}`
-    );
     if (lastError) return;
   };
 
   fsExtra.__ogkjtWindowsRemovePatchApplied = true;
-  strapi.log.info('Enabled retry for Windows upload temp cleanup.');
 }
 
 export function patchWindowsTempUnlinkCrashGuard(strapi: Core.Strapi) {
@@ -227,8 +223,6 @@ export function patchWindowsTempUnlinkCrashGuard(strapi: Core.Strapi) {
 
   process.on('uncaughtException', (error) => {
     if (isRetryableWindowsTempUnlinkError(error)) {
-      const errorPath = 'path' in (error as { path?: unknown }) ? (error as { path?: unknown }).path : '';
-      strapi.log.warn(`Ignored Windows temp unlink EPERM: ${String(errorPath)}`);
       return;
     }
 
@@ -237,7 +231,6 @@ export function patchWindowsTempUnlinkCrashGuard(strapi: Core.Strapi) {
   });
 
   processWithGuardFlag[WINDOWS_TEMP_UNLINK_GUARD_KEY] = true;
-  strapi.log.info('Enabled Windows temp unlink crash guard.');
 }
 
 export async function ensureUploadOptimizationSettings(strapi: Core.Strapi) {
@@ -332,12 +325,10 @@ export function patchUploadFolderStructure(strapi: Core.Strapi) {
     };
 
     sortTree(roots);
-    strapi.log.info(`Upload folder structure roots: ${roots.map((node) => `${node.id}:${node.name}`).join(', ')}`);
     return roots;
   };
 
   folderService.__ogkjtFolderStructurePatchApplied = true;
-  strapi.log.info('Patched upload folder structure for root folders.');
 }
 
 export function patchUploadImageOptimizer(strapi: Core.Strapi) {
@@ -611,5 +602,4 @@ export function registerManualImageOptimizerEndpoint(strapi: Core.Strapi) {
   });
 
   strapiServer[MANUAL_IMAGE_OPTIMIZER_ENDPOINT_KEY] = true;
-  strapi.log.info('Registered manual image optimizer admin endpoint.');
 }

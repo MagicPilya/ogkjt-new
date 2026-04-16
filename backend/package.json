@@ -15,8 +15,7 @@
     "upgrade": "npx @strapi/upgrade latest",
     "upgrade:dry": "npx @strapi/upgrade latest --dry",
     "test:smoke": "tsx --test tests/createLocalizedSingleTypeController.test.ts",
-    "media:reoptimize": "node scripts/media-reoptimize.cjs",
-    "news:import:dir": "node scripts/import-news-from-dir.mjs"
+    "media:reoptimize": "node scripts/media-reoptimize.cjs"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "5.31.2",

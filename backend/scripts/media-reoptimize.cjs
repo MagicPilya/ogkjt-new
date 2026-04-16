@@ -93,7 +93,7 @@ async function rmWithRetry(targetPath, retries = 12, ignoreBusy = false) {
         continue;
       }
       if (error && error.code === 'EBUSY' && ignoreBusy) {
-        console.warn(`Пропущено удаление временного файла (занят): ${targetPath}`);
+        console.error(`Пропущено удаление временного файла (занят): ${targetPath}`);
         return;
       }
       throw error;

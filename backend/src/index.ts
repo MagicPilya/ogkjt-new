@@ -14,7 +14,6 @@ import {
   patchWindowsTempUnlinkCrashGuard,
   patchWindowsUploadTempCleanup,
 } from './bootstrap/upload-settings';
-import { registerNewsImportEndpoint } from './bootstrap/news-import';
 import { registerSingleTypeLocaleMirror } from './bootstrap/single-type-locale-mirror';
 
 export default {
@@ -35,7 +34,6 @@ export default {
       patchUploadFolderStructure(strapi);
       patchUploadImageOptimizer(strapi);
       registerManualImageOptimizerEndpoint(strapi);
-      registerNewsImportEndpoint(strapi);
       await setPublicPermissions(strapi);
       await syncI18nLocaleDisplayNames(strapi);
       await seedGlobalIfEmpty(strapi);
@@ -44,7 +42,7 @@ export default {
       registerSingleTypeLocaleMirror(strapi);
       await ensureUploadOptimizationSettings(strapi);
     } catch (error) {
-      strapi.log.warn('Bootstrap default settings failed (при первом запуске можно перезапустить Strapi).', error);
+      strapi.log.error('Bootstrap default settings failed (при первом запуске можно перезапустить Strapi).', error);
     }
   },
 };
