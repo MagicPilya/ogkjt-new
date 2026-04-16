@@ -15,6 +15,8 @@ const populate = { fullTimeItems: true, partTimeItems: true } as any;
 export default factories.createCoreController(uid, ({ strapi }) => ({
   ...createLocalizedSingleTypeController(strapi, uid, {
     populate,
-    replicateToOtherLocales: false,
+    replicateToOtherLocales: true,
+    replicateMode: 'missingOnly',
+    replicateArrayMergeKeys: ['name', 'title', 'label', 'url', 'slug', 'id'],
   }),
 }));

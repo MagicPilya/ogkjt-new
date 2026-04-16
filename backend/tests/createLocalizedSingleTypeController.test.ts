@@ -125,7 +125,9 @@ test('update modifies existing localized document and uses sanitize/transform ho
     findFirstQueue: [{ documentId: 'doc-2' }],
     updateResult: updatedEntity,
   });
-  const controller = createLocalizedSingleTypeController(strapi as never, 'api::menu.menu');
+  const controller = createLocalizedSingleTypeController(strapi as never, 'api::menu.menu', {
+    replicateToOtherLocales: false,
+  });
   const ctx = createCtx('ru', { title: 'Updated' });
 
   const result = await controller.update.call(
@@ -150,7 +152,9 @@ test('update creates document when localized and fallback documents are absent',
     findFirstQueue: [null, null],
     createResult: createdEntity,
   });
-  const controller = createLocalizedSingleTypeController(strapi as never, 'api::specialty.specialty');
+  const controller = createLocalizedSingleTypeController(strapi as never, 'api::specialty.specialty', {
+    replicateToOtherLocales: false,
+  });
   const ctx = createCtx('ru', { title: 'New document' });
 
   const result = await controller.update(ctx);
@@ -283,6 +287,41 @@ test('missingOnly mode appends new menu items by url without overwriting existin
         { title: 'Students EN', url: '/students', links: [] },
         { title: 'Общежитие', url: '/students/dormitory', links: [] },
       ],
+    },
+  });
+});
+
+test('missingOnly mode removes array items missing in source locale', async () => {
+  const { strapi, calls } = createMockStrapi({
+    findFirstQueue: [{ documentId: 'global-doc' }],
+    localeRows: [{ code: 'ru' }, { code: 'en' }],
+    findOneByLocale: {
+      en: {
+        resources: [
+          { title: 'Existing', url: '/existing' },
+          { title: 'To remove', url: '/obsolete' },
+        ],
+      },
+    },
+  });
+  const controller = createLocalizedSingleTypeController(strapi as never, 'api::global.global', {
+    replicateToOtherLocales: true,
+    replicateMode: 'missingOnly',
+    replicateArrayMergeKeys: ['url', 'title'],
+  });
+  const ctx = createCtx('ru', {
+    resources: [{ title: 'Existing', url: '/existing' }],
+  });
+
+  await controller.update(ctx);
+
+  assert.equal(calls.updateCalls.length, 2);
+  assert.deepEqual(calls.updateCalls[1], {
+    documentId: 'global-doc',
+    locale: 'en',
+    status: 'published',
+    data: {
+      resources: [{ title: 'Existing', url: '/existing' }],
     },
   });
 });

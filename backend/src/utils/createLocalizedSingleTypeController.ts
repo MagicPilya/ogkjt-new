@@ -27,6 +27,8 @@ type SingleTypeControllerOptions = {
   replicateToOtherLocales?: boolean;
   replicateMode?: 'overwrite' | 'missingOnly';
   replicateArrayMergeKeys?: string[];
+  replicateRemoveMissingItems?: boolean;
+  replicateArrayIndexFallback?: boolean;
 };
 
 type DocumentUid = Parameters<Core.Strapi['documents']>[0];
@@ -53,9 +55,26 @@ export function createLocalizedSingleTypeController(
 ) {
   const {
     populate,
-    replicateToOtherLocales = false,
-    replicateMode = 'overwrite',
-    replicateArrayMergeKeys = ['url', 'slug', 'documentId', 'id'],
+    replicateToOtherLocales = true,
+    replicateMode = 'missingOnly',
+    replicateArrayMergeKeys = [
+      'photo.documentId',
+      'photo.id',
+      'contacts',
+      'url',
+      'pageUrl',
+      'slug',
+      'link',
+      'code',
+      'title',
+      'name',
+      'label',
+      'fullName',
+      'documentId',
+      'id',
+    ],
+    replicateRemoveMissingItems = true,
+    replicateArrayIndexFallback = true,
   } = options;
   const documentUid = uid as DocumentUid;
 
@@ -69,7 +88,8 @@ export function createLocalizedSingleTypeController(
     return false;
   };
 
-  const isMergeKeyValue = (value: unknown): value is string | number => typeof value === 'string' || typeof value === 'number';
+  const isMergeKeyValue = (value: unknown): value is string | number =>
+    (typeof value === 'string' && value.trim().length > 0) || typeof value === 'number';
   const ignoredMirrorKeys = new Set([
     'id',
     'documentId',
@@ -87,6 +107,18 @@ export function createLocalizedSingleTypeController(
       return value.map((item) => sanitizeMirrorValue(item));
     }
     if (isPlainObject(value)) {
+      const looksLikeMediaEntity =
+        ('id' in value || 'documentId' in value) &&
+        (typeof value.url === 'string' ||
+          typeof value.mime === 'string' ||
+          typeof value.ext === 'string' ||
+          typeof value.hash === 'string' ||
+          typeof value.provider === 'string');
+      if (looksLikeMediaEntity) {
+        if (typeof value.id === 'number') return value.id;
+        if (typeof value.documentId === 'string') return value.documentId;
+        return null;
+      }
       const cleaned: Record<string, unknown> = {};
       for (const [key, fieldValue] of Object.entries(value)) {
         if (ignoredMirrorKeys.has(key)) continue;
@@ -109,24 +141,117 @@ export function createLocalizedSingleTypeController(
     return next;
   };
 
+  const getMergeValue = (item: Record<string, unknown>, key: string): string | number | undefined => {
+    const value = key.includes('.')
+      ? key.split('.').reduce<unknown>((current, part) => (isPlainObject(current) ? current[part] : undefined), item)
+      : item[key];
+    if (!isMergeKeyValue(value)) return undefined;
+    if (typeof value === 'string') {
+      if (key === 'contacts' || key.endsWith('.contacts')) {
+        const digits = value.replace(/\D+/g, '');
+        if (digits.length >= 7) return digits;
+      }
+      return value.trim().toLowerCase();
+    }
+    return value;
+  };
+
+  const extractMediaIdentity = (value: unknown): unknown => {
+    if (value === null) return null;
+    if (isPlainObject(value)) {
+      if ('data' in value) {
+        const data = value.data;
+        if (data === null) return null;
+        if (Array.isArray(data)) {
+          return data
+            .map((item) => extractMediaIdentity(item))
+            .filter((item) => item !== undefined);
+        }
+        return extractMediaIdentity(data);
+      }
+      if (typeof value.id === 'number') return value.id;
+      if (typeof value.documentId === 'string') return value.documentId;
+    }
+    return undefined;
+  };
+
+  const mergeArrayByIndexMissingOnly = (source: unknown[], target: unknown[]): unknown[] | undefined => {
+    const merged = [...target];
+    let changed = false;
+    const maxLength = Math.max(source.length, target.length);
+
+    for (let index = 0; index < maxLength; index += 1) {
+      const sourceItem = source[index];
+      const targetItem = merged[index];
+
+      if (sourceItem === undefined) {
+        if (replicateRemoveMissingItems && index < merged.length) {
+          merged.splice(index, 1);
+          changed = true;
+          index -= 1;
+        }
+        continue;
+      }
+
+      if (targetItem === undefined) {
+        merged[index] = sanitizeMirrorValue(sourceItem);
+        changed = true;
+        continue;
+      }
+
+      const nestedPatch = pickMissingOnlyPatch(sourceItem, targetItem);
+      if (isPlainObject(nestedPatch) && isPlainObject(targetItem) && Object.keys(nestedPatch).length > 0) {
+        merged[index] = applyObjectPatch(targetItem, nestedPatch);
+        changed = true;
+      } else if (Array.isArray(nestedPatch)) {
+        merged[index] = nestedPatch;
+        changed = true;
+      }
+    }
+
+    return changed ? merged : undefined;
+  };
+
   const mergeArrayMissingOnly = (source: unknown[], target: unknown[]): unknown[] | undefined => {
     if (!source.length) return undefined;
     if (!source.every(isPlainObject) || !target.every(isPlainObject)) return undefined;
 
     const sourceObjects = source as Array<Record<string, unknown>>;
     const targetObjects = target as Array<Record<string, unknown>>;
-    const mergeKey = replicateArrayMergeKeys.find((key) =>
-      sourceObjects.some((item) => isMergeKeyValue(item[key])) && targetObjects.some((item) => isMergeKeyValue(item[key]))
-    );
-    if (!mergeKey) return undefined;
+    const mergeKey = replicateArrayMergeKeys.find((key) => sourceObjects.some((item) => getMergeValue(item, key) !== undefined));
+    if (!mergeKey) {
+      return replicateArrayIndexFallback ? mergeArrayByIndexMissingOnly(source, target) : undefined;
+    }
 
     const merged = [...targetObjects];
     let changed = false;
 
+    if (replicateRemoveMissingItems) {
+      const sourceKeySet = new Set(
+        sourceObjects.map((item) => getMergeValue(item, mergeKey)).filter((value): value is string | number => value !== undefined)
+      );
+      const targetKeySet = new Set(
+        targetObjects.map((item) => getMergeValue(item, mergeKey)).filter((value): value is string | number => value !== undefined)
+      );
+      const overlap = Array.from(sourceKeySet).filter((value) => targetKeySet.has(value)).length;
+      if (replicateArrayIndexFallback && sourceKeySet.size > 0 && targetKeySet.size > 0 && overlap === 0) {
+        return mergeArrayByIndexMissingOnly(source, target);
+      }
+
+      for (let index = merged.length - 1; index >= 0; index -= 1) {
+        const targetKeyValue = getMergeValue(merged[index], mergeKey);
+        if (targetKeyValue === undefined) continue;
+        if (!sourceKeySet.has(targetKeyValue)) {
+          merged.splice(index, 1);
+          changed = true;
+        }
+      }
+    }
+
     for (const sourceItem of sourceObjects) {
-      const sourceKeyValue = sourceItem[mergeKey];
-      if (!isMergeKeyValue(sourceKeyValue)) continue;
-      const targetIndex = merged.findIndex((targetItem) => targetItem[mergeKey] === sourceKeyValue);
+      const sourceKeyValue = getMergeValue(sourceItem, mergeKey);
+      if (sourceKeyValue === undefined) continue;
+      const targetIndex = merged.findIndex((targetItem) => getMergeValue(targetItem, mergeKey) === sourceKeyValue);
 
       if (targetIndex === -1) {
         merged.push(sanitizeMirrorValue(sourceItem) as Record<string, unknown>);
@@ -135,13 +260,55 @@ export function createLocalizedSingleTypeController(
       }
 
       const nestedPatch = pickMissingOnlyPatch(sourceItem, merged[targetIndex]);
-      if (isPlainObject(nestedPatch) && Object.keys(nestedPatch).length > 0) {
-        merged[targetIndex] = applyObjectPatch(merged[targetIndex], nestedPatch);
+      const sourcePhotoIdentity = extractMediaIdentity(sourceItem.photo);
+      const targetPhotoIdentity = extractMediaIdentity(merged[targetIndex].photo);
+      const shouldSyncPhoto =
+        sourcePhotoIdentity !== undefined && JSON.stringify(sourcePhotoIdentity) !== JSON.stringify(targetPhotoIdentity);
+
+      if (isPlainObject(nestedPatch) && (Object.keys(nestedPatch).length > 0 || shouldSyncPhoto)) {
+        const patchToApply: Record<string, unknown> = { ...nestedPatch };
+        if (shouldSyncPhoto) {
+          patchToApply.photo = sourcePhotoIdentity;
+        }
+        merged[targetIndex] = applyObjectPatch(merged[targetIndex], patchToApply);
+        changed = true;
+        continue;
+      }
+
+      if (shouldSyncPhoto) {
+        merged[targetIndex] = applyObjectPatch(merged[targetIndex], {
+          photo: sourcePhotoIdentity,
+        });
         changed = true;
       }
     }
 
-    return changed ? merged : undefined;
+    const sourceOrderByKey = new Map<string | number, number>();
+    sourceObjects.forEach((item, index) => {
+      const keyValue = getMergeValue(item, mergeKey);
+      if (keyValue !== undefined && !sourceOrderByKey.has(keyValue)) {
+        sourceOrderByKey.set(keyValue, index);
+      }
+    });
+
+    const indexedMerged = merged.map((item, index) => ({ item, index }));
+    const reordered = [...indexedMerged].sort((left, right) => {
+      const leftKey = getMergeValue(left.item, mergeKey);
+      const rightKey = getMergeValue(right.item, mergeKey);
+      const leftOrder = leftKey !== undefined ? sourceOrderByKey.get(leftKey) : undefined;
+      const rightOrder = rightKey !== undefined ? sourceOrderByKey.get(rightKey) : undefined;
+
+      if (leftOrder !== undefined && rightOrder !== undefined) return leftOrder - rightOrder;
+      if (leftOrder !== undefined) return -1;
+      if (rightOrder !== undefined) return 1;
+      return left.index - right.index;
+    });
+
+    if (reordered.some((entry, index) => entry.index !== index)) {
+      changed = true;
+    }
+
+    return changed ? reordered.map((entry) => entry.item) : undefined;
   };
 
   const pickMissingOnlyPatch = (source: unknown, target: unknown): unknown => {

@@ -461,6 +461,35 @@ function mergeMenuMissingOnly(
     return '';
   };
 
+  const reorderBySourceOrder = <T extends Record<string, unknown>>(sourceItems: T[], targetItems: T[]): T[] => {
+    const orderByKey = new Map<string, number>();
+    sourceItems.forEach((item, index) => {
+      const key = getItemKey(item);
+      if (key && !orderByKey.has(key)) {
+        orderByKey.set(key, index);
+      }
+    });
+
+    const indexed = targetItems.map((item, index) => ({ item, index }));
+    const reordered = [...indexed].sort((left, right) => {
+      const leftKey = getItemKey(left.item);
+      const rightKey = getItemKey(right.item);
+      const leftOrder = leftKey ? orderByKey.get(leftKey) : undefined;
+      const rightOrder = rightKey ? orderByKey.get(rightKey) : undefined;
+
+      if (leftOrder !== undefined && rightOrder !== undefined) return leftOrder - rightOrder;
+      if (leftOrder !== undefined) return -1;
+      if (rightOrder !== undefined) return 1;
+      return left.index - right.index;
+    });
+
+    if (reordered.some((entry, index) => entry.index !== index)) {
+      changed = true;
+    }
+
+    return reordered.map((entry) => entry.item);
+  };
+
   const mergeSublinks = (sourceSublinks: MenuMirrorSublink[] | undefined, targetSublinks: MenuMirrorSublink[] | undefined) => {
     const src = sourceSublinks ?? [];
     const tgt = [...(targetSublinks ?? [])];
@@ -487,7 +516,7 @@ function mergeMenuMissingOnly(
         changed = true;
       }
     }
-    return tgt;
+    return reorderBySourceOrder(src as Array<Record<string, unknown>>, tgt as Array<Record<string, unknown>>) as MenuMirrorSublink[];
   };
 
   const mergeLinks = (sourceLinks: MenuMirrorLink[] | undefined, targetLinks: MenuMirrorLink[] | undefined) => {
@@ -523,7 +552,7 @@ function mergeMenuMissingOnly(
         changed = true;
       }
     }
-    return tgt;
+    return reorderBySourceOrder(src as Array<Record<string, unknown>>, tgt as Array<Record<string, unknown>>) as MenuMirrorLink[];
   };
 
   for (const srcSection of source) {
@@ -556,7 +585,12 @@ function mergeMenuMissingOnly(
     changed = true;
   }
 
-  return { merged: target, changed };
+  const reorderedSections = reorderBySourceOrder(
+    source as Array<Record<string, unknown>>,
+    target as Array<Record<string, unknown>>
+  ) as MenuMirrorSection[];
+
+  return { merged: reorderedSections, changed };
 }
 
 async function mirrorMenuToOtherLocales(strapi: Core.Strapi, sourceLocale: string) {
