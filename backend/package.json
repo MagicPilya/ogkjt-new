@@ -23,7 +23,7 @@
     "@strapi/strapi": "5.31.2",
     "adm-zip": "^0.5.17",
     "better-sqlite3": "^12.6.2",
-    "mysql2": "^3.17.4",
+    "mysql2": "^3.22.2",
     "patch-package": "^8.0.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

@@ -67,6 +67,23 @@ npm run media:reoptimize
 - экономия по оригиналам, по форматам и суммарно (в MB и %);
 - число пропусков (tiny/no-gain/missing/unsupported).
 
+### Резервная копия админки (SQLite, uploads, опционально `.env`)
+
+Скрипты: `scripts/admin-backup.mjs` и `scripts/admin-restore.mjs`. Запуск из **корня монорепозитория** (как в `package.json`):
+
+| Действие | Команда |
+|----------|---------|
+| Бэкап по умолчанию (без `backend/.env`) | `npm run backup:admin` |
+| Бэкап с секретами | `npm run backup:admin -- --include-env` |
+| Свой путь архива | `npm run backup:admin -- --out ./path/имя.zip` |
+| Восстановить из указанного zip | `npm run restore:admin -- --archive ./path/имя.zip` |
+| Восстановить без вопроса `yes/no` | `npm run restore:admin -- --yes` |
+| Восстановить последний zip из `backend/backups/` | `npm run restore:admin` |
+
+В архив попадают `backup-manifest.json` (поле **`envIncluded`**: был ли в архиве `.env`), при необходимости `.tmp/data.db`, `public/uploads` и **только при явном** `--include-env` — файл `backend/.env`.
+
+При **restore**, если в архиве нет `.env`, локальный `backend/.env` не перезаписывается; скрипт выводит пояснение (в т.ч. если в манифесте `envIncluded: false`).
+
 ### `develop`
 
 Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)

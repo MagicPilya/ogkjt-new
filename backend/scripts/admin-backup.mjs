@@ -2,8 +2,8 @@ import fs from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import AdmZip from 'adm-zip';
 
 function parseArgs(argv) {
   const parsed = {};
@@ -37,23 +37,53 @@ async function exists(targetPath) {
   }
 }
 
-async function compressWithPowerShell(sourceDir, archivePath) {
-  const command = `Compress-Archive -Path "${sourceDir}\\*" -DestinationPath "${archivePath}" -Force`;
+/** Максимальная длина пути в Windows; ограничение снижает риск странных значений. */
+const MAX_OUT_PATH_LEN = 32767;
 
-  await new Promise((resolve, reject) => {
-    const child = spawn('powershell', ['-NoProfile', '-Command', command], {
-      stdio: 'inherit',
-    });
+/**
+ * Нормализует и проверяет пользовательский путь --out до любых операций с ФС.
+ * Без shell это не про command injection, но блокирует NUL/управляющие и «размытые» пути.
+ */
+function sanitizeAndResolveOutArg(outArg, cwd, defaultPath) {
+  const raw =
+    outArg !== undefined && outArg !== null && String(outArg).trim() !== ''
+      ? String(outArg).trim()
+      : null;
+  const base = raw ? path.normalize(raw) : defaultPath;
 
-    child.on('error', reject);
-    child.on('exit', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Compress-Archive завершился с кодом ${code}`));
-      }
-    });
-  });
+  if (!base || base.length === 0) {
+    throw new Error('Путь --out не может быть пустым.');
+  }
+  if (base.length > MAX_OUT_PATH_LEN) {
+    throw new Error('Путь --out слишком длинный.');
+  }
+  // NUL и управляющие символы недопустимы в путях и опасны при дальнейшей обработке.
+  if (/\0/.test(base) || /[\x01-\x1f\x7f]/.test(base)) {
+    throw new Error('Путь --out содержит недопустимые символы.');
+  }
+
+  let resolved = path.resolve(cwd, base);
+
+  // Как Compress-Archive: если расширение .zip не указано, оно добавляется автоматически.
+  if (!resolved.toLowerCase().endsWith('.zip')) {
+    resolved += '.zip';
+  }
+
+  if (resolved.length > MAX_OUT_PATH_LEN) {
+    throw new Error('Путь --out слишком длинный после нормализации.');
+  }
+
+  return resolved;
+}
+
+/**
+ * Создаёт ZIP из каталога без вызова shell: только Node API + adm-zip.
+ * zipPath '' — содержимое каталога в корне архива (аналог Compress-Archive -Path "dir\*").
+ */
+function writeStagingDirAsZip(sourceDir, archivePath) {
+  const zip = new AdmZip();
+  zip.addLocalFolder(sourceDir, '');
+  zip.writeZip(archivePath);
 }
 
 async function main() {
@@ -64,15 +94,19 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   const backendDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const defaultArchiveName = `admin-backup-${timestampForFileName()}.zip`;
-  const outArg = args.out ? String(args.out) : path.join(backendDir, 'backups', defaultArchiveName);
-  const outPath = path.resolve(process.cwd(), outArg);
+  const defaultOut = path.join(backendDir, 'backups', defaultArchiveName);
+
+  const outPath = sanitizeAndResolveOutArg(args.out, process.cwd(), defaultOut);
   const stagingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'strapi-admin-backup-'));
+  const includeEnv = Boolean(args['include-env']);
 
   const backupItems = [
     { relativePath: '.tmp/data.db', required: false },
     { relativePath: 'public/uploads', required: false },
-    { relativePath: '.env', required: false },
   ];
+  if (includeEnv) {
+    backupItems.push({ relativePath: '.env', required: false });
+  }
 
   const included = [];
 
@@ -94,11 +128,17 @@ async function main() {
       included.push(item.relativePath);
     }
 
+    if (includeEnv && !included.includes('.env')) {
+      console.warn('Указан --include-env, но backend/.env не найден — в архив секреты не попали.');
+    }
+
+    const envIncluded = included.includes('.env');
     const manifest = {
       version: 1,
       createdAt: new Date().toISOString(),
       backendDir,
       included,
+      envIncluded,
     };
 
     await fs.writeFile(
@@ -108,11 +148,12 @@ async function main() {
     );
 
     await fs.mkdir(path.dirname(outPath), { recursive: true });
-    await compressWithPowerShell(stagingDir, outPath);
+    writeStagingDirAsZip(stagingDir, outPath);
 
     console.log('Резервная копия создана.');
     console.log(`Архив: ${outPath}`);
     console.log(`Включено: ${included.length ? included.join(', ') : 'ничего (проверь пути)'}`);
+    console.log(`envIncluded (в манифесте): ${envIncluded}`);
   } finally {
     await fs.rm(stagingDir, { recursive: true, force: true });
   }

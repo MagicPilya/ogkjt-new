@@ -4,8 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import AdmZip from 'adm-zip';
 
 function parseArgs(argv) {
   const parsed = {};
@@ -33,23 +33,67 @@ async function exists(targetPath) {
   }
 }
 
-async function expandWithPowerShell(archivePath, destinationDir) {
-  const command = `Expand-Archive -LiteralPath "${archivePath}" -DestinationPath "${destinationDir}" -Force`;
+async function validateUserArchiveArg(archivePath) {
+  if (path.extname(archivePath).toLowerCase() !== '.zip') {
+    throw new Error(`Архив для --archive должен иметь расширение .zip: ${archivePath}`);
+  }
 
-  await new Promise((resolve, reject) => {
-    const child = spawn('powershell', ['-NoProfile', '-Command', command], {
-      stdio: 'inherit',
-    });
+  const present = await exists(archivePath);
+  if (!present) {
+    throw new Error(`Архив не найден: ${archivePath}`);
+  }
 
-    child.on('error', reject);
-    child.on('exit', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Expand-Archive завершился с кодом ${code}`));
-      }
-    });
-  });
+  const stat = await fs.stat(archivePath);
+  if (!stat.isFile()) {
+    throw new Error(`Путь --archive не является файлом: ${archivePath}`);
+  }
+}
+
+function extractZipToDir(archivePath, destinationDir) {
+  const zip = new AdmZip(archivePath);
+  zip.extractAllTo(destinationDir, true);
+}
+
+async function readBackupManifest(extractDir) {
+  const manifestPath = path.join(extractDir, 'backup-manifest.json');
+  if (!(await exists(manifestPath))) {
+    return null;
+  }
+  try {
+    const raw = await fs.readFile(manifestPath, 'utf8');
+    const data = JSON.parse(raw);
+    return data && typeof data === 'object' ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Сообщение о том, почему .env не перезаписан (или что он восстановлен). */
+function logEnvRestoreOutcome(restored, manifest) {
+  const envRestored = restored.includes('.env');
+  if (envRestored) {
+    console.log('.env восстановлен из архива.');
+    return;
+  }
+
+  if (manifest && manifest.envIncluded === false) {
+    console.log(
+      'Примечание: в этом бэкапе не было .env (manifest.envIncluded=false, бэкап без --include-env). Локальный backend/.env не изменён.',
+    );
+    return;
+  }
+
+  if (manifest && manifest.envIncluded === true) {
+    console.warn('В манифесте envIncluded=true, но файла .env в архиве нет; backend/.env не изменён.');
+    return;
+  }
+
+  if (manifest && Array.isArray(manifest.included) && manifest.included.includes('.env')) {
+    console.warn('В манифесте в списке included указан .env, но файла в архиве нет; backend/.env не изменён.');
+    return;
+  }
+
+  console.log('Файл .env в архиве отсутствует; backend/.env не изменён.');
 }
 
 async function askForConfirmation(archivePath, backendDir) {
@@ -104,19 +148,17 @@ async function resolveArchivePath(args, backendDir) {
 }
 
 async function main() {
-  if (process.platform !== 'win32') {
-    throw new Error('Этот скрипт рассчитан на Windows (PowerShell Expand-Archive).');
-  }
-
   const args = parseArgs(process.argv.slice(2));
   const backendDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const archivePath = await resolveArchivePath(args, backendDir);
 
-  const archiveExists = await exists(archivePath);
-  if (!archiveExists) {
-    throw new Error(`Архив не найден: ${archivePath}`);
-  }
-  if (!args.archive) {
+  if (args.archive) {
+    await validateUserArchiveArg(archivePath);
+  } else {
+    const archiveExists = await exists(archivePath);
+    if (!archiveExists) {
+      throw new Error(`Архив не найден: ${archivePath}`);
+    }
     console.log(`Архив не указан, выбран последний: ${archivePath}`);
   }
 
@@ -131,7 +173,8 @@ async function main() {
   const extractDir = await fs.mkdtemp(path.join(os.tmpdir(), 'strapi-admin-restore-'));
 
   try {
-    await expandWithPowerShell(archivePath, extractDir);
+    extractZipToDir(archivePath, extractDir);
+    const manifest = await readBackupManifest(extractDir);
 
     const restoreTargets = ['.tmp/data.db', 'public/uploads', '.env'];
     const restored = [];
@@ -151,6 +194,7 @@ async function main() {
 
     console.log('Восстановление завершено.');
     console.log(`Восстановлено: ${restored.length ? restored.join(', ') : 'ничего (архив пустой или другой формат)'}`);
+    logEnvRestoreOutcome(restored, manifest);
   } finally {
     await fs.rm(extractDir, { recursive: true, force: true });
   }

@@ -32,6 +32,29 @@ npm run dev:cms
 
 You can start editing the main page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Quality Gate (минимальный)
+
+Команда проверки качества для merge-ready:
+
+```bash
+npm run quality:gate
+```
+
+Что входит в gate:
+- `npm run lint` — ESLint с запретом `debugger` и ограничением `console` (разрешены `console.warn`/`console.error`; для `scripts/**` и `backend/scripts/**` ограничение по `console` снято).
+- `npm run typecheck` — проверка типов для web (`tsconfig.json`) и API/Strapi (`backend/tsconfig.json`, `backend/src/admin/tsconfig.json`).
+- `npm run test` — тесты web (`vitest`) и smoke-тест API (`backend/tests/createLocalizedSingleTypeController.test.ts`).
+
+Локальный прогон по шагам:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+```
+
+В CI этот же набор выполняется workflow `Quality Gate` на `pull_request` и `push` в `main`.
+
 ## Production (remote server)
 
 1. **Скопировать проект и переменные окружения**

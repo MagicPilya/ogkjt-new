@@ -18,6 +18,10 @@ type ControllerContext = {
 };
 
 type ControllerInstance = {
+  validateQuery?: (ctx: ControllerContext) => Promise<void>;
+  sanitizeQuery?: (ctx: ControllerContext) => Promise<QueryLocale | undefined>;
+  validateInput?: (data: Record<string, unknown>, ctx: ControllerContext) => Promise<void>;
+  sanitizeInput?: (data: Record<string, unknown>, ctx: ControllerContext) => Promise<Record<string, unknown>>;
   sanitizeOutput?: (data: unknown, ctx: ControllerContext) => Promise<unknown>;
   transformResponse?: (data: unknown) => unknown;
 };
@@ -77,6 +81,7 @@ export function createLocalizedSingleTypeController(
     replicateArrayIndexFallback = true,
   } = options;
   const documentUid = uid as DocumentUid;
+  const localePattern = /^[a-z]{2,3}(?:-[A-Z]{2})?$/;
 
   const isPlainObject = (value: unknown): value is Record<string, unknown> =>
     Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -343,6 +348,14 @@ export function createLocalizedSingleTypeController(
       .filter((code): code is string => Boolean(code));
   };
 
+  const normalizeLocale = async (locale: string | undefined): Promise<string | undefined> => {
+    if (!locale) return undefined;
+    const normalized = locale.trim();
+    if (!localePattern.test(normalized)) return undefined;
+    const localeCodes = await getAllLocaleCodes();
+    return localeCodes.includes(normalized) ? normalized : undefined;
+  };
+
   const replicateDataToOtherLocales = async (
     documentId: string,
     sourceLocale: string | undefined,
@@ -392,8 +405,11 @@ export function createLocalizedSingleTypeController(
   };
 
   return {
-    async find(ctx: ControllerContext) {
-      const locale = resolveLocale(ctx);
+    async find(this: ControllerInstance, ctx: ControllerContext) {
+      await this.validateQuery?.(ctx);
+      const sanitizedQuery = await this.sanitizeQuery?.(ctx);
+      const resolvedLocale = typeof sanitizedQuery?.locale === 'string' ? sanitizedQuery.locale : resolveLocale(ctx);
+      const locale = await normalizeLocale(resolvedLocale);
       const doc = await strapi.documents(documentUid).findFirst({
         status: 'published',
         ...(locale && { locale }),
@@ -401,16 +417,19 @@ export function createLocalizedSingleTypeController(
       });
 
       if (!doc) return ctx.notFound();
-      return { data: doc };
+      return transformEntityResponse(this, doc, ctx);
     },
 
     async update(this: ControllerInstance, ctx: ControllerContext) {
-      const locale = resolveLocale(ctx);
+      const locale = await normalizeLocale(resolveLocale(ctx));
       const data = ctx.request.body?.data;
 
       if (!data || typeof data !== 'object') {
         return ctx.badRequest('Missing data');
       }
+      await this.validateInput?.(data, ctx);
+      const sanitizedInput = (await this.sanitizeInput?.(data, ctx)) ?? data;
+      const payloadData = sanitizedInput;
 
       let documentId: string | undefined;
 
@@ -432,12 +451,12 @@ export function createLocalizedSingleTypeController(
 
       if (!documentId) {
         const created = await strapi.documents(documentUid).create({
-          data,
+          data: payloadData,
           ...(locale && { locale }),
         });
         const createdDocumentId = created?.documentId;
         if (typeof createdDocumentId === 'string' && createdDocumentId) {
-          await replicateDataToOtherLocales(createdDocumentId, locale, data);
+          await replicateDataToOtherLocales(createdDocumentId, locale, payloadData);
         }
         return transformEntityResponse(this, created, ctx);
       }
@@ -445,9 +464,9 @@ export function createLocalizedSingleTypeController(
       const updated = await strapi.documents(documentUid).update({
         documentId,
         ...(locale && { locale }),
-        data,
+        data: payloadData,
       });
-      await replicateDataToOtherLocales(documentId, locale, data);
+      await replicateDataToOtherLocales(documentId, locale, payloadData);
 
       return transformEntityResponse(this, updated, ctx);
     },

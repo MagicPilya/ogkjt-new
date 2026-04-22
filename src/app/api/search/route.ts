@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { STRAPI_URL } from "@/lib/config";
 import { defaultLocale, isValidLocale, type Locale } from "@/lib/i18n";
 import { extractTextFromBlocks } from "@/lib/blocks-text";
+import { normalizeStrapiUrl } from "@/lib/normalize-strapi-url";
 
 export interface SearchResultItem {
   type: "article" | "page" | "administration" | "specialty";
@@ -9,12 +10,6 @@ export interface SearchResultItem {
   title: string;
   url: string;
   snippet?: string;
-}
-
-function normalizeStrapiUrl(url: string): string {
-  const trimmed = url.replace(/\/+$/, "");
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `http://${trimmed}`;
 }
 
 async function fetchStrapi<T>(

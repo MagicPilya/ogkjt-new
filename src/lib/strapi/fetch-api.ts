@@ -3,6 +3,11 @@ import { getStrapiURL } from "../utils";
 const inFlightRequests = new Map<string, Promise<unknown>>();
 const isStrapiDebugLogsEnabled = process.env.STRAPI_DEBUG_LOGS === "true";
 
+function logStrapiDebugError(...args: unknown[]) {
+  if (!isStrapiDebugLogsEnabled) return;
+  console.error(...args);
+}
+
 function getMethod(options: RequestInit): string {
   return (options.method ?? "GET").toUpperCase();
 }
@@ -58,9 +63,7 @@ export async function fetchAPI<T>(path: string, urlParamsObject = {}, options = 
     const executeRequest = async (): Promise<T> => {
       const response = await fetch(requestUrl, requestInit);
       if (!response.ok) {
-        if (isStrapiDebugLogsEnabled) {
-          console.error(`[Strapi] ${response.status} ${response.statusText}: ${requestUrl.replace(/\?.*/, "")}`);
-        }
+        logStrapiDebugError(`[Strapi] ${response.status} ${response.statusText}: ${requestUrl.replace(/\?.*/, "")}`);
         return {} as T;
       }
       const data = await response.json();
@@ -73,7 +76,7 @@ export async function fetchAPI<T>(path: string, urlParamsObject = {}, options = 
               : (data as { data: { locale?: string } }).data?.locale
             : undefined;
         if (resLocale !== undefined && resLocale !== requestedLocale) {
-          console.error("[Strapi] В ответе другая локаль: запрашивали", requestedLocale, ", пришло", resLocale, "|", path);
+          logStrapiDebugError("[Strapi] В ответе другая локаль: запрашивали", requestedLocale, ", пришло", resLocale, "|", path);
         }
       }
       return data as T;
@@ -95,9 +98,7 @@ export async function fetchAPI<T>(path: string, urlParamsObject = {}, options = 
     inFlightRequests.set(dedupKey, requestPromise);
     return await requestPromise;
   } catch {
-    if (isStrapiDebugLogsEnabled) {
-      console.error("[Strapi] Запрос не выполнен (сеть/URL):", getStrapiURL() + path);
-    }
+    logStrapiDebugError("[Strapi] Запрос не выполнен (сеть/URL):", getStrapiURL() + path);
     return {} as T;
   }
 }

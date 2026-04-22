@@ -109,6 +109,22 @@ test('find uses locale and populate options', async () => {
   assert.deepEqual(result, { data: expectedDoc });
 });
 
+test('find uses sanitizeOutput/transformResponse hooks', async () => {
+  const expectedDoc = { documentId: 'doc-1', secret: 'hidden' };
+  const { strapi } = createMockStrapi({ findFirstQueue: [expectedDoc] });
+  const controller = createLocalizedSingleTypeController(strapi as never, 'api::annual-symbol.annual-symbol');
+
+  const result = await controller.find.call(
+    {
+      sanitizeOutput: async () => ({ documentId: 'doc-1' }),
+      transformResponse: (data: unknown) => ({ transformed: data }),
+    },
+    createCtx('ru')
+  );
+
+  assert.deepEqual(result, { transformed: { documentId: 'doc-1' } });
+});
+
 test('update returns badRequest when data payload is missing', async () => {
   const { strapi } = createMockStrapi({});
   const controller = createLocalizedSingleTypeController(strapi as never, 'api::global.global');
@@ -144,6 +160,47 @@ test('update modifies existing localized document and uses sanitize/transform ho
     data: { title: 'Updated' },
   });
   assert.deepEqual(result, { transformed: { sanitized: updatedEntity } });
+});
+
+test('update uses sanitized input payload for persistence', async () => {
+  const { strapi, calls } = createMockStrapi({
+    findFirstQueue: [{ documentId: 'doc-2' }],
+    updateResult: { documentId: 'doc-2', title: 'Updated' },
+  });
+  const controller = createLocalizedSingleTypeController(strapi as never, 'api::menu.menu', {
+    replicateToOtherLocales: false,
+  });
+  const ctx = createCtx('ru', { title: 'Updated', secret: 'should-not-pass' });
+
+  await controller.update.call(
+    {
+      sanitizeInput: async () => ({ title: 'Updated' }),
+    },
+    ctx
+  );
+
+  assert.deepEqual(calls.updateCalls[0], {
+    documentId: 'doc-2',
+    locale: 'ru',
+    data: { title: 'Updated' },
+  });
+});
+
+test('update ignores unknown locale values', async () => {
+  const { strapi, calls } = createMockStrapi({
+    findFirstQueue: [{ documentId: 'doc-2' }],
+    updateResult: { documentId: 'doc-2', title: 'Updated' },
+  });
+  const controller = createLocalizedSingleTypeController(strapi as never, 'api::menu.menu', {
+    replicateToOtherLocales: false,
+  });
+
+  await controller.update(createCtx('ru<script>', { title: 'Updated' }));
+
+  assert.deepEqual(calls.updateCalls[0], {
+    documentId: 'doc-2',
+    data: { title: 'Updated' },
+  });
 });
 
 test('update creates document when localized and fallback documents are absent', async () => {
