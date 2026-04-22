@@ -178,7 +178,6 @@ export interface GlobalSettings {
   admissionPartTimeEndDate?: string | null;
   admissionSheetUrl?: string | null;
   admissionSheetOpenUrl?: string | null;
-  admissionSheetDownloadUrl?: string | null;
   resources?: Array<{
     id?: number;
     title: string;

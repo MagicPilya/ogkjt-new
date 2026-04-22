@@ -256,7 +256,6 @@ export const ruTranslations = {
   'content-manager.content-types.api::global.global.admissionPartTimeEndDate': 'Окончание приёма (заочное)',
   'content-manager.content-types.api::global.global.admissionSheetUrl': 'Ссылка на таблицу хода приёма',
   'content-manager.content-types.api::global.global.admissionSheetOpenUrl': 'Ссылка «Открыть таблицу» (Google Sheet)',
-  'content-manager.content-types.api::global.global.admissionSheetDownloadUrl': 'Ссылка для скачивания (Excel)',
   'content-manager.components.elements.footer-resource.title': 'Название ресурса',
   'content-manager.components.elements.footer-resource.url': 'Ссылка',
 

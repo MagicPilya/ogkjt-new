@@ -94,14 +94,3 @@ export function getAdmissionSheetUrl(settings?: GlobalSettings | null): string {
 export function getAdmissionSheetOpenUrl(settings?: GlobalSettings | null): string {
   return settings?.admissionSheetOpenUrl?.trim() || getAdmissionSheetUrl(settings);
 }
-
-export function getAdmissionSheetDownloadUrl(settings?: GlobalSettings | null): string {
-  const explicitValue = settings?.admissionSheetDownloadUrl?.trim();
-  if (explicitValue) return explicitValue;
-
-  const sheetUrl = getAdmissionSheetUrl(settings);
-  const match = sheetUrl.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/i);
-  if (!match?.[1]) return sheetUrl;
-
-  return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=xlsx`;
-}

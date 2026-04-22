@@ -37,7 +37,6 @@ export async function seedGlobalIfEmpty(strapi: Core.Strapi) {
       admissionPartTimeEndDate: null,
       admissionSheetUrl: '',
       admissionSheetOpenUrl: '',
-      admissionSheetDownloadUrl: '',
       resources: [
         { title: 'Сайт Президента РБ', url: 'https://president.gov.by' },
         { title: 'Министерство образования', url: 'https://edu.gov.by' },

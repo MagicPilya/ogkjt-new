@@ -745,13 +745,6 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
     admissionDayStartDate: Schema.Attribute.Date;
     admissionPartTimeEndDate: Schema.Attribute.Date;
     admissionPartTimeStartDate: Schema.Attribute.Date;
-    admissionSheetDownloadUrl: Schema.Attribute.String &
-      Schema.Attribute.SetPluginOptions<{
-        i18n: {
-          localized: true;
-        };
-      }> &
-      Schema.Attribute.DefaultTo<''>;
     admissionSheetOpenUrl: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {

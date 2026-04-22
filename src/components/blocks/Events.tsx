@@ -9,6 +9,12 @@ import { defaultLocale, type Locale } from "@/lib/i18n";
 
 const INTL_LOCALE: Record<Locale, string> = { ru: "ru-RU", be: "be-BY", en: "en-US" };
 
+function getMonthWithDayCase(date: Date, locale: string) {
+  const formatter = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" });
+  const monthPart = formatter.formatToParts(date).find((part) => part.type === "month");
+  return monthPart?.value ?? date.toLocaleString(locale, { month: "long" });
+}
+
 function formatYYYYMMDD(d: Date) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -71,7 +77,7 @@ export async function Events({ locale }: { locale?: Locale }) {
                         {events.map((event) => {
                             const eventDate = new Date(event.date);
                             const day = eventDate.getDate();
-                            const month = eventDate.toLocaleString(intlLocale, { month: "short" });
+                            const month = getMonthWithDayCase(eventDate, intlLocale);
                             const time = eventDate.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit" });
                             const eventsHref = `/${loc}/events/${event.id}`;
 
