@@ -31,6 +31,13 @@ export async function seedGlobalIfEmpty(strapi: Core.Strapi) {
       telegramLink: 'https://t.me/orsha_jd',
       tiktokLink: 'https://www.tiktok.com/@bsut.orsha?_r=1&_t=ZS-93UxtlAecmO',
       vkLink: 'https://vk.com/ofutorsha',
+      admissionDayStartDate: null,
+      admissionDayEndDate: null,
+      admissionPartTimeStartDate: null,
+      admissionPartTimeEndDate: null,
+      admissionSheetUrl: '',
+      admissionSheetOpenUrl: '',
+      admissionSheetDownloadUrl: '',
       resources: [
         { title: 'Сайт Президента РБ', url: 'https://president.gov.by' },
         { title: 'Министерство образования', url: 'https://edu.gov.by' },

@@ -9,6 +9,11 @@ import { getStrapiMedia, getStrapiMediaWithFormats } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { Venus } from "lucide-react";
+import {
+  admissionCampaignPath,
+  admissionCampaignTitle,
+  isAdmissionCampaignActive,
+} from "@/lib/admission-campaign";
 
 interface Props {
   params: Promise<{ locale: Locale }>;
@@ -17,6 +22,7 @@ interface Props {
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   const globalSettings = await getGlobalSettings(locale);
+  const isCampaignActive = isAdmissionCampaignActive(globalSettings);
   const annualSymbol = await getAnnualSymbol(locale);
   const yearThemePath = normalizeYearThemePath(annualSymbol?.pageUrl);
   const yearThemePage = await getPageByPath(yearThemePath, locale);
@@ -33,6 +39,14 @@ export default async function HomePage({ params }: Props) {
         collegeShortName={globalSettings?.collegeShortName}
         collegeFullName={globalSettings?.collegeFullName}
         universityName={globalSettings?.universityName}
+        admissionCampaign={
+          isCampaignActive
+            ? {
+                title: admissionCampaignTitle[locale],
+                href: `/${locale}${admissionCampaignPath}`,
+              }
+            : null
+        }
       />
       <Features locale={locale} />
 

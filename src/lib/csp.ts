@@ -15,6 +15,13 @@ const EXTRA_MEDIA_ORIGINS = [
   "http://178.172.137.227",
 ] as const;
 
+/** Доп. источники для iframe (Google Sheets и связанные домены). */
+const EXTRA_FRAME_ORIGINS = [
+  "https://docs.google.com",
+  "https://drive.google.com",
+  "https://*.googleusercontent.com",
+] as const;
+
 function getStrapiOrigin(): string {
   const raw = process.env.NEXT_PUBLIC_STRAPI_URL || "https://api.ogkjt.by";
   const trimmed = raw.replace(/\/+$/, "");
@@ -29,6 +36,9 @@ function getStrapiOrigin(): string {
 export function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
   const strapiOrigin = getStrapiOrigin();
   const mediaOrigins = [...new Set([strapiOrigin, ...EXTRA_MEDIA_ORIGINS])].join(" ");
+  const frameOrigins = [...new Set(["'self'", "blob:", strapiOrigin, ...EXTRA_MEDIA_ORIGINS, ...EXTRA_FRAME_ORIGINS])].join(
+    " "
+  );
 
   const scriptSrc = ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", ...(isDev ? ["'unsafe-eval'"] : [])].join(
     " "
@@ -47,7 +57,7 @@ export function buildContentSecurityPolicy(nonce: string, isDev: boolean): strin
     `img-src 'self' data: blob: ${mediaOrigins}`,
     "font-src 'self'",
     `connect-src ${connectSrc}`,
-    `frame-src 'self' blob: ${mediaOrigins}`,
+    `frame-src ${frameOrigins}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

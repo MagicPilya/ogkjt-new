@@ -11,6 +11,8 @@ import { MediaSlider, type MediaItem } from "@/components/blocks/MediaSlider";
 import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 import { loadSectionPageData, loadSectionPageMeta } from "@/lib/services/section-page";
+import { getGlobalSettings } from "@/lib/strapi";
+import { getAdmissionPeriodsSummary, getAdmissionSheetOpenUrl, getAdmissionSheetUrl } from "@/lib/admission-campaign";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 
@@ -39,6 +41,7 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
   const isAdministrationPage = path === "about/administration";
   const isSpecialtiesPage = path === "applicants/specialties";
   const isDocumentsPage = path === "applicants/documents";
+  const isAdmissionProgressPage = path === "applicants/admission-progress";
   const mediaList: MediaItem[] = Array.isArray(pageData?.media)
     ? pageData.media
     : ((pageData as { Media?: MediaItem[] } | null)?.Media ?? []);
@@ -51,6 +54,10 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
   });
 
   const topNavLinks = isRootSection ? section.links ?? [] : activeSectionLink?.sublinks ?? [];
+  const globalSettings = isAdmissionProgressPage ? await getGlobalSettings(locale, { revalidateSeconds: null }) : null;
+  const admissionPeriods = isAdmissionProgressPage ? getAdmissionPeriodsSummary(globalSettings) : [];
+  const admissionSheetUrl = isAdmissionProgressPage ? getAdmissionSheetUrl(globalSettings) : "";
+  const admissionSheetOpenUrl = isAdmissionProgressPage ? getAdmissionSheetOpenUrl(globalSettings) : "";
   const isDormitorySection = path === "students/dormitory";
   const newsHref = (identifier: string) =>
     isDormitorySection
@@ -132,6 +139,38 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
           <Events locale={locale} />
         </div>
       </div>
+      )}
+
+      {isAdmissionProgressPage && (
+        <section className="mt-10">
+          {admissionPeriods.length > 0 && (
+            <div className="mb-4 space-y-1 text-sm text-slate-600 dark:text-slate-300">
+              {admissionPeriods.map((period) => (
+                <p key={period.title}>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">{period.title}:</span> {period.value}
+                </p>
+              ))}
+            </div>
+          )}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
+            <iframe
+              title="Ход приёма документов"
+              src={admissionSheetUrl}
+              className="w-full min-h-[720px]"
+              loading="lazy"
+            />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a
+              href={admissionSheetOpenUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              Открыть таблицу в новой вкладке
+            </a>
+          </div>
+        </section>
       )}
 
       {isRootSection && section.links && section.links.length > 0 && (

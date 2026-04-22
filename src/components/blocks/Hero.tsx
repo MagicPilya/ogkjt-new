@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ArrowRight, CalendarClock } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 import { collegeNamesFallback } from "@/lib/site-defaults";
 import { uiStrings } from "@/lib/ui-strings";
@@ -9,6 +10,10 @@ interface HeroProps {
   collegeShortName?: string | null;
   collegeFullName?: string | null;
   universityName?: string | null;
+  admissionCampaign?: {
+    title: string;
+    href: string;
+  } | null;
 }
 
 export function Hero({
@@ -16,6 +21,7 @@ export function Hero({
   collegeShortName,
   collegeFullName,
   universityName,
+  admissionCampaign = null,
 }: HeroProps) {
   const base = locale ? `/${locale}` : "";
   const fallback = collegeNamesFallback[locale];
@@ -76,6 +82,28 @@ export function Hero({
         <p className="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto leading-relaxed break-words [overflow-wrap:anywhere] hero-section-subtitle">
           {uiStrings.heroSubtitle[locale]}
         </p>
+        {admissionCampaign && (
+          <div className="mb-8 mx-auto w-full max-w-2xl rounded-2xl border border-white/20 bg-slate-900/35 backdrop-blur-xl shadow-[0_20px_50px_-25px_rgba(37,99,235,0.65)]">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 md:px-5 md:py-4">
+              <div className="min-w-0 text-left">
+                <p className="inline-flex items-center gap-2 text-[11px] md:text-xs uppercase tracking-wide font-semibold text-blue-200/95">
+                  <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+                  Приёмная комиссия
+                </p>
+                <p className="mt-1 text-sm md:text-base font-semibold text-white truncate">
+                  {admissionCampaign.title}
+                </p>
+              </div>
+              <Link
+                href={admissionCampaign.href}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600/95 px-3.5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-500 transition-colors whitespace-nowrap"
+              >
+                Смотреть
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row gap-4 justify-center hero-touch-targets">
           <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg min-h-[44px] min-w-[44px] px-8 shadow-lg shadow-blue-900/20 touch-manipulation" asChild>
             <Link href={`${base}/applicants/documents`}>{uiStrings.heroApplyDocuments[locale]}</Link>

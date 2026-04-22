@@ -3,11 +3,13 @@ import { Header } from "./Header";
 import type { Locale } from "@/lib/i18n";
 import { normalizeMenu } from "@/lib/menu-sections";
 import { normalizeYearThemePath, yearTheme } from "@/lib/year-theme";
+import { isAdmissionCampaignActive, withAdmissionCampaignLink } from "@/lib/admission-campaign";
 
 export async function HeaderWrapper({ locale }: { locale: Locale }) {
   const globalSettings = await getGlobalSettings(locale);
   const menuData = await getMenu(locale);
-  const menu = normalizeMenu(menuData?.mainMenu, locale) ?? [];
+  const isCampaignActive = isAdmissionCampaignActive(globalSettings);
+  const menu = withAdmissionCampaignLink(normalizeMenu(menuData?.mainMenu, locale) ?? [], locale, isCampaignActive);
   const annualSymbol = await getAnnualSymbol(locale);
   const yearThemePath = normalizeYearThemePath(annualSymbol?.pageUrl);
   const yearThemePage = await getPageByPath(yearThemePath, locale);

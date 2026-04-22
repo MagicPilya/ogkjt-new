@@ -4,14 +4,20 @@ import type { AnnualSymbol, GlobalSettings, MenuData, StrapiResponse } from "./t
 
 const STATIC_REVALIDATE_SECONDS = 300;
 
-export async function getGlobalSettings(locale?: Locale) {
+interface GlobalSettingsFetchOptions {
+  revalidateSeconds?: number | null;
+}
+
+export async function getGlobalSettings(locale?: Locale, options?: GlobalSettingsFetchOptions) {
   const params: Record<string, string> = {
     status: "published",
     "populate[resources]": "*",
   };
   if (locale) params.locale = locale;
+  const revalidateSeconds = options?.revalidateSeconds ?? STATIC_REVALIDATE_SECONDS;
+  const fetchOptions = typeof revalidateSeconds === "number" ? { next: { revalidate: revalidateSeconds } } : {};
   const data = await fetchAPI<StrapiResponse<GlobalSettings>>("/global", params, {
-    next: { revalidate: STATIC_REVALIDATE_SECONDS },
+    ...fetchOptions,
   });
   if (!data || !data.data) return null;
   return data.data;

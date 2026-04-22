@@ -172,6 +172,13 @@ export interface GlobalSettings {
   telegramLink: string | null;
   tiktokLink: string | null;
   vkLink: string | null;
+  admissionDayStartDate?: string | null;
+  admissionDayEndDate?: string | null;
+  admissionPartTimeStartDate?: string | null;
+  admissionPartTimeEndDate?: string | null;
+  admissionSheetUrl?: string | null;
+  admissionSheetOpenUrl?: string | null;
+  admissionSheetDownloadUrl?: string | null;
   resources?: Array<{
     id?: number;
     title: string;

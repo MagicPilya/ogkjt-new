@@ -85,6 +85,33 @@
       "repeatable": true,
       "component": "elements.footer-resource",
       "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "admissionDayStartDate": {
+      "type": "date"
+    },
+    "admissionDayEndDate": {
+      "type": "date"
+    },
+    "admissionPartTimeStartDate": {
+      "type": "date"
+    },
+    "admissionPartTimeEndDate": {
+      "type": "date"
+    },
+    "admissionSheetUrl": {
+      "type": "string",
+      "default": "",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "admissionSheetOpenUrl": {
+      "type": "string",
+      "default": "",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "admissionSheetDownloadUrl": {
+      "type": "string",
+      "default": "",
+      "pluginOptions": { "i18n": { "localized": true } }
     }
   }
 }
