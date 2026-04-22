@@ -15,6 +15,34 @@ export interface ElementsAdministrationMember extends Struct.ComponentSchema {
   };
 }
 
+export interface ElementsAdmissionCampaign extends Struct.ComponentSchema {
+  collectionName: 'components_elements_admission_campaigns';
+  info: {
+    displayName: 'Admission Campaign';
+    icon: 'calendar';
+  };
+  attributes: {
+    dayEndDate: Schema.Attribute.Date;
+    dayStartDate: Schema.Attribute.Date;
+    partTimeEndDate: Schema.Attribute.Date;
+    partTimeStartDate: Schema.Attribute.Date;
+    sheetOpenUrl: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<''>;
+    sheetUrl: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<''>;
+  };
+}
+
 export interface ElementsDocumentItem extends Struct.ComponentSchema {
   collectionName: 'components_elements_document_items';
   info: {
@@ -148,6 +176,7 @@ declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
       'elements.administration-member': ElementsAdministrationMember;
+      'elements.admission-campaign': ElementsAdmissionCampaign;
       'elements.document-item': ElementsDocumentItem;
       'elements.document-name-item': ElementsDocumentNameItem;
       'elements.footer-resource': ElementsFooterResource;

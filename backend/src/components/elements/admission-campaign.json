@@ -1,0 +1,40 @@
+{
+  "collectionName": "components_elements_admission_campaigns",
+  "info": {
+    "displayName": "Admission Campaign",
+    "icon": "calendar"
+  },
+  "options": {},
+  "attributes": {
+    "dayStartDate": {
+      "type": "date"
+    },
+    "dayEndDate": {
+      "type": "date"
+    },
+    "partTimeStartDate": {
+      "type": "date"
+    },
+    "partTimeEndDate": {
+      "type": "date"
+    },
+    "sheetUrl": {
+      "type": "string",
+      "default": "",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "sheetOpenUrl": {
+      "type": "string",
+      "default": "",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    }
+  }
+}

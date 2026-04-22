@@ -27,8 +27,9 @@ function normalizeDateRange(start?: string | null, end?: string | null) {
 }
 
 export function getAdmissionPeriods(settings?: GlobalSettings | null) {
-  const day = normalizeDateRange(settings?.admissionDayStartDate, settings?.admissionDayEndDate);
-  const partTime = normalizeDateRange(settings?.admissionPartTimeStartDate, settings?.admissionPartTimeEndDate);
+  const campaign = settings?.admissionCampaign;
+  const day = normalizeDateRange(campaign?.dayStartDate, campaign?.dayEndDate);
+  const partTime = normalizeDateRange(campaign?.partTimeStartDate, campaign?.partTimeEndDate);
   return { day, partTime };
 }
 
@@ -82,7 +83,7 @@ export function withAdmissionCampaignLink(menu: MenuSection[], locale: Locale, a
 }
 
 export function getAdmissionSheetUrl(settings?: GlobalSettings | null): string {
-  const rawValue = settings?.admissionSheetUrl?.trim() || "";
+  const rawValue = settings?.admissionCampaign?.sheetUrl?.trim() || "";
   if (!rawValue) return "https://docs.google.com/spreadsheets/d/e/REPLACE_ME/pubhtml";
 
   const iframeSrcMatch = rawValue.match(/src\s*=\s*["']([^"']+)["']/i);
@@ -92,5 +93,5 @@ export function getAdmissionSheetUrl(settings?: GlobalSettings | null): string {
 }
 
 export function getAdmissionSheetOpenUrl(settings?: GlobalSettings | null): string {
-  return settings?.admissionSheetOpenUrl?.trim() || getAdmissionSheetUrl(settings);
+  return settings?.admissionCampaign?.sheetOpenUrl?.trim() || getAdmissionSheetUrl(settings);
 }
