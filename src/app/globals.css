@@ -237,6 +237,12 @@
     min-height: 44px;
   }
 }
+.hero-bg {
+  background-image: url("/images/Building.JPG");
+  background-size: cover;
+  background-position: center;
+}
+
 [data-a11y="low-vision"] .hero-bg {
   background-image: none !important;
   background-color: oklch(0.25 0 0);

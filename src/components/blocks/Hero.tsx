@@ -50,14 +50,7 @@ export function Hero({
   return (
     <section className="relative h-[80vh] min-h-[600px] flex items-center justify-center overflow-hidden hero-section">
       {/* Background Image with Overlay */}
-      <div
-        className="hero-bg absolute inset-0 z-0"
-        style={{
-          backgroundImage: 'url("/images/Building.JPG")',
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
+      <div className="hero-bg absolute inset-0 z-0">
         <div className="absolute inset-0 bg-slate-900/70" />
       </div>
 
