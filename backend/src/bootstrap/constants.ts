@@ -5,6 +5,10 @@ export const PUBLIC_PERMISSION_ACTIONS = [
   'api::article.article.findOne',
   'api::dormitory-news.dormitory-news.find',
   'api::dormitory-news.dormitory-news.findOne',
+  'api::spps-psy.spps-psy.find',
+  'api::spps-psy.spps-psy.findOne',
+  'api::spps-social.spps-social.find',
+  'api::spps-social.spps-social.findOne',
   'api::event.event.find',
   'api::event.event.findOne',
   'api::page.page.find',
@@ -23,6 +27,16 @@ export const EDITOR_PERMISSION_ACTIONS = [
   'api::dormitory-news.dormitory-news.create',
   'api::dormitory-news.dormitory-news.update',
   'api::dormitory-news.dormitory-news.delete',
+  'api::spps-psy.spps-psy.find',
+  'api::spps-psy.spps-psy.findOne',
+  'api::spps-psy.spps-psy.create',
+  'api::spps-psy.spps-psy.update',
+  'api::spps-psy.spps-psy.delete',
+  'api::spps-social.spps-social.find',
+  'api::spps-social.spps-social.findOne',
+  'api::spps-social.spps-social.create',
+  'api::spps-social.spps-social.update',
+  'api::spps-social.spps-social.delete',
 ] as const;
 
 export const ANNUAL_THEME_FALLBACK_PAGE = {

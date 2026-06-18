@@ -68,7 +68,9 @@ export async function translateArticle(
   const source: Locale = defaultLocale;
   const [title, announcement, ...contentTranslated] = await Promise.all([
     translateText(article.title, source, targetLocale),
-    translateText(article.announcement, source, targetLocale),
+    article.announcement
+      ? translateText(article.announcement, source, targetLocale)
+      : Promise.resolve(undefined),
     translateContentBlocks(article.content, source, targetLocale),
   ]);
 
@@ -82,7 +84,7 @@ export async function translateArticle(
   return {
     ...article,
     title,
-    announcement,
+    ...(announcement !== undefined ? { announcement } : {}),
     content,
   };
 }
@@ -169,7 +171,7 @@ export async function getArticlesForLocale(
   }
   if (locale === defaultLocale) return { ...ruRes, isTranslated: false };
   const titles = ruRes.data.map((a) => a.title);
-  const announcements = ruRes.data.map((a) => a.announcement);
+  const announcements = ruRes.data.map((a) => a.announcement ?? "");
   const [translatedTitles, translatedAnnouncements] = await Promise.all([
     translateBatch(titles, defaultLocale, locale),
     translateBatch(announcements, defaultLocale, locale),
@@ -177,7 +179,9 @@ export async function getArticlesForLocale(
   const data: Article[] = ruRes.data.map((a, i) => ({
     ...a,
     title: translatedTitles[i] ?? a.title,
-    announcement: translatedAnnouncements[i] ?? a.announcement,
+    ...(a.announcement !== undefined && a.announcement !== null
+      ? { announcement: translatedAnnouncements[i] ?? a.announcement }
+      : {}),
   }));
   return { data, meta: ruRes.meta, isTranslated: true };
 }

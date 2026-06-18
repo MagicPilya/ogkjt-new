@@ -54,7 +54,10 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
         title: "Воспитательная работа",
         url: "/ideology",
         links: [
-            { id: 15, title: "Социально-педагогическая и психологическая служба", url: "/ideology/spps" },
+            { id: 15, title: "Социально-педагогическая и психологическая служба", url: "/ideology/spps", sublinks: [
+                { id: 151, title: "Педагог-психолог", url: "/ideology/spps/psy" },
+                { id: 152, title: "Педагог социальный", url: "/ideology/spps/social" },
+            ] },
             { id: 16, title: "Молодёжная политика", url: "/ideology/youth-policy" },
             { id: 17, title: "В помощь куратору", url: "/ideology/curator" },
         ]
@@ -117,7 +120,10 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
       title: "Выхаваўчая работа",
       url: "/ideology",
       links: [
-        { id: 15, title: "Сацыяльна-педагагічная і псіхалагічная служба", url: "/ideology/spps" },
+        { id: 15, title: "Сацыяльна-педагагічная і псіхалагічная служба", url: "/ideology/spps", sublinks: [
+            { id: 151, title: "Педагог-псіхолаг", url: "/ideology/spps/psy" },
+            { id: 152, title: "Сацыяльны педагог", url: "/ideology/spps/social" },
+        ] },
         { id: 16, title: "Моладзевая палітыка", url: "/ideology/youth-policy" },
         { id: 17, title: "У дапамогу куратару", url: "/ideology/curator" },
       ]
@@ -180,7 +186,10 @@ const defaultMenuByLocale: Record<Locale, MenuSection[]> = {
       title: "Educational work",
       url: "/ideology",
       links: [
-        { id: 15, title: "Social, pedagogical and psychological service", url: "/ideology/spps" },
+        { id: 15, title: "Social, pedagogical and psychological service", url: "/ideology/spps", sublinks: [
+            { id: 151, title: "Educational psychologist", url: "/ideology/spps/psy" },
+            { id: 152, title: "Social educator", url: "/ideology/spps/social" },
+        ] },
         { id: 16, title: "Youth policy", url: "/ideology/youth-policy" },
         { id: 17, title: "For curators", url: "/ideology/curator" },
       ]

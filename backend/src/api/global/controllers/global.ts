@@ -10,6 +10,7 @@ import { createLocalizedSingleTypeController } from '../../../utils/createLocali
 const uid = 'api::global.global';
 const populate = {
   resources: true,
+  admissionCampaign: true,
 };
 
 export default factories.createCoreController(uid, ({ strapi }) => ({

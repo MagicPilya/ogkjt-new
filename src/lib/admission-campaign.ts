@@ -11,7 +11,9 @@ export const admissionCampaignTitle: Record<Locale, string> = {
 
 function parseDate(value?: string | null): Date | null {
   if (!value) return null;
-  const parsed = new Date(`${value}T00:00:00`);
+  const trimmed = value.trim();
+  const dateOnly = trimmed.match(/^(\d{4}-\d{2}-\d{2})/)?.[1];
+  const parsed = new Date(dateOnly ? `${dateOnly}T00:00:00` : trimmed);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 

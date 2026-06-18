@@ -15,6 +15,7 @@ import {
   patchWindowsUploadTempCleanup,
 } from './bootstrap/upload-settings';
 import { registerSingleTypeLocaleMirror } from './bootstrap/single-type-locale-mirror';
+import { registerCollectionSlugAutofill } from './bootstrap/collection-slug-autofill';
 
 export default {
   register({ strapi }: { strapi: Core.Strapi }) {
@@ -25,6 +26,7 @@ export default {
     });
 
     registerPageTitleAutofill(strapi);
+    registerCollectionSlugAutofill(strapi);
   },
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {

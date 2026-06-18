@@ -12,6 +12,7 @@ export async function getGlobalSettings(locale?: Locale, options?: GlobalSetting
   const params: Record<string, string> = {
     status: "published",
     "populate[resources]": "*",
+    "populate[admissionCampaign]": "*",
   };
   if (locale) params.locale = locale;
   const revalidateSeconds = options?.revalidateSeconds ?? STATIC_REVALIDATE_SECONDS;

@@ -10,6 +10,8 @@ import { normalizeStrapiUrl } from "@/lib/normalize-strapi-url";
  *   NEXT_PUBLIC_STRAPI_URL=https://cms.example.com
  */
 
-const rawUrl = process.env.NEXT_PUBLIC_STRAPI_URL || "https://api.ogkjt.by";
+const rawUrl =
+  process.env.NEXT_PUBLIC_STRAPI_URL ||
+  (process.env.NODE_ENV === "development" ? "http://127.0.0.1:1337" : "https://api.ogkjt.by");
 export const STRAPI_URL = normalizeStrapiUrl(rawUrl);
 

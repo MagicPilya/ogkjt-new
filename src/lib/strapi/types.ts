@@ -57,7 +57,7 @@ export interface Article {
   documentId: string;
   title: string;
   slug: string;
-  announcement: string;
+  announcement?: string | null;
   content: unknown[];
   date: string;
   cover: StrapiImage | null;

@@ -8,6 +8,14 @@ export {
   getDormitoryNewsBySlugOrDocumentId,
 } from "./dormitory-news";
 export {
+  getSppsPsy,
+  getSppsPsyBySlugOrDocumentId,
+} from "./spps-psy";
+export {
+  getSppsSocial,
+  getSppsSocialBySlugOrDocumentId,
+} from "./spps-social";
+export {
   getAdministration,
   getAdmissionDocuments,
   getSpecialties,

@@ -1039,6 +1039,92 @@ export interface ApiSpecialtySpecialty extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiSppsPsySppsPsy extends Struct.CollectionTypeSchema {
+  collectionName: 'spps_psy_items';
+  info: {
+    description: '\u041C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u043F\u0435\u0434\u0430\u0433\u043E\u0433\u0430-\u043F\u0441\u0438\u0445\u043E\u043B\u043E\u0433\u0430 (/ideology/spps/psy)';
+    displayName: '\u041F\u0435\u0434\u0430\u0433\u043E\u0433-\u043F\u0441\u0438\u0445\u043E\u043B\u043E\u0433';
+    pluralName: 'spps-psy-items';
+    singularName: 'spps-psy';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: false;
+    };
+  };
+  attributes: {
+    content: Schema.Attribute.Blocks;
+    cover: Schema.Attribute.Media<'images'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date;
+    files: Schema.Attribute.Media<'files', true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::spps-psy.spps-psy'
+    > &
+      Schema.Attribute.Private;
+    Media: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiSppsSocialSppsSocial extends Struct.CollectionTypeSchema {
+  collectionName: 'spps_social_items';
+  info: {
+    description: '\u041C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u0441\u043E\u0446\u0438\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u043F\u0435\u0434\u0430\u0433\u043E\u0433\u0430 (/ideology/spps/social)';
+    displayName: '\u041F\u0435\u0434\u0430\u0433\u043E\u0433 \u0441\u043E\u0446\u0438\u0430\u043B\u044C\u043D\u044B\u0439';
+    pluralName: 'spps-social-items';
+    singularName: 'spps-social';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: false;
+    };
+  };
+  attributes: {
+    content: Schema.Attribute.Blocks;
+    cover: Schema.Attribute.Media<'images'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date;
+    files: Schema.Attribute.Media<'files', true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::spps-social.spps-social'
+    > &
+      Schema.Attribute.Private;
+    Media: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -1559,6 +1645,8 @@ declare module '@strapi/strapi' {
       'api::menu.menu': ApiMenuMenu;
       'api::page.page': ApiPagePage;
       'api::specialty.specialty': ApiSpecialtySpecialty;
+      'api::spps-psy.spps-psy': ApiSppsPsySppsPsy;
+      'api::spps-social.spps-social': ApiSppsSocialSppsSocial;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
