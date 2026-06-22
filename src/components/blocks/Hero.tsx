@@ -81,7 +81,7 @@ export function Hero({
               <div className="min-w-0 text-left">
                 <p className="inline-flex items-center gap-2 text-[11px] md:text-xs uppercase tracking-wide font-semibold text-blue-200/95">
                   <CalendarClock className="h-3.5 w-3.5 shrink-0" />
-                  Приёмная комиссия
+                  {uiStrings.admissionCommitteeLabel[locale]}
                 </p>
                 <p className="mt-1 text-sm md:text-base font-semibold text-white truncate">
                   {admissionCampaign.title}
@@ -91,7 +91,7 @@ export function Hero({
                 href={admissionCampaign.href}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600/95 px-3.5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-500 transition-colors whitespace-nowrap"
               >
-                Смотреть
+                {uiStrings.viewButton[locale]}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

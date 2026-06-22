@@ -145,8 +145,8 @@ export function Footer({ settings, menu, resources, locale = "ru", yearThemeMenu
           <div className="flex flex-col items-center">
             <h3 className="font-semibold mb-2 text-lg">{uiStrings.footerNavigation[locale]}</h3>
             <ul className="space-y-0 text-sm leading-none text-slate-600 dark:text-slate-400 [&>li]:py-px">
-              {navigation.map((item) => (
-                <li key={item.id}>
+              {navigation.map((item, index) => (
+                <li key={`footer-${item.id}-${item.url}-${index}`}>
                   <Link href={prefix(item.url || "/")} className="hover:text-blue-600 inline-flex min-h-[26px] items-center touch-manipulation">
                     {item.title}
                   </Link>

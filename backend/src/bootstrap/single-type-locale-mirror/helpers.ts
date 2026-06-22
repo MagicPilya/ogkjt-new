@@ -385,9 +385,17 @@ export function pickMissingOnlyPatch(source: unknown, target: unknown, mergeKeys
     const patch: Record<string, unknown> = {};
     for (const [key, sourceValue] of Object.entries(source)) {
       if (SYSTEM_FIELDS.has(key)) continue;
-      const next = pickMissingOnlyPatch(sourceValue, target[key], mergeKeys);
-      if (next !== undefined) {
-        patch[key] = next;
+      
+      // Always overwrite date fields in admission campaign
+      const isAdmissionDateField = ['dayStartDate', 'dayEndDate', 'partTimeStartDate', 'partTimeEndDate'].includes(key);
+      
+      if (isAdmissionDateField) {
+        patch[key] = sanitizeMirrorValue(sourceValue);
+      } else {
+        const next = pickMissingOnlyPatch(sourceValue, target[key], mergeKeys);
+        if (next !== undefined) {
+          patch[key] = next;
+        }
       }
     }
     return Object.keys(patch).length > 0 ? patch : undefined;

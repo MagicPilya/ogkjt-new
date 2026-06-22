@@ -6,6 +6,7 @@ export const MIRRORED_SINGLE_TYPE_UIDS = new Set([
   'api::admission-document.admission-document',
   'api::specialty.specialty',
   'api::global.global',
+  'api::annual-symbol.annual-symbol',
 ]);
 
 export const DEFAULT_ARRAY_MERGE_KEYS = [
@@ -35,8 +36,12 @@ export const POPULATE_BY_UID: Record<string, unknown> = {
   },
   'api::global.global': {
     resources: true,
+    admissionCampaign: true,
   },
   'api::specialty.specialty': {
     items: { populate: ['specializations', 'workerProfessions'] },
+  },
+  'api::annual-symbol.annual-symbol': {
+    logo: true,
   },
 };

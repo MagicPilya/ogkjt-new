@@ -2,6 +2,7 @@ import type { Locale } from "./i18n";
 import type { MenuSection, MenuLink, MenuSublink } from "./strapi";
 import { uiStrings } from "./ui-strings";
 import { yearTheme } from "./year-theme";
+import { admissionCampaignTitle } from "./admission-campaign";
 
 /**
  * Единый источник структуры меню и подразделов.
@@ -280,10 +281,25 @@ export function getTitleForPath(pathname: string, menu: MenuSection[]): string {
  * По pathname (например /about или /about/administration) определяет секцию из меню.
  * sectionUrl — для ленты статей (раздел из enum: новости колледжа, общежития или каталог).
  */
-export function getSectionByPath(pathname: string, menu: MenuSection[]): SectionByPathResult | null {
+export function getSectionByPath(pathname: string, menu: MenuSection[], locale: Locale = "ru"): SectionByPathResult | null {
     const path = pathname.replace(/^\//, "").trim() || "";
     const segments = path.split("/").filter(Boolean);
     if (segments.length === 0) return null;
+    
+    // Проверка на годовой тематический раздел
+    if (path === yearTheme.path.replace(/^\//, "")) {
+        return {
+            section: {
+                id: Number.MAX_SAFE_INTEGER,
+                title: yearTheme.fallbackTitle[locale],
+                url: yearTheme.path,
+                links: [],
+            },
+            sectionUrl: yearTheme.path,
+            isRootSection: true,
+        };
+    }
+    
     const rootSegment = segments[0];
     const section = menu.find(s => (s.url ?? "").replace(/^\//, "") === rootSegment);
     if (!section) return null;
@@ -331,6 +347,8 @@ export function getBreadcrumbItems(pathname: string, menu: MenuSection[], locale
       const firstSegment = segments[0];
       if (firstSegment === "news" && i === 1) label = uiStrings.newsItem[locale];
       else if (firstSegment === "events" && i === 1) label = uiStrings.eventItem[locale];
+      else if (firstSegment === "applicants" && segments[1] === "admission-progress" && i === 1)
+        label = admissionCampaignTitle[locale];
       else if (firstSegment === yearTheme.path.replace(/^\//, "") && i === 0) label = yearTheme.fallbackTitle[locale];
       else label = slugToTitle(segments[i]);
     }

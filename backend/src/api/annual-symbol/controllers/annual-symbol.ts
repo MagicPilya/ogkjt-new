@@ -14,6 +14,6 @@ const populate = ['logo'];
 export default factories.createCoreController(uid, ({ strapi }) => ({
   ...createLocalizedSingleTypeController(strapi, uid, {
     populate,
-    replicateToOtherLocales: false,
+    replicateToOtherLocales: true,
   }),
 }));

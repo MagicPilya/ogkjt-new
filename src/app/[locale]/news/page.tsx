@@ -10,6 +10,11 @@ import { translationDisclaimer, type Locale } from "@/lib/i18n";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
 const NEWS_PAGE_SIZE = 12;
+const NEWS_FALLBACK_TITLE: Record<Locale, string> = {
+  ru: "Новости колледжа",
+  be: "Навіны каледжа",
+  en: "College news",
+};
 
 interface Props {
   params: Promise<{ locale: Locale }>;
@@ -19,7 +24,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const pageData = await getPageByPath("news", locale);
-  const pageTitle = pageData?.title ?? "Новости колледжа";
+  const pageTitle = pageData?.title ?? NEWS_FALLBACK_TITLE[locale];
   const title = `${pageTitle} | ${SITE_TITLE}`;
   const description = pageData?.metaDescription ?? undefined;
   return { title, description };
@@ -31,10 +36,11 @@ export default async function NewsPage({ params, searchParams }: Props) {
   const parsedPage = Number.parseInt(pageParam ?? "1", 10);
   const requestedPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const pageData = await getPageByPath("news", locale);
-  const title = pageData?.title ?? "Новости колледжа";
+  const title = pageData?.title ?? NEWS_FALLBACK_TITLE[locale];
+  const ruPageData = locale === "ru" ? pageData : await getPageByPath("news", "ru");
   const feedSection =
-    pageData?.articleFeedSection && pageData.articleFeedSection !== "Не показывать"
-      ? pageData.articleFeedSection
+    ruPageData?.articleFeedSection && ruPageData.articleFeedSection !== "Не показывать"
+      ? ruPageData.articleFeedSection
       : "НОВОСТИ КОЛЛЕДЖА";
   const { data: articles, meta, isTranslated } = await getArticlesForLocale(
     getArticles,

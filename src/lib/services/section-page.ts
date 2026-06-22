@@ -6,6 +6,7 @@ import {
   getMenu,
   getPageByPath,
   getSpecialties,
+  getAnnualSymbol,
   type Article,
   type MenuSection,
   type Page,
@@ -15,6 +16,8 @@ import {
 } from "@/lib/strapi";
 import { getSectionByPath, getTitleForPath, normalizeMenu } from "@/lib/menu-sections";
 import { extractTextFromBlocks } from "@/lib/blocks-text";
+import { admissionCampaignPath, admissionCampaignTitle } from "@/lib/admission-campaign";
+import { yearTheme } from "@/lib/year-theme";
 import type { Locale } from "@/lib/i18n";
 
 export interface SectionPageData {
@@ -37,7 +40,23 @@ export async function loadSectionPageData(path: string, locale?: Locale): Promis
   const pathname = "/" + path;
   const menuData = await getMenu(locale);
   const menu = normalizeMenu(menuData?.mainMenu, locale ?? "ru") ?? [];
-  const sectionResult = getSectionByPath(pathname, menu);
+  const isAdmissionProgressPage = path === admissionCampaignPath.replace(/^\//, "");
+  
+  // Обработка специального случая для year-theme
+  let sectionResult = getSectionByPath(pathname, menu, locale ?? "ru");
+  if (path === yearTheme.path.replace(/^\//, "") && !sectionResult) {
+    sectionResult = {
+      section: {
+        id: Number.MAX_SAFE_INTEGER,
+        title: yearTheme.fallbackTitle[locale ?? "ru"],
+        url: yearTheme.path,
+        links: [],
+      },
+      sectionUrl: yearTheme.path,
+      isRootSection: true,
+    };
+  }
+  
   if (!sectionResult) return null;
 
   const pageData = await getPageByPath(path, locale);
@@ -59,8 +78,18 @@ export async function loadSectionPageData(path: string, locale?: Locale): Promis
     isDocumentsPage ? getAdmissionDocuments(locale) : Promise.resolve(null),
   ]);
 
-  const menuTitle = getTitleForPath(pathname, menu);
-  const title = menuTitle !== pathname.replace(/^\//, "").trim() ? menuTitle : (pageData?.title ?? menuTitle);
+  let menuTitle = getTitleForPath(pathname, menu);
+  let title: string;
+  if (path === yearTheme.path.replace(/^\//, "")) {
+    const annualSymbol = await getAnnualSymbol(locale);
+    menuTitle = annualSymbol?.title || yearTheme.fallbackTitle[locale ?? "ru"];
+    title = menuTitle;
+  } else if (isAdmissionProgressPage) {
+    menuTitle = admissionCampaignTitle[locale ?? "ru"];
+    title = menuTitle;
+  } else {
+    title = menuTitle !== pathname.replace(/^\//, "").trim() ? menuTitle : (pageData?.title ?? menuTitle);
+  }
 
   return {
     path,
@@ -84,7 +113,16 @@ export async function loadSectionPageMeta(path: string, locale?: Locale) {
   const menuData = await getMenu(locale);
   const menu = normalizeMenu(menuData?.mainMenu, locale ?? "ru") ?? [];
   const pageData = await getPageByPath(path, locale);
-  const rawMenuTitle = getTitleForPath(pathname, menu);
+  const isAdmissionProgressPage = path === admissionCampaignPath.replace(/^\//, "");
+  
+  // Обработка специального случая для year-theme
+  let rawMenuTitle = getTitleForPath(pathname, menu);
+  if (path === yearTheme.path.replace(/^\//, "")) {
+    rawMenuTitle = yearTheme.fallbackTitle[locale ?? "ru"];
+  } else if (isAdmissionProgressPage) {
+    rawMenuTitle = admissionCampaignTitle[locale ?? "ru"];
+  }
+  
   const menuTitle = rawMenuTitle !== pathname.replace(/^\//, "").trim() ? rawMenuTitle : (pageData?.title ?? rawMenuTitle);
 
   return {

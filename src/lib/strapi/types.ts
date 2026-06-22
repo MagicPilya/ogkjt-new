@@ -192,6 +192,7 @@ export interface AnnualSymbol {
   documentId: string;
   title: string;
   description?: string | null;
+  content?: unknown[] | null;
   pageUrl?: string | null;
   logo?: StrapiImage | null;
 }

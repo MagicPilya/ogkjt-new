@@ -382,7 +382,41 @@ export function createLocalizedSingleTypeController(
           })) as Record<string, unknown> | null;
           const patch = pickMissingOnlyPatch(data, targetDoc ?? undefined);
           payload = isPlainObject(patch) && Object.keys(patch).length > 0 ? patch : undefined;
+        } else if (replicateMode === 'overwrite') {
+          // For overwrite mode, preserve existing localized fields (sheetUrl, sheetOpenUrl) in admissionCampaign
+          const targetDoc = (await strapi.documents(documentUid).findOne({
+            documentId,
+            locale: targetLocale,
+            // Populate admissionCampaign to get existing values
+            populate: { admissionCampaign: true } as any
+          })) as Record<string, unknown> | null;
+          
+          if (targetDoc && isPlainObject(targetDoc.admissionCampaign)) {
+            const targetAdmission = targetDoc.admissionCampaign as Record<string, unknown>;
+            const sourceAdmission = isPlainObject(payload.admissionCampaign) 
+              ? payload.admissionCampaign as Record<string, unknown> 
+              : {};
+            
+            // Preserve sheetUrl and sheetOpenUrl from target if they exist
+            const preservedAdmission: Record<string, unknown> = {
+              ...sourceAdmission,
+              // Only keep sheetUrl from source if target doesn't have it
+              sheetUrl: (targetAdmission.sheetUrl && typeof targetAdmission.sheetUrl === 'string' && targetAdmission.sheetUrl.trim()) 
+                ? targetAdmission.sheetUrl 
+                : sourceAdmission.sheetUrl,
+              // Only keep sheetOpenUrl from source if target doesn't have it
+              sheetOpenUrl: (targetAdmission.sheetOpenUrl && typeof targetAdmission.sheetOpenUrl === 'string' && targetAdmission.sheetOpenUrl.trim()) 
+                ? targetAdmission.sheetOpenUrl 
+                : sourceAdmission.sheetOpenUrl,
+            };
+            
+            payload = {
+              ...payload,
+              admissionCampaign: preservedAdmission,
+            };
+          }
         }
+        
         if (payload) {
           const sanitized = sanitizeMirrorValue(payload);
           payload = isPlainObject(sanitized) ? sanitized : undefined;

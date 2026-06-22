@@ -5,8 +5,8 @@ export const admissionCampaignPath = "/applicants/admission-progress";
 
 export const admissionCampaignTitle: Record<Locale, string> = {
   ru: "Ход приёма документов",
-  be: "Ход приёма документов",
-  en: "Ход приёма документов",
+  be: "Ход прыёму дакументаў",
+  en: "Document admission progress",
 };
 
 function parseDate(value?: string | null): Date | null {
@@ -43,8 +43,13 @@ export function isAdmissionCampaignActive(settings?: GlobalSettings | null, date
   return inRange(day) || inRange(partTime);
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("ru-RU");
+function formatDate(date: Date, locale: Locale): string {
+  const localeTag: Record<Locale, string> = {
+    ru: "ru-RU",
+    be: "be-BY",
+    en: "en-GB",
+  };
+  return date.toLocaleDateString(localeTag[locale]);
 }
 
 function getPeriodDays(start: Date, end: Date): number {
@@ -52,14 +57,27 @@ function getPeriodDays(start: Date, end: Date): number {
   return Math.floor(diff / (24 * 60 * 60 * 1000)) + 1;
 }
 
-export function getAdmissionPeriodsSummary(settings?: GlobalSettings | null): { title: string; value: string }[] {
+export function getAdmissionPeriodsSummary(
+  settings: GlobalSettings | null | undefined,
+  locale: Locale
+): { title: string; value: string }[] {
   const { day, partTime } = getAdmissionPeriods(settings);
+  const labels: Record<
+    Locale,
+    { dayTitle: string; partTimeTitle: string; daysUnit: string }
+  > = {
+    ru: { dayTitle: "Дневное", partTimeTitle: "Заочное", daysUnit: "дн." },
+    be: { dayTitle: "Дзённае", partTimeTitle: "Завочнае", daysUnit: "дз." },
+    en: { dayTitle: "Full-time", partTimeTitle: "Part-time", daysUnit: "days" },
+  };
   const formatRange = (range: { start: Date; end: Date }) =>
-    `${formatDate(range.start)} - ${formatDate(range.end)} (${getPeriodDays(range.start, range.end)} дн.)`;
+    `${formatDate(range.start, locale)} - ${formatDate(range.end, locale)} (${getPeriodDays(range.start, range.end)} ${
+      labels[locale].daysUnit
+    })`;
 
   const lines: { title: string; value: string }[] = [];
-  if (day) lines.push({ title: "Дневное", value: formatRange(day) });
-  if (partTime) lines.push({ title: "Заочное", value: formatRange(partTime) });
+  if (day) lines.push({ title: labels[locale].dayTitle, value: formatRange(day) });
+  if (partTime) lines.push({ title: labels[locale].partTimeTitle, value: formatRange(partTime) });
   return lines;
 }
 
@@ -74,10 +92,10 @@ export function withAdmissionCampaignLink(menu: MenuSection[], locale: Locale, a
     const exists = links.some((link) => link.url === admissionCampaignPath);
     if (!exists) {
       links.unshift({
-        id: Number.MAX_SAFE_INTEGER - 1,
-        title: admissionCampaignTitle[locale],
-        url: admissionCampaignPath,
-      });
+            id: Number.MAX_SAFE_INTEGER - 2,
+            title: admissionCampaignTitle[locale],
+            url: admissionCampaignPath,
+          });
     }
 
     return { ...section, links };

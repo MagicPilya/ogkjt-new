@@ -387,4 +387,14 @@ export const uiStrings = {
     be: "База",
     en: "Base",
   } as Record<Locale, string>,
+  admissionCommitteeLabel: {
+    ru: "Приёмная комиссия",
+    be: "Прыёмная камісія",
+    en: "Admission committee",
+  } as Record<Locale, string>,
+  viewButton: {
+    ru: "Смотреть",
+    be: "Глядзець",
+    en: "View",
+  } as Record<Locale, string>,
 } as const;

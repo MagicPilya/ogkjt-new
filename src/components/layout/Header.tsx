@@ -115,8 +115,8 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                 <div className="header-desktop-nav hidden xl:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[55%] 2xl:w-[64%] 3xl:w-[66%] 4xl:w-[74%] max-w-[720px] 2xl:max-w-[960px] 3xl:max-w-[1150px] 4xl:max-w-[1600px] justify-center">
                     <NavigationMenu viewport={false} delayDuration={0} skipDelayDuration={0} className="w-full">
                         <NavigationMenuList className="flex-wrap justify-center gap-x-1 gap-y-0.5">
-                            {menuItems.map((item) => (
-                                <NavigationMenuItem key={item.id}>
+                            {menuItems.map((item, index) => (
+                                <NavigationMenuItem key={`${item.id}-${item.url}-${index}`}>
                                     {item.links && item.links.length > 0 ? (
                                         <>
                                             <NavigationMenuTrigger asChild>
@@ -147,8 +147,8 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                                                             </Link>
                                                         </NavigationMenuLink>
                                                     </li>
-                                                    {item.links.map((subItem) => (
-                                                        <li key={subItem.id} className="space-y-1">
+                                                    {item.links.map((subItem, subIndex) => (
+                                                        <li key={`sub-${item.id}-${subItem.id}-${subItem.url}-${subIndex}`} className="space-y-1">
                                                             <NavigationMenuLink asChild>
                                                                 <Link
                                                                     href={prefix(subItem.url)}
@@ -159,8 +159,8 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                                                             </NavigationMenuLink>
                                                             {subItem.sublinks && subItem.sublinks.length > 0 && (
                                                                 <ul className="pl-3 ml-2 border-l border-slate-200 dark:border-slate-700 space-y-1">
-                                                                    {subItem.sublinks.map((subSubItem) => (
-                                                                        <li key={subSubItem.id}>
+                                                                    {subItem.sublinks.map((subSubItem, subSubIndex) => (
+                                                                        <li key={`subsub-${item.id}-${subItem.id}-${subSubItem.id}-${subSubItem.url}-${subSubIndex}`}>
                                                                             <NavigationMenuLink asChild>
                                                                                 <Link
                                                                                     href={prefix(subSubItem.url)}
@@ -206,8 +206,8 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                         <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto px-6 pb-12">
                             <SheetTitle className="sr-only">{uiStrings.footerNavigation[locale]}</SheetTitle>
                             <div className="flex flex-col gap-6 mt-8">
-                             {menuItems.map((item) => (
-                                <div key={item.id} className="flex flex-col gap-2">
+                             {menuItems.map((item, index) => (
+                                <div key={`mobile-${item.id}-${item.url}-${index}`} className="flex flex-col gap-2">
                                     {item.links && item.links.length > 0 ? (
                                         <>
                                             <Link
@@ -218,8 +218,8 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                                                 {item.title}
                                             </Link>
                                             <div className="pl-4 flex flex-col gap-3 border-l-2 border-slate-100 dark:border-slate-800">
-                                                {item.links.map((subItem) => (
-                                                    <div key={subItem.id} className="flex flex-col gap-2">
+                                                {item.links.map((subItem, subIndex) => (
+                                                    <div key={`m-sub-${item.id}-${subItem.id}-${subItem.url}-${subIndex}`} className="flex flex-col gap-2">
                                                         <Link 
                                                             href={prefix(subItem.url)}
                                                             onClick={closeMobileMenu}
@@ -229,9 +229,9 @@ export function Header({ initialMenu, settings, locale = "ru", yearThemeMenuItem
                                                         </Link>
                                                         {subItem.sublinks && subItem.sublinks.length > 0 && (
                                                             <div className="pl-3 flex flex-col gap-1.5 border-l-2 border-slate-200 dark:border-slate-700">
-                                                                {subItem.sublinks.map((subSubItem) => (
+                                                                {subItem.sublinks.map((subSubItem, subSubIndex) => (
                                                                     <Link 
-                                                                        key={subSubItem.id} 
+                                                                        key={`m-subsub-${item.id}-${subItem.id}-${subSubItem.id}-${subSubItem.url}-${subSubIndex}`} 
                                                                         href={prefix(subSubItem.url)}
                                                                         onClick={closeMobileMenu}
                                                                         className="text-slate-500 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 text-sm"
