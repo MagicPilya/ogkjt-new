@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getDormitoryNewsBySlugOrDocumentId } from "@/lib/strapi";
 import { getArticleForLocale } from "@/lib/translateArticle";
-import { formatDate, getStrapiMediaWithFormats } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { MediaSlider, type MediaItem } from "@/components/blocks/MediaSlider";
 import { PageFiles } from "@/components/blocks/PageFiles";
@@ -40,7 +40,6 @@ export default async function DormitoryNewsDetailPage({ params }: Props) {
   if (!result) notFound();
 
   const { article: item, isTranslated } = result;
-  const imageUrl = getStrapiMediaWithFormats(item.cover, ["large", "medium", "small"]);
   const mediaList: MediaItem[] = Array.isArray(item.media)
     ? item.media
     : ((item as { Media?: MediaItem[] }).Media ?? []);
@@ -82,16 +81,7 @@ export default async function DormitoryNewsDetailPage({ params }: Props) {
           </p>
         </div>
 
-        <div className="relative h-[400px] w-full overflow-hidden rounded-xl mb-10 bg-slate-100">
-          {imageUrl && (
-            <img
-              src={imageUrl}
-              alt={item.cover?.alternativeText || item.title}
-              loading="eager"
-              className="h-full w-full object-cover"
-            />
-          )}
-        </div>
+        <MediaSlider items={item.cover ? [item.cover] : null} height="400px" className="mb-10" />
 
         {mediaList.length > 0 && (
           <section className="mb-10 mt-14 border-t border-slate-200 pt-8 dark:border-slate-800" aria-label="Фотогалерея">

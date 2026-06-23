@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
-import { cn, formatDate, getStrapiMediaWithFormats } from "@/lib/utils";
+import { cn, formatDate, getStrapiMedia, getStrapiMediaWithFormats } from "@/lib/utils";
 import { uiStrings } from "@/lib/ui-strings";
 import type { Article } from "@/lib/strapi";
 import type { Locale } from "@/lib/i18n";
@@ -20,7 +20,8 @@ export function ArticleCard({
   centered = false,
   showReadMore = true,
 }: ArticleCardProps) {
-  const imageUrl = getStrapiMediaWithFormats(article.cover, ["small", "thumbnail"]);
+  const imageUrl = getStrapiMedia(article.cover?.url ?? null);
+  const blurImageUrl = getStrapiMediaWithFormats(article.cover, ["thumbnail", "small"]);
   const displayDate = article.date || article.publishedAt || article.createdAt;
   const hasAnnouncement = Boolean(article.announcement?.trim());
 
@@ -39,13 +40,15 @@ export function ArticleCard({
         <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200/80 dark:from-slate-900 dark:to-slate-800">
           {imageUrl ? (
             <>
-              <img
-                src={imageUrl}
-                alt=""
-                aria-hidden="true"
-                loading="lazy"
-                className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-80"
-              />
+              {blurImageUrl && (
+                <img
+                  src={blurImageUrl}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-80"
+                />
+              )}
               <div className="absolute inset-0 bg-black/10" />
               <img
                 src={imageUrl}
