@@ -14,63 +14,63 @@ type DescBlock = {
   [key: string]: unknown;
 };
 
-function collectDescTexts(blocks: DescBlock[]): string[] {
-  const out: string[] = [];
-  function walk(nodes: DescBlock[] | undefined) {
-    if (!nodes) return;
-    for (const n of nodes) {
-      if (typeof n.text === "string" && n.text.trim()) out.push(n.text);
-      walk(n.children);
-    }
-  }
-  walk(blocks);
-  return out;
+/** Глубокое копирование блоков контента */
+function cloneBlocks(blocks: unknown[]): DescBlock[] {
+  return JSON.parse(JSON.stringify(blocks)) as DescBlock[];
 }
 
-function fillDescTexts(blocks: DescBlock[], translated: string[]): void {
-  let i = 0;
-  function walk(nodes: DescBlock[] | undefined) {
-    if (!nodes) return;
-    for (const n of nodes) {
-      if (typeof n.text === "string" && n.text.trim()) {
-        if (translated[i] !== undefined) n.text = translated[i];
-        i++;
-      }
-      walk(n.children);
+/**
+ * Рекурсивно переводит текст в узлах, сохраняя структуру и форматирование.
+ */
+async function translateNodeRecursive(
+  node: DescBlock,
+  source: Locale,
+  target: Locale
+): Promise<DescBlock> {
+  const translatedNode: DescBlock = { ...node };
+
+  // Переводим текстовое поле, если оно есть
+  if (typeof node.text === "string") {
+    if (node.text.trim()) {
+      translatedNode.text = await translateLongText(node.text, source, target);
     }
   }
-  walk(blocks);
+
+  // Рекурсивно обрабатываем дочерние узлы
+  if (Array.isArray(node.children) && node.children.length > 0) {
+    translatedNode.children = await Promise.all(
+      node.children.map((child) => translateNodeRecursive(child, source, target))
+    );
+  }
+
+  return translatedNode;
 }
 
+/**
+ * Переводит все контентные блоки с сохранением структуры и форматирования.
+ */
 async function translateDescriptionBlocks(
   blocks: unknown[] | null | undefined,
   source: Locale,
   target: Locale
-): Promise<string[]> {
+): Promise<DescBlock[]> {
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return [];
-  const texts = collectDescTexts(blocks as DescBlock[]);
-  if (texts.length === 0) return [];
-  return Promise.all(texts.map((t) => translateLongText(t, source, target)));
+
+  const cloned = cloneBlocks(blocks);
+  return Promise.all(cloned.map((block) => translateNodeRecursive(block, source, target)));
 }
 
 export async function translateEvent(event: Event, targetLocale: Locale): Promise<Event> {
   if (targetLocale === defaultLocale) return event;
   const source: Locale = defaultLocale;
 
-  const [title, location, ...descResult] = await Promise.all([
+  const [title, location, description] = await Promise.all([
     translateText(event.title, source, targetLocale),
     event.location && event.location.trim()
       ? translateText(event.location, source, targetLocale)
       : Promise.resolve(event.location ?? null),
     translateDescriptionBlocks(event.description, source, targetLocale),
   ]);
-
-  let description = event.description;
-  if (Array.isArray(description) && description.length > 0 && descResult[0]?.length) {
-    const cloned = JSON.parse(JSON.stringify(description)) as DescBlock[];
-    fillDescTexts(cloned, descResult[0]);
-    description = cloned;
-  }
 
   return {
     ...event,

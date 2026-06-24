@@ -15,44 +15,57 @@ type ContentBlock = {
   [key: string]: unknown;
 };
 
-/** Собирает все текстовые фрагменты из блоков в порядке обхода (рекурсия) */
-function collectTexts(blocks: ContentBlock[]): string[] {
-  const out: string[] = [];
-  function walk(nodes: ContentBlock[] | undefined) {
-    if (!nodes) return;
-    for (const n of nodes) {
-      if (typeof n.text === "string" && n.text.trim()) out.push(n.text);
-      if (typeof n.plainText === "string" && n.plainText.trim()) out.push(n.plainText);
-      walk(n.children);
-    }
-  }
-  walk(blocks);
-  return out;
-}
-
-/** Подставляет переведённые строки обратно в копию блоков (тот же порядок обхода) */
-function fillTexts(blocks: ContentBlock[], translated: string[]): void {
-  let i = 0;
-  function walk(nodes: ContentBlock[] | undefined) {
-    if (!nodes) return;
-    for (const n of nodes) {
-      if (typeof n.text === "string" && n.text.trim()) {
-        if (translated[i] !== undefined) n.text = translated[i];
-        i++;
-      }
-      if (typeof n.plainText === "string" && n.plainText.trim()) {
-        if (translated[i] !== undefined) n.plainText = translated[i];
-        i++;
-      }
-      walk(n.children);
-    }
-  }
-  walk(blocks);
-}
-
 /** Глубокое копирование блоков контента */
 function cloneBlocks(blocks: unknown[]): ContentBlock[] {
   return JSON.parse(JSON.stringify(blocks)) as ContentBlock[];
+}
+
+/**
+ * Рекурсивно переводит текст в узлах, сохраняя структуру и форматирование.
+ */
+async function translateNodeRecursive(
+  node: ContentBlock,
+  source: Locale,
+  target: Locale
+): Promise<ContentBlock> {
+  const translatedNode: ContentBlock = { ...node };
+
+  // Переводим текстовое поле, если оно есть
+  if (typeof node.text === "string") {
+    if (node.text.trim()) {
+      translatedNode.text = await translateLongText(node.text, source, target);
+    }
+  }
+
+  // Переводим plainText для блоков кода, если он есть
+  if (typeof node.plainText === "string") {
+    if (node.plainText.trim()) {
+      translatedNode.plainText = await translateLongText(node.plainText, source, target);
+    }
+  }
+
+  // Рекурсивно обрабатываем дочерние узлы
+  if (Array.isArray(node.children) && node.children.length > 0) {
+    translatedNode.children = await Promise.all(
+      node.children.map((child) => translateNodeRecursive(child, source, target))
+    );
+  }
+
+  return translatedNode;
+}
+
+/**
+ * Переводит все контентные блоки с сохранением структуры и форматирования.
+ */
+async function translateContentBlocks(
+  blocks: unknown[] | null | undefined,
+  source: Locale,
+  target: Locale
+): Promise<ContentBlock[]> {
+  if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return [];
+
+  const cloned = cloneBlocks(blocks);
+  return Promise.all(cloned.map((block) => translateNodeRecursive(block, source, target)));
 }
 
 /**
@@ -66,7 +79,7 @@ export async function translateArticle(
   if (targetLocale === defaultLocale) return article;
 
   const source: Locale = defaultLocale;
-  const [title, announcement, ...contentTranslated] = await Promise.all([
+  const [title, announcement, content] = await Promise.all([
     translateText(article.title, source, targetLocale),
     article.announcement
       ? translateText(article.announcement, source, targetLocale)
@@ -74,34 +87,12 @@ export async function translateArticle(
     translateContentBlocks(article.content, source, targetLocale),
   ]);
 
-  const content = Array.isArray(article.content)
-    ? cloneBlocks(article.content)
-    : [];
-  if (content.length && contentTranslated.length) {
-    fillTexts(content, contentTranslated[0]);
-  }
-
   return {
     ...article,
     title,
     ...(announcement !== undefined ? { announcement } : {}),
     content,
   };
-}
-
-/**
- * Переводит все текстовые поля в content blocks. Возвращает массив переведённых строк в порядке обхода.
- */
-async function translateContentBlocks(
-  blocks: unknown[] | null | undefined,
-  source: Locale,
-  target: Locale
-): Promise<string[]> {
-  if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return [];
-
-  const texts = collectTexts(blocks as ContentBlock[]);
-  if (texts.length === 0) return [];
-  return Promise.all(texts.map((t) => translateLongText(t, source, target)));
 }
 
 /**
