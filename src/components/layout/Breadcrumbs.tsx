@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { getBreadcrumbItems } from "@/lib/menu-sections";
 import { cn } from "@/lib/utils";
 import { defaultLocale, isValidLocale } from "@/lib/i18n";
@@ -19,10 +20,54 @@ export function Breadcrumbs({ className, menu }: BreadcrumbsProps) {
   const segments = pathname.split("/").filter(Boolean);
   const locale = segments.length > 0 && isValidLocale(segments[0]) ? segments[0] : defaultLocale;
   const pathWithoutLocale = "/" + segments.slice(1).join("/") || "/";
+  const [headingTitle, setHeadingTitle] = useState<string | null>(null);
 
   if (pathWithoutLocale.startsWith("/events")) return null;
 
-  const items = getBreadcrumbItems(pathWithoutLocale, menu, locale);
+  const baseItems = useMemo(() => getBreadcrumbItems(pathWithoutLocale, menu, locale), [pathWithoutLocale, menu, locale]);
+  const shouldUseHeadingAsLastCrumb =
+    pathWithoutLocale.startsWith("/news/") ||
+    pathWithoutLocale.startsWith("/students/dormitory/news/") ||
+    /^\/ideology\/spps\/[^/]+\/[^/]+\/?$/.test(pathWithoutLocale);
+
+  useEffect(() => {
+    setHeadingTitle(null);
+    if (!shouldUseHeadingAsLastCrumb) return;
+
+    const getH1Text = () => {
+      const h1 = document.querySelector("main h1") ?? document.querySelector("h1");
+      const text = h1?.textContent?.replace(/\s+/g, " ").trim();
+      return text || null;
+    };
+
+    const immediate = getH1Text();
+    if (immediate) {
+      setHeadingTitle(immediate);
+      return;
+    }
+
+    const startedAt = Date.now();
+    const intervalId = window.setInterval(() => {
+      const title = getH1Text();
+      if (title) {
+        setHeadingTitle(title);
+        window.clearInterval(intervalId);
+        return;
+      }
+      if (Date.now() - startedAt > 2500) {
+        window.clearInterval(intervalId);
+      }
+    }, 50);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [pathname, shouldUseHeadingAsLastCrumb]);
+
+  const items =
+    shouldUseHeadingAsLastCrumb && headingTitle && baseItems.length > 0
+      ? baseItems.map((item, index) => (index === baseItems.length - 1 ? { ...item, label: headingTitle } : item))
+      : baseItems;
   if (items.length === 0) return null;
 
   const prefix = (href: string) => (href === "/" ? `/${locale}` : `/${locale}${href}`);
