@@ -859,6 +859,50 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiIdeologyItemIdeologyItem
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ideology_items';
+  info: {
+    description: '\u041C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u0440\u0430\u0437\u0434\u0435\u043B\u0430 \u00AB\u0412\u043E\u0441\u043F\u0438\u0442\u0430\u0442\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0431\u043E\u0442\u0430\u00BB (/ideology)';
+    displayName: '\u0412\u043E\u0441\u043F\u0438\u0442\u0430\u0442\u0435\u043B\u044C\u043D\u0430\u044F \u0440\u0430\u0431\u043E\u0442\u0430';
+    pluralName: 'ideology-items';
+    singularName: 'ideology-item';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: false;
+    };
+  };
+  attributes: {
+    content: Schema.Attribute.Blocks;
+    cover: Schema.Attribute.Media<'images'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date;
+    files: Schema.Attribute.Media<'files', true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ideology-item.ideology-item'
+    > &
+      Schema.Attribute.Private;
+    Media: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiMenuMenu extends Struct.SingleTypeSchema {
   collectionName: 'menus';
   info: {
@@ -1642,6 +1686,7 @@ declare module '@strapi/strapi' {
       'api::dormitory-news.dormitory-news': ApiDormitoryNewsDormitoryNews;
       'api::event.event': ApiEventEvent;
       'api::global.global': ApiGlobalGlobal;
+      'api::ideology-item.ideology-item': ApiIdeologyItemIdeologyItem;
       'api::menu.menu': ApiMenuMenu;
       'api::page.page': ApiPagePage;
       'api::specialty.specialty': ApiSpecialtySpecialty;

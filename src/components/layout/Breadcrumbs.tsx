@@ -1,28 +1,32 @@
-"use client";
-
+import { headers } from "next/headers";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
+import { getArticleBreadcrumbTitle } from "@/lib/breadcrumb-article-title";
 import { getBreadcrumbItems } from "@/lib/menu-sections";
 import { cn } from "@/lib/utils";
-import { defaultLocale, isValidLocale } from "@/lib/i18n";
+import { isValidLocale, type Locale } from "@/lib/i18n";
 import { uiStrings } from "@/lib/ui-strings";
 import type { MenuSection } from "@/lib/strapi";
 
 interface BreadcrumbsProps {
   className?: string;
   menu: MenuSection[];
+  locale: Locale;
 }
 
-export function Breadcrumbs({ className, menu }: BreadcrumbsProps) {
-  const pathname = usePathname();
-  const segments = pathname.split("/").filter(Boolean);
-  const locale = segments.length > 0 && isValidLocale(segments[0]) ? segments[0] : defaultLocale;
-  const pathWithoutLocale = "/" + segments.slice(1).join("/") || "/";
+export async function Breadcrumbs({ className, menu, locale }: BreadcrumbsProps) {
+  const headersList = await headers();
+  const fullPathname = headersList.get("x-pathname") ?? "";
+  const segments = fullPathname.split("/").filter(Boolean);
+  const pathWithoutLocale =
+    segments.length > 0 && isValidLocale(segments[0])
+      ? "/" + segments.slice(1).join("/") || "/"
+      : fullPathname || "/";
 
   if (pathWithoutLocale.startsWith("/events")) return null;
 
-  const items = getBreadcrumbItems(pathWithoutLocale, menu, locale);
+  const articleTitle = await getArticleBreadcrumbTitle(pathWithoutLocale.replace(/^\//, ""), locale);
+  const items = getBreadcrumbItems(pathWithoutLocale, menu, locale, articleTitle);
   if (items.length === 0) return null;
 
   const prefix = (href: string) => (href === "/" ? `/${locale}` : `/${locale}${href}`);

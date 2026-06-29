@@ -331,7 +331,12 @@ function slugToTitle(slug: string): string {
  * Строит список пунктов хлебных крошек по pathname и меню.
  * Для сегментов, не найденных в меню (например slug новости), подставляет форматированный slug или общий ярлык.
  */
-export function getBreadcrumbItems(pathname: string, menu: MenuSection[], locale: Locale = "ru"): BreadcrumbItem[] {
+export function getBreadcrumbItems(
+  pathname: string,
+  menu: MenuSection[],
+  locale: Locale = "ru",
+  articleTitle?: string | null
+): BreadcrumbItem[] {
   const path = pathname.replace(/^\//, "").trim() || "";
   if (!path) return [];
 
@@ -342,8 +347,10 @@ export function getBreadcrumbItems(pathname: string, menu: MenuSection[], locale
     const segmentPath = segments.slice(0, i + 1).join("/");
     const href = "/" + segmentPath;
     let label = getTitleForPath("/" + segmentPath, menu);
-    // Если метка совпадает с путём (не найдено в меню), форматируем или подставляем общий ярлык
-    if (label === segmentPath || label === segments[i]) {
+    const isLast = i === segments.length - 1;
+    if (isLast && articleTitle) {
+      label = articleTitle;
+    } else if (label === segmentPath || label === segments[i]) {
       const firstSegment = segments[0];
       if (firstSegment === "news" && i === 1) label = uiStrings.newsItem[locale];
       else if (firstSegment === "events" && i === 1) label = uiStrings.eventItem[locale];

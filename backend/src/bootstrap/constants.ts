@@ -9,6 +9,8 @@ export const PUBLIC_PERMISSION_ACTIONS = [
   'api::spps-psy.spps-psy.findOne',
   'api::spps-social.spps-social.find',
   'api::spps-social.spps-social.findOne',
+  'api::ideology-item.ideology-item.find',
+  'api::ideology-item.ideology-item.findOne',
   'api::event.event.find',
   'api::event.event.findOne',
   'api::page.page.find',
@@ -37,6 +39,11 @@ export const EDITOR_PERMISSION_ACTIONS = [
   'api::spps-social.spps-social.create',
   'api::spps-social.spps-social.update',
   'api::spps-social.spps-social.delete',
+  'api::ideology-item.ideology-item.find',
+  'api::ideology-item.ideology-item.findOne',
+  'api::ideology-item.ideology-item.create',
+  'api::ideology-item.ideology-item.update',
+  'api::ideology-item.ideology-item.delete',
 ] as const;
 
 export const ANNUAL_THEME_FALLBACK_PAGE = {

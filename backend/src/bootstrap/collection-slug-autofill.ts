@@ -6,6 +6,7 @@ const SLUG_COLLECTION_UIDS = [
   'api::dormitory-news.dormitory-news',
   'api::spps-psy.spps-psy',
   'api::spps-social.spps-social',
+  'api::ideology-item.ideology-item',
   'api::event.event',
 ] as const;
 

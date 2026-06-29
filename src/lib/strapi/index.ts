@@ -12,6 +12,10 @@ export {
   getSppsPsyBySlugOrDocumentId,
 } from "./spps-psy";
 export {
+  getIdeologyItems,
+  getIdeologyItemBySlugOrDocumentId,
+} from "./ideology";
+export {
   getSppsSocial,
   getSppsSocialBySlugOrDocumentId,
 } from "./spps-social";

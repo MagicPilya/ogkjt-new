@@ -52,6 +52,8 @@ export const ruTranslations = {
   'Педагог-психолог': 'Педагог-психолог',
   'api::spps-social.spps-social': 'Педагог социальный',
   'Педагог социальный': 'Педагог социальный',
+  'api::ideology-item.ideology-item': 'Воспитательная работа',
+  'Воспитательная работа': 'Воспитательная работа',
   'plugin::users-permissions.user': 'Пользователь',
   'api::administration.administration': 'Администрация',
   'api::admission-document.admission-document': 'Документы приёмной комиссии',
@@ -202,6 +204,13 @@ export const ruTranslations = {
   'content-manager.content-types.api::spps-social.spps-social.slug': 'Ссылка (slug)',
   'content-manager.content-types.api::spps-social.spps-social.createdAt': 'Создано',
   'content-manager.content-types.api::spps-social.spps-social.files': 'Вложения',
+
+  'content-manager.content-types.api::ideology-item.ideology-item.id': 'ID',
+  'content-manager.content-types.api::ideology-item.ideology-item.title': 'Заголовок',
+  'content-manager.content-types.api::ideology-item.ideology-item.date': 'Дата',
+  'content-manager.content-types.api::ideology-item.ideology-item.slug': 'Ссылка (slug)',
+  'content-manager.content-types.api::ideology-item.ideology-item.createdAt': 'Создано',
+  'content-manager.content-types.api::ideology-item.ideology-item.files': 'Вложения',
 
   'content-manager.content-types.api::page.page.id': 'ID',
   'content-manager.content-types.api::page.page.pageUrl': 'Страница',

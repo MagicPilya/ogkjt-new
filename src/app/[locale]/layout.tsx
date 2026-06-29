@@ -29,7 +29,7 @@ export default async function LocaleLayout({
       <RouteChangeIndicator />
       <HeaderWrapper locale={typedLocale} />
       <main className="flex-1">
-        <Breadcrumbs menu={breadcrumbMenu} />
+        <Breadcrumbs menu={breadcrumbMenu} locale={typedLocale} />
         {children}
       </main>
       <FooterWrapper locale={typedLocale} />
