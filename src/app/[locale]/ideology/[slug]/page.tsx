@@ -10,17 +10,25 @@ import { ContentBlocks } from "@/components/blocks/ContentBlocks";
 import { MediaSlider, type MediaItem } from "@/components/blocks/MediaSlider";
 import { PageFiles } from "@/components/blocks/PageFiles";
 import { translationDisclaimer, type Locale } from "@/lib/i18n";
-import { IDEOLOGY_PATH, IDEOLOGY_RESERVED_SLUGS, ideologyLabels } from "@/lib/ideology";
+import { IDEOLOGY_PATH, isIdeologySubsectionSlug, ideologyLabels } from "@/lib/ideology";
+import { getMenu } from "@/lib/strapi";
 import { getIdeologyItemBySlugOrDocumentId } from "@/lib/strapi/ideology";
+import { normalizeMenu } from "@/lib/menu-sections";
 
 interface Props {
   params: Promise<{ locale: Locale; slug: string }>;
 }
 
+async function isSubsectionPage(slug: string, locale: Locale) {
+  const menuData = await getMenu(locale);
+  const menu = normalizeMenu(menuData?.mainMenu, locale) ?? [];
+  return isIdeologySubsectionSlug(slug, menu);
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale } = await params;
 
-  if (IDEOLOGY_RESERVED_SLUGS.has(slug)) {
+  if (await isSubsectionPage(slug, locale)) {
     return getSectionPageMetadata(`${IDEOLOGY_PATH}/${slug}`, locale);
   }
 
@@ -41,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function IdeologySlugPage({ params }: Props) {
   const { slug, locale } = await params;
 
-  if (IDEOLOGY_RESERVED_SLUGS.has(slug)) {
+  if (await isSubsectionPage(slug, locale)) {
     return <SectionPage path={`${IDEOLOGY_PATH}/${slug}`} locale={locale} />;
   }
 

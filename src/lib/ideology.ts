@@ -1,7 +1,15 @@
-/** Подразделы /ideology, которые обрабатываются через SectionPage, а не как статьи. */
-export const IDEOLOGY_RESERVED_SLUGS = new Set(["spps", "youth-policy", "curator"]);
+import type { MenuSection } from "./strapi";
 
 export const IDEOLOGY_PATH = "ideology";
+
+/** Подраздел из меню «Воспитательная работа» (не статья ideology-item). */
+export function isIdeologySubsectionSlug(slug: string, menu: MenuSection[]): boolean {
+  const section = menu.find((item) => (item.url ?? "").replace(/^\//, "") === IDEOLOGY_PATH);
+  if (!section?.links?.length) return false;
+
+  const target = `${IDEOLOGY_PATH}/${slug.replace(/^\//, "")}`;
+  return section.links.some((link) => (link.url ?? "").replace(/^\//, "").replace(/\/$/, "") === target);
+}
 
 export const ideologyLabels = {
   ru: {

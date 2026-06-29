@@ -25,7 +25,11 @@ export async function Breadcrumbs({ className, menu, locale }: BreadcrumbsProps)
 
   if (pathWithoutLocale.startsWith("/events")) return null;
 
-  const articleTitle = await getArticleBreadcrumbTitle(pathWithoutLocale.replace(/^\//, ""), locale);
+  const articleTitle = await getArticleBreadcrumbTitle(
+    pathWithoutLocale.replace(/^\//, ""),
+    locale,
+    menu
+  );
   const items = getBreadcrumbItems(pathWithoutLocale, menu, locale, articleTitle);
   if (items.length === 0) return null;
 

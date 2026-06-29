@@ -1,17 +1,21 @@
 import type { Locale } from "./i18n";
-import { IDEOLOGY_RESERVED_SLUGS } from "./ideology";
+import { isIdeologySubsectionSlug } from "./ideology";
 import { getSppsSectionConfig } from "./spps-sections";
 import {
   getArticleBySlugOrDocumentId,
   getDormitoryNewsBySlugOrDocumentId,
   type Article,
+  type MenuSection,
 } from "./strapi";
 import { getIdeologyItemBySlugOrDocumentId } from "./strapi/ideology";
 import { getArticleForLocale } from "./translateArticle";
 
 type ArticleFetcher = (slug: string, locale?: Locale) => Promise<Article | null>;
 
-function parseArticleDetailPath(path: string): { slug: string; getBySlug: ArticleFetcher } | null {
+function parseArticleDetailPath(
+  path: string,
+  menu: MenuSection[]
+): { slug: string; getBySlug: ArticleFetcher } | null {
   const segments = path.replace(/^\//, "").split("/").filter(Boolean);
 
   if (segments.length === 2 && segments[0] === "news") {
@@ -37,7 +41,7 @@ function parseArticleDetailPath(path: string): { slug: string; getBySlug: Articl
   if (
     segments.length === 2 &&
     segments[0] === "ideology" &&
-    !IDEOLOGY_RESERVED_SLUGS.has(segments[1])
+    !isIdeologySubsectionSlug(segments[1], menu)
   ) {
     return { slug: segments[1], getBySlug: getIdeologyItemBySlugOrDocumentId };
   }
@@ -46,8 +50,12 @@ function parseArticleDetailPath(path: string): { slug: string; getBySlug: Articl
 }
 
 /** Заголовок статьи для последней крошки (с учётом be/en перевода). */
-export async function getArticleBreadcrumbTitle(path: string, locale: Locale): Promise<string | null> {
-  const parsed = parseArticleDetailPath(path);
+export async function getArticleBreadcrumbTitle(
+  path: string,
+  locale: Locale,
+  menu: MenuSection[] = []
+): Promise<string | null> {
+  const parsed = parseArticleDetailPath(path, menu);
   if (!parsed?.slug || parsed.slug === "null") {
     return null;
   }
