@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
   const localeParam = request.nextUrl.searchParams.get("locale") ?? "ru";
   const locale: Locale = isValidLocale(localeParam) ? localeParam : "ru";
   const preferredGid = request.nextUrl.searchParams.get("gid");
+  const embed = request.nextUrl.searchParams.get("embed") === "1";
 
   const settings = await loadSettingsWithSheetUrl(locale);
   const resolved = await resolveAdmissionSheetHtml(settings, {
@@ -89,6 +90,7 @@ export async function GET(request: NextRequest) {
       tabs: resolved.tabs,
       activeGid: resolved.activeGid,
       locale,
+      embed,
     });
     return new NextResponse(html, {
       status: 200,

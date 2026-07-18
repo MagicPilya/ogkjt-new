@@ -298,9 +298,11 @@ export function getAdmissionSheetFetchUrl(settings?: GlobalSettings | null): str
   return shell.toString();
 }
 
-/** Same-origin страница таблицы: iframe и «открыть в новой вкладке» (без диалога приложений на мобильных). */
-export function getAdmissionSheetViewPath(locale: Locale = "ru"): string {
-  return `/api/admission-sheet?locale=${locale}`;
+/** Same-origin страница таблицы: iframe и «открыть в новой вкладке». */
+export function getAdmissionSheetViewPath(locale: Locale = "ru", options?: { embed?: boolean }): string {
+  const params = new URLSearchParams({ locale });
+  if (options?.embed) params.set("embed", "1");
+  return `/api/admission-sheet?${params.toString()}`;
 }
 
 export function getAdmissionSheetUrl(settings?: GlobalSettings | null): string {

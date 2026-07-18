@@ -16,6 +16,7 @@ import {
   getAdmissionPeriodsSummary,
   getAdmissionSheetViewPath,
 } from "@/lib/admission-campaign";
+import { AdmissionSheetEmbed } from "@/components/blocks/AdmissionSheetEmbed";
 import { yearTheme } from "@/lib/year-theme";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
@@ -70,11 +71,14 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
   const admissionPeriods = isAdmissionProgressPage
     ? getAdmissionPeriodsSummary(globalSettings, admissionLocale)
     : [];
+  const admissionSheetEmbedPath = isAdmissionProgressPage
+    ? getAdmissionSheetViewPath(admissionLocale, { embed: true })
+    : "";
   const admissionSheetViewPath = isAdmissionProgressPage ? getAdmissionSheetViewPath(admissionLocale) : "";
-  const admissionUi = {
-    ru: { iframeTitle: "Ход приёма документов", openInNewTab: "Открыть таблицу в новой вкладке" },
-    be: { iframeTitle: "Ход прыёму дакументаў", openInNewTab: "Адкрыць табліцу ў новай укладцы" },
-    en: { iframeTitle: "Document admission progress", openInNewTab: "Open the spreadsheet in a new tab" },
+  const admissionIframeTitle = {
+    ru: "Ход приёма документов",
+    be: "Ход прыёму дакументаў",
+    en: "Document admission progress",
   }[admissionLocale];
   const isDormitorySection = path === "students/dormitory";
   const newsHref = (identifier: string) =>
@@ -177,7 +181,7 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
       )}
 
       {isAdmissionProgressPage && (
-        <section className="mt-10">
+        <div className="mt-10">
           {admissionPeriods.length > 0 && (
             <div className="mb-4 space-y-1 text-sm text-slate-600 dark:text-slate-300">
               {admissionPeriods.map((period) => (
@@ -187,28 +191,13 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
               ))}
             </div>
           )}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
-            <div className="overflow-x-auto">
-              <iframe
-                title={admissionUi.iframeTitle}
-                src={admissionSheetViewPath}
-                className="w-full min-h-[min(80vh,900px)] min-w-[1100px] border-0"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <a
-              href={admissionSheetViewPath}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-            >
-              {admissionUi.openInNewTab}
-            </a>
-          </div>
-        </section>
+          <AdmissionSheetEmbed
+            src={admissionSheetEmbedPath}
+            openHref={admissionSheetViewPath}
+            title={admissionIframeTitle}
+            locale={admissionLocale}
+          />
+        </div>
       )}
 
       {isRootSection && section.links && section.links.length > 0 && (

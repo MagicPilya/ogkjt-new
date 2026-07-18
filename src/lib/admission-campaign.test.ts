@@ -62,6 +62,7 @@ describe("admission sheet URLs", () => {
   it("returns same-origin view path", () => {
     expect(getAdmissionSheetViewPath("ru")).toBe("/api/admission-sheet?locale=ru");
     expect(getAdmissionSheetViewPath("be")).toBe("/api/admission-sheet?locale=be");
+    expect(getAdmissionSheetViewPath("ru", { embed: true })).toBe("/api/admission-sheet?locale=ru&embed=1");
   });
 
   it("extracts sheet gids from pubhtml shell", () => {
@@ -143,9 +144,28 @@ describe("enhanceAdmissionSheetHtml", () => {
     expect(out).toContain("#footer");
     expect(out).toContain("display: none !important");
     expect(out).toContain("admission-sheet-tabs");
+    expect(out).toContain('class="admission-zoom-bar"');
     expect(out).toContain("gid=2");
     expect(out).toContain("is-active");
+    expect(out).toContain("admission-sheet-zoom");
     expect(out).not.toContain('id="top-bar"');
     expect(out).not.toContain("File : У");
+  });
+
+  it("marks embed mode for pinch relay without zoom bar", () => {
+    const input = `<!DOCTYPE html><html><head></head><body>
+      <div id="top-bar"><div id="doc-title">x</div></div>
+      <div id="sheets-viewport"><table></table></div>
+    </body></html>`;
+    const out = enhanceAdmissionSheetHtml(input, {
+      tabs: [{ name: "У", gid: "1" }],
+      activeGid: "1",
+      locale: "ru",
+      embed: true,
+    });
+    expect(out).toContain('data-admission-embed="1"');
+    expect(out).toContain("admission-sheet-zoom");
+    expect(out).not.toContain('class="admission-zoom-bar"');
+    expect(out).toContain("pinch");
   });
 });
