@@ -33,12 +33,14 @@ function errorHtml(locale: Locale): string {
 </html>`;
 }
 
-async function fetchGoogleHtml(url: string): Promise<Response> {
-  return fetch(url, {
+async function fetchGoogleHtml(input: string, init?: RequestInit): Promise<Response> {
+  return fetch(input, {
+    ...init,
     next: { revalidate: REVALIDATE_SECONDS },
     headers: {
       Accept: "text/html,application/xhtml+xml",
       "User-Agent": "Mozilla/5.0 (compatible; OGKJTBot/1.0; +https://ogkjt.by)",
+      ...Object.fromEntries(new Headers(init?.headers).entries()),
     },
   });
 }

@@ -92,7 +92,7 @@ describe("admission sheet URLs", () => {
       })
     );
     const resolved = await resolveAdmissionSheetHtml(settings(IFRAME_SHEET), {
-      fetchImpl: fetchMock as unknown as typeof fetch,
+      fetchImpl: fetchMock as unknown as (input: string, init?: RequestInit) => Promise<Response>,
     });
     expect(resolved?.htmlUrl).toBe(
       buildAdmissionSheetStaticHtmlUrl("https://docs.google.com/spreadsheets/d/e/2PACX-abc/pubhtml", "1799188760")
@@ -110,7 +110,7 @@ describe("admission sheet URLs", () => {
     );
     const resolved = await resolveAdmissionSheetHtml(settings(IFRAME_SHEET), {
       preferredGid: "2",
-      fetchImpl: fetchMock as unknown as typeof fetch,
+      fetchImpl: fetchMock as unknown as (input: string, init?: RequestInit) => Promise<Response>,
     });
     expect(resolved?.activeGid).toBe("2");
     expect(resolved?.htmlUrl).toContain("gid=2");

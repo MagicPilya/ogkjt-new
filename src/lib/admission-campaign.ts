@@ -202,6 +202,8 @@ function decodeJsString(value: string): string {
     .replace(/\\\\/g, "\\");
 }
 
+export type AdmissionSheetFetch = (input: string, init?: RequestInit) => Promise<Response>;
+
 export type ResolveAdmissionSheetResult = {
   htmlUrl: string;
   tabs: { name: string; gid: string }[];
@@ -214,7 +216,7 @@ export type ResolveAdmissionSheetResult = {
  */
 export async function resolveAdmissionSheetHtml(
   settings?: GlobalSettings | null,
-  options: { preferredGid?: string | null; fetchImpl?: typeof fetch } = {}
+  options: { preferredGid?: string | null; fetchImpl?: AdmissionSheetFetch } = {}
 ): Promise<ResolveAdmissionSheetResult | null> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const base = getAdmissionSheetPubHtmlBaseUrl(settings);
@@ -266,7 +268,7 @@ export async function resolveAdmissionSheetHtml(
  */
 export async function resolveAdmissionSheetHtmlUrl(
   settings?: GlobalSettings | null,
-  fetchImpl: typeof fetch = fetch,
+  fetchImpl: AdmissionSheetFetch = fetch,
   preferredGid?: string | null
 ): Promise<string | null> {
   const resolved = await resolveAdmissionSheetHtml(settings, { preferredGid, fetchImpl });
