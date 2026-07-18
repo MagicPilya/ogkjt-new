@@ -15,15 +15,25 @@ const SCORE_CELL_RE = /<td(\s[^>]*)?>\s*(\d+[,.]\d)\s*<\/td>/gi;
 const INJECTED_STYLE = `
 <style id="admission-sheet-enhance">
   html, body {
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #fff;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: auto !important;
+    display: block !important;
   }
   /* Служебный хром Google */
   #footer,
   #top-bar,
   #doc-title {
     display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
   }
   /* Номера строк слева */
   .row-headers-background,
@@ -34,7 +44,7 @@ const INJECTED_STYLE = `
     display: none !important;
   }
   .ritz.grid-container {
-    overflow: auto !important;
+    overflow: visible !important;
   }
   td[data-score-header="1"] {
     writing-mode: vertical-rl;
@@ -117,6 +127,11 @@ const INJECTED_STYLE = `
     color: #334155;
   }
   #sheets-viewport {
+    display: block !important;
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     transform-origin: top left;
   }
 </style>
@@ -127,6 +142,8 @@ const ZOOM_SCRIPT = `
 (function () {
   var STORAGE_KEY = "admission-sheet-zoom";
   var MSG = "admission-sheet";
+  var MIN_ZOOM = 10;
+  var MAX_ZOOM = 200;
   var viewport = null;
   var valueEl = null;
   var mode = "fit";
@@ -134,6 +151,8 @@ const ZOOM_SCRIPT = `
   var pinchStartDist = 0;
   var pinchStartPercent = 70;
   var isEmbed = document.documentElement.getAttribute("data-admission-embed") === "1";
+  var raf = 0;
+  var pendingPercent = null;
 
   function getViewport() {
     return document.getElementById("sheets-viewport") || document.querySelector(".ritz.grid-container") || document.body;
@@ -142,6 +161,11 @@ const ZOOM_SCRIPT = `
   function contentWidth() {
     var table = document.querySelector(".waffle") || getViewport();
     return Math.max(table.scrollWidth || 0, table.clientWidth || 0, 1200);
+  }
+
+  function contentHeight() {
+    var table = document.querySelector(".waffle") || getViewport();
+    return Math.max(table.scrollHeight || 0, table.clientHeight || 0, 400);
   }
 
   function currentScale() {
@@ -157,30 +181,53 @@ const ZOOM_SCRIPT = `
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  function apply() {
+  function clampPct(p) {
+    return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, p));
+  }
+
+  function applyNow() {
     if (isEmbed) return;
     viewport = getViewport();
     if (!viewport) return;
     var scale = currentScale();
+    var cw = contentWidth();
+    var ch = contentHeight();
+    viewport.style.transformOrigin = "top left";
     viewport.style.transform = "scale(" + scale + ")";
-    viewport.style.width = (100 / scale) + "%";
+    viewport.style.width = cw + "px";
+    viewport.style.height = ch + "px";
+    // Убираем «пустое» место после scale (иначе снизу невидимый хвост/футер).
+    viewport.style.marginBottom = (ch * (scale - 1)) + "px";
+    viewport.style.marginRight = (cw * (scale - 1)) + "px";
     if (valueEl) valueEl.textContent = Math.round(scale * 100) + "%";
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode: mode, percent: percent })); } catch (e) {}
     document.querySelectorAll("[data-zoom]").forEach(function (btn) {
       var key = btn.getAttribute("data-zoom");
-      var active = (key === "fit" && mode === "fit") || (key === String(percent) && mode === "pct");
+      var active = (key === "fit" && mode === "fit") || (key === String(Math.round(percent)) && mode === "pct");
       btn.classList.toggle("is-active", !!active);
     });
   }
 
-  function setFit() { mode = "fit"; apply(); }
+  function apply() {
+    if (raf) return;
+    raf = requestAnimationFrame(function () {
+      raf = 0;
+      if (pendingPercent != null) {
+        percent = clampPct(pendingPercent);
+        pendingPercent = null;
+        mode = "pct";
+      }
+      applyNow();
+    });
+  }
+
+  function setFit() { mode = "fit"; pendingPercent = null; apply(); }
   function setPct(p) {
-    mode = "pct";
-    percent = Math.max(40, Math.min(150, Math.round(p)));
+    pendingPercent = clampPct(p);
     apply();
   }
   function nudge(delta) {
-    if (mode === "fit") percent = Math.round(currentScale() * 100);
+    if (mode === "fit") percent = currentScale() * 100;
     setPct(percent + delta);
   }
 
@@ -197,7 +244,7 @@ const ZOOM_SCRIPT = `
     if (isEmbed) {
       notifyParent({ type: "pinch-start" });
     } else {
-      pinchStartPercent = Math.round(currentScale() * 100);
+      pinchStartPercent = currentScale() * 100;
     }
   }
 
@@ -233,9 +280,10 @@ const ZOOM_SCRIPT = `
     if (!isEmbed) {
       try {
         var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        // Старые сохранения с минимумом 40% на мобилке давали скачок — игнорируем слишком высокие «дефолты» только если fit нужнее? Нет, уважаем выбор пользователя, но clamp к новому диапазону.
         if (saved && saved.mode === "pct" && saved.percent) {
           mode = "pct";
-          percent = saved.percent;
+          percent = clampPct(saved.percent);
         }
       } catch (e) {}
       document.querySelectorAll("[data-zoom]").forEach(function (btn) {

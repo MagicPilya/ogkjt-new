@@ -6,8 +6,9 @@ import type { Locale } from "@/lib/i18n";
 
 const PRESETS = [50, 65, 80, 100] as const;
 const DEFAULT_NATURAL = { width: 1800, height: 820 };
-const MIN_ZOOM = 40;
-const MAX_ZOOM = 150;
+/** Ниже «по ширине» на узких экранах; 40% как раз давал скачок с fit. */
+const MIN_ZOOM = 10;
+const MAX_ZOOM = 200;
 const ZOOM_STEP = 10;
 const PINCH_MESSAGE_SOURCE = "admission-sheet";
 
@@ -38,32 +39,29 @@ const ui = {
 } as const;
 
 interface AdmissionSheetEmbedProps {
-  /** URL для iframe (обычно с embed=1). */
   src: string;
-  /** URL «открыть в новой вкладке» (полная страница с зумом). */
   openHref: string;
   title: string;
   locale: Locale;
 }
 
 function clampZoom(value: number): number {
-  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(value)));
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
 }
 
 function touchDistance(a: Touch, b: Touch): number {
-  const dx = a.clientX - b.clientX;
-  const dy = a.clientY - b.clientY;
-  return Math.hypot(dx, dy);
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
 
 export function AdmissionSheetEmbed({ src, openHref, title, locale }: AdmissionSheetEmbedProps) {
   const labels = ui[locale];
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const modeRef = useRef<ZoomMode>("fit");
   const scaleRef = useRef(1);
-  const pinchBasePercentRef = useRef(70);
+  const pinchBasePercentRef = useRef(100);
   const localPinchStartDistRef = useRef(0);
+  const pendingZoomRef = useRef<number | null>(null);
+  const rafRef = useRef(0);
 
   const [mode, setMode] = useState<ZoomMode>("fit");
   const [natural, setNatural] = useState(DEFAULT_NATURAL);
@@ -99,33 +97,52 @@ export function AdmissionSheetEmbed({ src, openHref, title, locale }: AdmissionS
   const zoomPercent = Math.round(scale * 100);
 
   useEffect(() => {
-    modeRef.current = mode;
     scaleRef.current = scale;
-  }, [mode, scale]);
+  }, [scale]);
 
-  const applyZoomPercent = useCallback((percent: number) => {
-    setMode(clampZoom(percent));
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
-  // Pinch из iframe (таблица) через postMessage
+  const applyZoomPercent = useCallback((percent: number) => {
+    const next = clampZoom(percent);
+    pendingZoomRef.current = next;
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      const value = pendingZoomRef.current;
+      if (value == null) return;
+      pendingZoomRef.current = null;
+      setMode(value);
+    });
+  }, []);
+
+  const beginPinch = useCallback(() => {
+    // Важно: база = фактический масштаб (в т.ч. fit < 40%), без скачка к минимуму.
+    pinchBasePercentRef.current = scaleRef.current * 100;
+  }, []);
+
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       const data = event.data;
       if (!data || data.source !== PINCH_MESSAGE_SOURCE) return;
 
       if (data.type === "pinch-start") {
-        pinchBasePercentRef.current = Math.round(scaleRef.current * 100);
+        beginPinch();
         return;
       }
       if (data.type === "pinch" && typeof data.factor === "number" && data.factor > 0) {
+        // Если start потерялся — всё равно от текущего масштаба.
+        if (pinchBasePercentRef.current <= 0) beginPinch();
         applyZoomPercent(pinchBasePercentRef.current * data.factor);
       }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [applyZoomPercent]);
+  }, [applyZoomPercent, beginPinch]);
 
-  // Pinch по области контейнера (на случай жеста по рамке/скроллу)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -133,7 +150,7 @@ export function AdmissionSheetEmbed({ src, openHref, title, locale }: AdmissionS
     const onStart = (e: TouchEvent) => {
       if (e.touches.length !== 2) return;
       localPinchStartDistRef.current = touchDistance(e.touches[0], e.touches[1]);
-      pinchBasePercentRef.current = Math.round(scaleRef.current * 100);
+      beginPinch();
     };
 
     const onMove = (e: TouchEvent) => {
@@ -158,11 +175,11 @@ export function AdmissionSheetEmbed({ src, openHref, title, locale }: AdmissionS
       el.removeEventListener("touchend", onEnd);
       el.removeEventListener("touchcancel", onEnd);
     };
-  }, [applyZoomPercent]);
+  }, [applyZoomPercent, beginPinch]);
 
   const setPreset = (value: ZoomMode) => setMode(value);
   const nudgeZoom = (delta: number) => {
-    const base = mode === "fit" ? zoomPercent : mode;
+    const base = scaleRef.current * 100;
     setMode(clampZoom(base + delta));
   };
 
