@@ -12,7 +12,10 @@ import { uiStrings } from "@/lib/ui-strings";
 import type { Locale } from "@/lib/i18n";
 import { loadSectionPageData, loadSectionPageMeta } from "@/lib/services/section-page";
 import { getGlobalSettings, getAnnualSymbol } from "@/lib/strapi";
-import { getAdmissionPeriodsSummary, getAdmissionSheetOpenUrl, getAdmissionSheetUrl } from "@/lib/admission-campaign";
+import {
+  getAdmissionPeriodsSummary,
+  getAdmissionSheetViewPath,
+} from "@/lib/admission-campaign";
 import { yearTheme } from "@/lib/year-theme";
 
 const SITE_TITLE = "Оршанский колледж – филиал БелГУТа";
@@ -63,14 +66,16 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
 
   const topNavLinks = isRootSection ? section.links ?? [] : activeSectionLink?.sublinks ?? [];
   const globalSettings = isAdmissionProgressPage ? await getGlobalSettings(locale, { revalidateSeconds: null }) : null;
-  const admissionPeriods = isAdmissionProgressPage ? getAdmissionPeriodsSummary(globalSettings, locale ?? "ru") : [];
-  const admissionSheetUrl = isAdmissionProgressPage ? getAdmissionSheetUrl(globalSettings) : "";
-  const admissionSheetOpenUrl = isAdmissionProgressPage ? getAdmissionSheetOpenUrl(globalSettings) : "";
+  const admissionLocale = locale ?? "ru";
+  const admissionPeriods = isAdmissionProgressPage
+    ? getAdmissionPeriodsSummary(globalSettings, admissionLocale)
+    : [];
+  const admissionSheetViewPath = isAdmissionProgressPage ? getAdmissionSheetViewPath(admissionLocale) : "";
   const admissionUi = {
     ru: { iframeTitle: "Ход приёма документов", openInNewTab: "Открыть таблицу в новой вкладке" },
     be: { iframeTitle: "Ход прыёму дакументаў", openInNewTab: "Адкрыць табліцу ў новай укладцы" },
     en: { iframeTitle: "Document admission progress", openInNewTab: "Open the spreadsheet in a new tab" },
-  }[locale ?? "ru"];
+  }[admissionLocale];
   const isDormitorySection = path === "students/dormitory";
   const newsHref = (identifier: string) =>
     isDormitorySection
@@ -183,16 +188,19 @@ export default async function SectionPage({ path, locale }: SectionPageProps) {
             </div>
           )}
           <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
-            <iframe
-              title={admissionUi.iframeTitle}
-              src={admissionSheetUrl}
-              className="w-full min-h-[720px]"
-              loading="lazy"
-            />
+            <div className="overflow-x-auto">
+              <iframe
+                title={admissionUi.iframeTitle}
+                src={admissionSheetViewPath}
+                className="w-full min-h-[min(80vh,900px)] min-w-[1100px] border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+            </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <a
-              href={admissionSheetOpenUrl}
+              href={admissionSheetViewPath}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"

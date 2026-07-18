@@ -283,8 +283,8 @@ export const ruTranslations = {
   'content-manager.components.elements.admission-campaign.dayEndDate': 'Окончание приёма (дневное)',
   'content-manager.components.elements.admission-campaign.partTimeStartDate': 'Начало приёма (заочное)',
   'content-manager.components.elements.admission-campaign.partTimeEndDate': 'Окончание приёма (заочное)',
-  'content-manager.components.elements.admission-campaign.sheetUrl': 'Ссылка на таблицу хода приёма (iframe)',
-  'content-manager.components.elements.admission-campaign.sheetOpenUrl': 'Ссылка «Открыть таблицу» (Google Sheet)',
+  'content-manager.components.elements.admission-campaign.sheetUrl': 'Ссылка iframe (Publish to web → pubhtml)',
+  'content-manager.components.elements.admission-campaign.sheetOpenUrl': 'Ссылка Google Sheet (для gid вкладки; на сайте открывается HTML-версия)',
   'content-manager.components.elements.footer-resource.title': 'Название ресурса',
   'content-manager.components.elements.footer-resource.url': 'Ссылка',
 
